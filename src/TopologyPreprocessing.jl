@@ -14,7 +14,4 @@ include("PointsSubstitution.jl")
 include("SavingFigures.jl")
 include("VideoProcessing.jl")
 
-
-greet() = print("Hello World!")
-
 end # module
