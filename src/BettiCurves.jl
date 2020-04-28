@@ -1,4 +1,6 @@
 using Plots
+using PlotThemes
+using PlotUtils
 using Eirene
 using Measures
 using Plots.PlotMeasures
@@ -688,8 +690,8 @@ function plot_bettis2(bettis, plot_title; legend_on=true, min_dim=1)#; plot_size
 	all_dims = min_dim:max_dim
 
 	# set_default_plotting_params()
-    cur_colors = get_color_palette(:auto, plot_color(:white), 17)
-	cur_colors2 = get_color_palette(:cyclic1, plot_color(:white), 40)
+    cur_colors = get_color_palette(:auto, 17)
+	cur_colors2 = get_color_palette(:cyclic1, 40)
 	if min_dim == 0
 		colors_set =  [cur_colors[3], cur_colors[5], [:red], cur_colors[1]] #cur_colors[7],
 	else
