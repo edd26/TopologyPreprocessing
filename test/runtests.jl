@@ -100,3 +100,144 @@ end
 	@test subsample_matrix(sqr_matrix2, subsamp_size=3, method="max_pooling") == result_matrix2_3
 	@test subsample_matrix(sqr_matrix2, subsamp_size=4, method="max_pooling") == result_matrix2_4
 end
+
+@testset "MatrixOrganization.jl -> add_random_patch" begin
+	in_vector = [1, 2, 3, 4, 3, 2, 1]
+
+	sqr_matrix0 = [ 1 2 3;
+	 				2 6 7;
+					3 7 0]
+	sqr_matrix1 = [1 2 3  4  5;
+					 2 1 6  7  8;
+					 3 6 1  9  10;
+					 4 7 9  1  11;
+					 5 8 10 11 1]
+	sqr_matrix2 = [	0	1	13	4	5	9;
+					1	0	2	14	6	10;
+					13	2	0	3	7	11;
+					4	14	3	0	8	12;
+					5	6	7	8	0	15;
+					9	10	11	12	15	0]
+	 sqr_matrix3 = [ 0	1	113	4	5	9	13	17	81	82	83	84;
+ 					1	0	2	114	6	10	14	18	85	86	87	88;
+ 					113	2	0	3	7	11	15	19	89	90	91	92;
+ 					4	114	3	0	8	12	16	20	93	94	95	96;
+ 					5	6	7	8	0	21	115	24	29	30	31	32;
+ 					9	10	11	12	21	0	22	116	33	34	35	36;
+ 					13	14	15	16	115	22	0	23	37	38	39	40;
+ 					17	18	19	20	24	116	23	0	41	42	43	44;
+ 					81	85	89	93	29	33	37	41	0	25	117	28;
+ 					82	86	90	94	30	34	38	42	25	0	26	118;
+ 					83	87	91	95	31	35	39	43	117	26	0	27;
+ 					84	88	92	96	32	36	40	44	28	118	27	0]
+	function get_unchanged_indices(input_matrix,ind)
+		indices = CartesianIndices(size(input_matrix))
+		indices = findall(x->x!=ind,indices)
+		for i = ind
+			indices = indices[findall(x->x!=i,indices)]
+		end
+		return indices
+	end
+
+    out_m, ind = add_random_patch(sqr_matrix0)
+	indices = get_unchanged_indices(sqr_matrix0,ind)
+	@test size(ind) == (1,2)
+	@test sqr_matrix0[indices] == out_m[indices]
+
+	out_m, ind = add_random_patch(sqr_matrix0, patch_size=1,total_patches=2)
+	indices = get_unchanged_indices(sqr_matrix0,ind)
+	@test size(ind) == (2,2)
+	@test sqr_matrix0[indices] == out_m[indices]
+	@test sum(sqr_matrix0[ind] .!= out_m[ind]) == 4
+	@test sum(sqr_matrix0[ind] .== out_m[ind]) == 0
+
+	out_m, ind = add_random_patch(sqr_matrix1, patch_size=1,total_patches=2)
+	indices = get_unchanged_indices(sqr_matrix1,ind)
+	@test size(ind) == (2,2)
+	@test sqr_matrix1[indices] == out_m[indices]
+	@test sum(sqr_matrix1[ind] .!= out_m[ind]) == 4
+	@test sum(sqr_matrix1[ind] .== out_m[ind]) == 0
+
+	# ===
+	function test_adding_rand_patch(input_matrix, t_patches,p_size)
+		out_m, ind = add_random_patch(input_matrix, patch_size=p_size, total_patches=t_patches)
+		indices = get_unchanged_indices(input_matrix,ind)
+		@test size(ind) == (t_patches*p_size^2,2)
+		@test input_matrix[indices] == out_m[indices]
+		@test sum(input_matrix[ind] .!= out_m[ind]) == length(ind)
+		@test sum(input_matrix[ind] .== out_m[ind]) == 0
+	end
+	t_patches = 1
+	p_size = 2
+		test_adding_rand_patch(sqr_matrix0, t_patches,p_size)
+		test_adding_rand_patch(sqr_matrix1, t_patches,p_size)
+		test_adding_rand_patch(sqr_matrix2, t_patches,p_size)
+		test_adding_rand_patch(sqr_matrix3, t_patches,p_size)
+
+	t_patches = 1
+	p_size = 3
+		test_adding_rand_patch(sqr_matrix0, t_patches,p_size)
+		test_adding_rand_patch(sqr_matrix1, t_patches,p_size)
+		test_adding_rand_patch(sqr_matrix2, t_patches,p_size)
+		test_adding_rand_patch(sqr_matrix3, t_patches,p_size)
+
+	t_patches = 1
+	p_size = 4
+	correct_error = 0
+		try
+			add_random_patch(sqr_matrix0, patch_size=p_size, total_patches=t_patches)
+		catch err
+			# global correct_error
+			if isa(err, DomainError)
+				correct_error = 1
+			else
+				correct_error = 2
+			end
+		finally
+			# global correct_error
+			@test correct_error == 2
+		end
+
+		test_adding_rand_patch(sqr_matrix1, t_patches,p_size)
+		test_adding_rand_patch(sqr_matrix2, t_patches,p_size)
+		test_adding_rand_patch(sqr_matrix3, t_patches,p_size)
+
+	t_patches = 3
+	p_size = 5
+		test_adding_rand_patch(sqr_matrix2, t_patches,p_size)
+		test_adding_rand_patch(sqr_matrix3, t_patches,p_size)
+
+	# ===
+	# locations
+	locations2 = [CartesianIndex(1,2), CartesianIndex(2,3)]
+	locations1 = [CartesianIndex(1,2), CartesianIndex(99,3)]
+
+
+	t_patches = 1
+	p_size = 1
+	out_m, ind = add_random_patch(sqr_matrix1, patch_size=p_size, total_patches=t_patches,locations=locations1)
+		indices = get_unchanged_indices(sqr_matrix1,ind)
+		@test ind[:,1] == locations1
+		@test size(ind) == (size(locations1)[1]*p_size^2,2)
+		@test sqr_matrix1[indices] == out_m[indices]
+		@test sum(sqr_matrix1[locations1] .!= out_m[locations1]) == length(locations1)
+		@test sum(sqr_matrix1[locations1] .== out_m[locations1]) == 0
+
+	out_m, ind = add_random_patch(sqr_matrix1, patch_size=p_size, total_patches=t_patches,locations=locations2)
+	correct_error = 0
+		try
+			out_m, ind = add_random_patch(sqr_matrix1, patch_size=p_size, total_patches=t_patches,locations=locations2)
+		catch err
+			# global correct_error
+			if isa(err, DomainError)
+				correct_error = 1
+			else
+				correct_error = 2
+			end
+		finally
+			# global correct_error
+			@test correct_error == 2
+		end
+	# TODO test for index below diagonal
+	# TODO too many indices
+end
