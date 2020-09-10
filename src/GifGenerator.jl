@@ -1,9 +1,9 @@
-atom using Luxor, Colors, FileIO
+using Luxor, Colors, FileIO
 
-export generate_gif,
-        dotted_plane,
-        backdrop,
-        load_gif_to_array;
+# export generate_gif,
+#         dotted_plane,
+#         backdrop,
+#         load_gif_to_array;
 
 """
 Generate a gif at @full_path using the function @frame_function. Image size and
@@ -61,5 +61,5 @@ The load function is he FileIO function, but its possibilities are enchanced by
     handled by FileIO.
 """
 function load_gif_to_array(fullpath)
-    return img = load(path*gif_name)
+    return img = load(fullpath)
 end
