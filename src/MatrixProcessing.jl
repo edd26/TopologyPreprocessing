@@ -164,7 +164,7 @@ function get_ordered_matrix(in_matrix;
                                 force_symmetry=false,
                                 small_dist_grouping=false,
                                 min_dist=1e-16,
-                                distance_groups=0)
+                                total_dist_groups=0)
     # TODO Symmetry must be forced for matrix in which there are NaN elements- needs
     #   to be further investigated
     # TODO not working for negative only values
@@ -276,40 +276,76 @@ function get_ordered_matrix(in_matrix;
     return ord_mat
 end
 
-function group_distances!(input_matrix, distance_groups)
-    normalize_distances!(input_matrix) # Probably normalized_matrix would suffice
-    distance_bins = distance_groups+1
+"""
+    function group_distances!(input_matrix, total_dist_groups)
 
-    range_val = range(0, 1, length=distance_bins)
+Takes a matrix and rearranges values into 'total_dist_groups' number of groups.
+Every group is assigned with number value from range '<0,1>'.
 
-    for k = 2:distance_bins
-        indices = findall(x->x>range_val[k-1] && x<range_val[k], input_matrix)
-        input_matrix[indices] .= range_val[k]
+"""
+# Care must be taken so that values from 'input_matrix' are within distance
+# groups, otherwise error is thrown.
+function group_distances(input_matrix::Array, total_dist_groups::Int)
+    normed_matrix = normalize_to_01(input_matrix)
+    target_matrix = copy(normed_matrix)
+
+    h,w = size(input_matrix)
+
+    if h*w < total_dist_groups
+        throw(DomainError("Total number of groups exceed total number of entries in input matrix"))
     end
-    unique(input_matrix)
+
+    total_borders = total_dist_groups+1
+
+    range_val = collect(range(0, 1, length=total_borders))
+
+    for k = 2:total_borders
+        indices = findall(x->x>=range_val[k-1] && x<=range_val[k], normed_matrix)
+        target_matrix[indices] .= range_val[k]
+    end
+    unique(target_matrix)
 
     # Sets last range to values smaller than unity, just in case this might cause trobules
-    input_matrix[input_matrix .> range_val[end-1]] .= 0.99
+    # normed_matrix[normed_matrix .> range_val[end-1]] .= 0.99
+    return target_matrix
 end
 
-function normalize_distances!(input_matrix)
-    max_val = findmax(input_matrix)[1]
-    min_val = findmin(input_matrix)[1]
 
-    if min_val < 0
-        input_matrix .+= abs(min_val)
-    else
-        input_matrix .-= abs(min_val)
-    end
-    input_matrix ./= abs(max_val)
-end
+# function group_distances(input_matrix::Matrix, total_dist_groups::Int)
+#     new_matrix = copy(input_matrix)
+#     group_distances!(new_matrix, total_dist_groups)
+#     return new_matrix
+# end
 
-function generate_indices(matrix_size, symetry_order)
+# function normalize_distances!(input_matrix)
+#     max_val = findmax(input_matrix)[1]
+#     min_val = findmin(input_matrix)[1]
+#
+#     if min_val < 0
+#         input_matrix .+= abs(min_val)
+#     else
+#         input_matrix .-= abs(min_val)
+#     end
+#     input_matrix ./= abs(max_val)
+# end
+
+"""
+    function generate_indices(matrix_size; symetry_order=false)
+
+Return all the possible indices of the matrix of size 'matrix_size'. If
+'symetry_order' is set to'true', then only indices of values below diagonal are
+returned.
+"""
+function generate_indices(matrix_size; symmetry_order=false, include_diagonal=false)
     # Get all cartesian indices from input matrix
     matrix_indices = CartesianIndices((1:matrix_size, 1:matrix_size))
     # Filter out indices below diagonal
-    if symetry_order
-        matrix_indices = findall(x->x[1]<x[2], matrix_indices)
+    if symmetry_order
+        if include_diagonal
+            matrix_indices = findall(x->x[1]<=x[2], matrix_indices)
+        else
+            matrix_indices = findall(x->x[1]<x[2], matrix_indices)
+        end
     else
         matrix_indices = findall(x->true, matrix_indices)
     end
