@@ -782,7 +782,7 @@ different ranks (third index of the matrix). Second index of the matrices
 are upsampled by a factor of 'upsample_factor' and then the average for every
 dimension is computed.
 """
-function average_bettis(bettis_matrix; up_factor=8)
+function average_bettis(bettis_matrix::Matrix; up_factor=8)
 
 	bettis_matrix_backup = copy(bettis_matrix)
 
