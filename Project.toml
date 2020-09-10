@@ -3,11 +3,16 @@ uuid = "f84dc87b-1198-49da-97ab-02d881fe0800"
 authors = ["Emil Dmitruk"]
 version = "0.1.0"
 
+[deps]
+Eirene = "9c0f25c4-2ca1-5870-89f6-52640788da1d"
+Plots = "91a5bcdd-55d7-5caf-9e0b-520d859cae80"
+
 [compat]
 julia = "1"
 
 [extras]
+SafeTestsets = "1bc83da4-3b8d-516f-aca4-4fe02f6d838f"
 Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
 
 [targets]
-test = ["Test"]
+test = ["Test", "SafeTestsets"]
