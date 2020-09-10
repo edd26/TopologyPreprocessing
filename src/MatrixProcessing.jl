@@ -1,13 +1,13 @@
 using LinearAlgebra
 using StatsBase
 """
-    shift_to_non_negative(matrix)
+    shift_to_non_negative(matrix::Matrix)
 
 Returns a matrix in which values are non-negative. This is done by finding the
-minimal value in the input matrix and adding its absolute value to the matix
+minimal value in the input matrix and adding its absolute value to the matrix
 elements.
 """
-function shift_to_non_negative(matrix)
+function shift_to_non_negative(matrix::Array)
 
     min_val = findmin(matrix)[1]
     if min_val < 0
@@ -21,55 +21,84 @@ end
 """
     normalize_to_01(matrix, norm_factor=256)
 
-Returns a matrix which values are in range [0, 1]. If the values in the input
-matrix are below 0, then they are shifted so that only positive numbers are in
-the matrix. If the values in the matrix of shifted matrix excced value of the
-@norm_factor parameter, then the matrix is normalized to the maximal value from
-the matrix.
-"""
-function normalize_to_01(matrix; norm_factor=256)
-    normalized_matrix = copy(matrix)
-    min_val = findmin(normalized_matrix)[1]
-    max_val = findmax(normalized_matrix)[1]
+Returns a matrix which values are in range [0, 1]. If 'use_factor' is set to
+'true' then values are normalized to 'norm_factor' (by default set to 256).
 
+If the values in the input matrix are below 0, then they are shifted so that only positive numbers are in
+the matrix (the values are normalized to new maximal value or norm_factor).
+"""
+function normalize_to_01(matrix::Array; use_factor=false, norm_factor=256)
+    normalized_matrix = copy(matrix)
+
+    min_val = findmin(normalized_matrix)[1]
     if min_val < 0
         normalized_matrix .+= abs(min_val)
+    else
+        normalized_matrix .-= abs(min_val)
     end
 
-    if max_val > norm_factor
-        @warn "Values normalized to maximal value, not notmalization factor."
-        normalized_matrix = normalized_matrix./max_val
-    else
+    max_val = findmax(normalized_matrix)[1]
+
+    if use_factor
+        if max_val > norm_factor
+            @warn "Maximal values exceed \'norm_factor\'."
+        end
         normalized_matrix = normalized_matrix./norm_factor
+    else
+        normalized_matrix = normalized_matrix./max_val
     end
+
     return normalized_matrix
 end
 
 """
-    function symmetrize(image)
+    function diagonal_symmetrize(image::Matrix; below_over_upper=false)
 
-Takes an @image and return a copy which is symmetric.
+Takes an 'image' in the form of a matrix and return a copy which is symmetric
+with respect to diagonal- values above diagonal are copied over values below the
+diagonal. This can be inverted by setting 'below_over_upper=true'.
+
+If the input matrix is not square, then square matrix is created by taking
+matrix of k times 'k' elements, 'k=min(r,c)' where 'r' is number of rows and 'c'
+is number of columns.
 """
-function symmetrize_image(image)
-  mat_size = size(image,1)
+# function symmetrize_image(image)
+function diagonal_symmetrize(image::Matrix; below_over_upper=false)
+  w, h = size(image)
+  mat_size = findmin([w,h])[1]
 
-  img= copy(image)
+  img = copy(image[1:mat_size, 1:mat_size])
+
   # Get all cartesian indices from input matrix
   matrix_indices = CartesianIndices((1:mat_size, 1:mat_size))
   # Filter out indices below diagonal
-  matrix_indices = findall(x->x[1]>x[2], matrix_indices)
+  if below_over_upper
+      matrix_indices = findall(x->x[1]>x[2], matrix_indices)
+  else
+        matrix_indices = findall(x->x[2]>x[1], matrix_indices)
+    end
 
-  # Put evrything together
+
   # how many elements are above diagonal
   repetition_number = Int(ceil((mat_size * (mat_size-1))/2))
 
+  # Substitute elements
   for k=1:repetition_number
       # next_position = matrix_indices[k]
       matrix_index = matrix_indices[k]
       # ordered_matrix[matrix_index] = k
       img[matrix_index[2], matrix_index[1]] = img[matrix_index]
   end
-  issymmetric(Float64.(img))
+
+  try
+      checksquare(img)
+  catch err
+      if isa(err, DimensionMismatch)
+          @error "Resulting matrix is not a square matrix"
+          throw(err)
+      end
+  end
+  # issymmetric(Float64.(img))
   return img
 end
 
@@ -426,7 +455,7 @@ end
     increase_arrs_to_max_len(arrs)
 
 Takes vector of vectors of different length and returns array of arrays which
-are of the same length. Length in the output is the shortest vector length from
+are of the same length. Length in the output is the longest vector length from
 the input- values above this size are discarded.
 """
 function increase_arrs_to_max_len(arrs)
