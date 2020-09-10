@@ -307,12 +307,14 @@ end
 
 ##
 """
-   matrix_poling!(input_matrix; method = "max_pooling")
+   matrix_poling!(input_matrix; method = "avg_pooling")
 
 Takes a matrix and changes it's values to the same value, according to 'method'.
 Possible methods are:
 - 'max_pooling'- finds maximal value and replaces all values with the maximal
 	value.
+- 'avg_pooling'- changes values to the average value
+- 'gauss_pooling'- uses gausian kernel as weights to the values in the matrix
 """
 # function matrix_poling!(input_matrix::Array; method::String = "max_pooling")
 # 	if method == "max_pooling"
@@ -362,7 +364,7 @@ function subsample_matrix(square_matrix::Array; subsamp_size::Int=2, method="max
 		return reorganize_matrix(new_matrix; subsamp_size=2, method=method)
 	else
 		new_matrix = reorganize_matrix(square_matrix; subsamp_size=subsamp_size, method=method)
-		return
+		return new_matrix
 	end
 end
 
@@ -379,7 +381,7 @@ function reorganize_matrix(square_matrix::Array; subsamp_size::Int=2, method="ma
 	if method == "gauss_pooling"
 		(subsamp_size >= 3) || error("Can not do gaussian pooling for area smaller than 3x3")
 	end
-	@info method
+	@debug method
 	# Subsample upper half
 	square_matrix2 = Float64.(copy(square_matrix))
 	total_rows, total_cols = size(square_matrix)
@@ -552,7 +554,10 @@ end
 """
     add_random_patch(input_matrix; patch_size=1, total_patches=1, locations)
 
-Takes a matrix and replaces some values with random values. Values can be
+Takes a matrix and replaces some values with random values. Returns a new matrix
+with replaced values and indicies where replacement took place.
+
+Values can be
 replaced by setting 'patch_size' to values bigger than 1. If the input matrix
 is symmetric, then output matrix will be symmetric as well (values from above
 diagnoal will be copied over values from below diagonal).
