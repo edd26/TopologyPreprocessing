@@ -130,89 +130,121 @@ julia> get_ordered_matrix(b; assign_same_values=true)
 1  2  1  0
 ```
 """
-function get_ordered_matrix(input_matrix; assign_same_values=false,
+function get_ordered_matrix(in_matrix;
+                                assign_same_values=false,
                                 force_symmetry=false,
                                 small_dist_grouping=false,
                                 min_dist=1e-16,
                                 distance_groups=0)
     # TODO Symmetry must be forced for matrix in which there are NaN elements- needs
     #   to be further investigated
+    # TODO not working for negative only values
 
-    mat_size = size(input_matrix,1)
-    ordered_matrix = zeros(Int, mat_size, mat_size)
+    # ==
+    if length(size(in_matrix)) > 2
+        ord_mat = zeros(Int, size(in_matrix))
 
-    if issymmetric(input_matrix) || force_symmetry
-        symetry_order = true
+        mat_sizes = size(in_matrix)
+        min_val = findmin(mat_sizes)[1]
+        max_val = findmax(mat_sizes)[1]
+
+        min_vals_occurence = length(findall(x->x==min_val,mat_sizes))
+        max_vals_occurence = length(findall(x->x==max_val,mat_sizes))
+        if min_vals_occurence > max_vals_occurence && min_vals_occurence >= 2
+            mat_size = size(in_matrix,findall(x->x==min_val,mat_sizes)[1])
+            slices = size(in_matrix,findall(x->x==max_val,mat_sizes)[1])
+        elseif min_vals_occurence < max_vals_occurence && max_vals_occurence >= 2
+            mat_size = size(in_matrix,findall(x->x==max_val,mat_sizes)[1])
+            slices =  size(in_matrix,findall(x->x==min_val,mat_sizes)[1])
+        else
+            error("Can not resolve matrix size")
+        end
     else
-        symetry_order = false
-        @warn "Doing non-symetric ordering"
+        mat_size = size(in_matrix,1)
+        ord_mat = zeros(Int, mat_size, mat_size)
+        mat_size = size(in_matrix,1)
+        slices = 1
     end
 
-    # distance_groups !=0 && group_distances!(input_matrix, distance_groups)
+    for m=1:slices
+        ordered_matrix = ord_mat[:,:,m]
+        input_matrix = in_matrix[:,:,m]
+    # ==
 
-    # ====
-    matrix_indices = generate_indices(mat_size, symetry_order)
+        if issymmetric(input_matrix) || force_symmetry
+            symetry_order = true
+        else
+            symetry_order = false
+            @warn "Doing non-symetric ordering"
+        end
+
+        # distance_groups !=0 && group_distances!(input_matrix, distance_groups)
+
+        # ====
+        matrix_indices = generate_indices(mat_size, symetry_order)
 
 
-    # Get number of elements to be ordered
-    if symetry_order
-        # how many elements are above diagonal
-        repetition_number = Int(ceil((mat_size * (mat_size-1))/2))
-    else
-        # how many elements are in whole matrix
-        repetition_number = Int(ceil((size(input_matrix)[1] * size(input_matrix)[1])))
-    end
+        # Get number of elements to be ordered
+        if symetry_order
+            # how many elements are above diagonal
+            repetition_number = Int(ceil((mat_size * (mat_size-1))/2))
+        else
+            # how many elements are in whole matrix
+            repetition_number = Int(ceil((size(input_matrix)[1] * size(input_matrix)[1])))
+        end
 
-    # Get all values which will be sorted
-    matrix_values_for_sort = input_matrix[matrix_indices]
+        # Get all values which will be sorted
+        matrix_values_for_sort = input_matrix[matrix_indices]
 
-    # Sort indices by values (highest to lowest)
-    # Create a list of indices, which corresponding valeus are ordered
-    sorted_indices = sort!([1:repetition_number;],
-                        by=i->(matrix_values_for_sort[i],matrix_indices[i]))
+        # Sort indices by values (highest to lowest)
+        # Create a list of indices, which corresponding valeus are ordered
+        sorted_indices = sort!([1:repetition_number;],
+                            by=i->(matrix_values_for_sort[i],matrix_indices[i]))
 
-    ordering_number = 0
-    for k=1:repetition_number
-        # global ordering_number
-        next_position = sorted_indices[k]
-        matrix_index = matrix_indices[next_position]
+        ordering_number = 0
+        for k=1:repetition_number
+            # global ordering_number
+            next_position = sorted_indices[k]
+            matrix_index = matrix_indices[next_position]
 
-        if assign_same_values && k!=1
-            prev_index = sorted_indices[k-1]
-            prev_matrix_index = matrix_indices[prev_index]
+            if assign_same_values && k!=1
+                prev_index = sorted_indices[k-1]
+                prev_matrix_index = matrix_indices[prev_index]
 
-            conditioin1 = input_matrix[prev_matrix_index] == input_matrix[matrix_index]
-            conditioin2 = small_dist_grouping
-            conditioin3 = abs(input_matrix[prev_matrix_index] - input_matrix[matrix_index]) > min_dist
+                conditioin1 = input_matrix[prev_matrix_index] == input_matrix[matrix_index]
+                conditioin2 = small_dist_grouping
+                conditioin3 = abs(input_matrix[prev_matrix_index] - input_matrix[matrix_index]) > min_dist
 
-            if conditioin1 || (conditioin2 && conditioin3)
-                ordered_matrix[matrix_index] = ordering_number-1
-                ordered_matrix[matrix_index[2], matrix_index[1]] = ordering_number-1
+                if conditioin1 || (conditioin2 && conditioin3)
+                    ordered_matrix[matrix_index] = ordering_number-1
+                    ordered_matrix[matrix_index[2], matrix_index[1]] = ordering_number-1
+                else
+                    ordered_matrix[matrix_index] = ordering_number
+                    ordered_matrix[matrix_index[2], matrix_index[1]] = ordering_number
+                    ordering_number+=1
+                end
             else
-                ordered_matrix[matrix_index] = ordering_number
+                ordered_matrix[matrix_index[1], matrix_index[2]] = ordering_number
                 ordered_matrix[matrix_index[2], matrix_index[1]] = ordering_number
                 ordering_number+=1
             end
-        else
-            ordered_matrix[matrix_index[1], matrix_index[2]] = ordering_number
-            ordered_matrix[matrix_index[2], matrix_index[1]] = ordering_number
-            ordering_number+=1
         end
-    end
 
-    # ====
-    non_zero_input = findall(x->x!=0,input_matrix)
-    if isempty(ordered_matrix)
-        @warn "Ordered matrix is empty"
-        min_orig = findmin(input_matrix[non_zero_input])[2]
-        max_new = findall(x->x==1,ordered_matrix)[1]
-        @debug "Original minimal value was at position: " non_zero_input[min_orig]
-        @debug "After ordering the first index value is at position: " max_new
-    elseif !isempty(non_zero_input)
-    else
-        @warn "All values in input matrix were zeros!"
-    end
-    return ordered_matrix
+        # ====
+        non_zero_input = findall(x->x!=0,input_matrix)
+        if isempty(ordered_matrix)
+            @warn "Ordered matrix is empty"
+            min_orig = findmin(input_matrix[non_zero_input])[2]
+            max_new = findall(x->x==1,ordered_matrix)[1]
+            @debug "Original minimal value was at position: " non_zero_input[min_orig]
+            @debug "After ordering the first index value is at position: " max_new
+        elseif !isempty(non_zero_input)
+        else
+            @warn "All values in input matrix were zeros!"
+        end
+        ord_mat[:,:,m] = ordered_matrix
+    end # for loop
+    return ord_mat
 end
 
 function group_distances!(input_matrix, distance_groups)

@@ -135,7 +135,8 @@ around coordinates stored in `centres`.
 function get_local_img_correlations(img, centers, masks::Vector; with_gradient=false)
     masks_num = length(masks)
     sub_img_size = size(masks[1],1)
-    half_size = ceil(Int,(sub_img_size-1)/2)
+	# half_size = ceil(Int,(sub_img_size-1)/2)
+    half_size = (sub_img_size)÷2
     half_range = half_size
     h, w = size(img)
     local_correlation = zeros(masks_num, size(centers,1) )
@@ -146,27 +147,32 @@ function get_local_img_correlations(img, centers, masks::Vector; with_gradient=f
         img = get_img_gradient(img)
     end
 
-    position = 1;
-    for index = centers
+    # position = 1;
+    # for index = centers
+    for pos = 1:length(centers)
+		# global position
+		index = centers[pos]
+
         c_x = index[1]
         c_y = index[2]
         c_x_range = (c_x-half_range):(c_x+half_range)
         c_y_range = (c_y-half_range):(c_y+half_range)
 
         center = img[c_x_range, c_y_range]
-        mask_pos = 1
-        for mask in masks
-
+        # mask_pos = 1
+        # for mask in masks
+		for mask_pos = 1:length(masks)
+			mask = masks[mask_pos]
             corelation = center .* mask
 
             corelation = sum(corelation)
-            local_correlation[mask_pos, position] += corelation
-            local_correlation[mask_pos, position] /= (sub_img_size^2)
+            local_correlation[mask_pos, pos] += corelation
+            local_correlation[mask_pos, pos] /= (sub_img_size^2)
             # local_correlation[position, mask_pos ] =  sum(imfilter(center, mask))/(sub_img_size^2)
-            mask_pos +=1
+            # mask_pos +=1
         end
 
-        position += 1;
+        # position += 1;
     end
 
     return local_correlation
@@ -235,7 +241,7 @@ it is set to zero, but can be any pixel value smaller that @sub_img_size. If
 function get_img_local_centers(img_size, sub_img_size=10; use_square=true,
                                 overlap=0)
 
-    @assert sub_img_size < findmin(img_size)[1] "@sub_img_size is bigger than image!"
+    @assert sub_img_size <= findmin(img_size)[1] "@sub_img_size is bigger than image!"
     @assert sub_img_size > 0 "sub_img_size must be positive number"
     @assert overlap<=sub_img_size "The overlap is biger than subimage size!"
     @assert overlap >= 0 "overlap must be positive"
@@ -243,6 +249,11 @@ function get_img_local_centers(img_size, sub_img_size=10; use_square=true,
     centers = CartesianIndex[]
 
     start_ind = ceil(Int, sub_img_size/2)
+    if 2*start_ind == sub_img_size
+        start_ind +=1
+    end
+
+
     if overlap>0 && overlap<1
         overlap = floor(Int, sub_img_size*overlap)
     end
@@ -255,11 +266,19 @@ function get_img_local_centers(img_size, sub_img_size=10; use_square=true,
         size_h = img_size[2]
     end
 
-    last_ind_v = size_v - start_ind
+    last_ind_v = size_v - start_ind # TODO check if it is starting at 1st row, not second
     last_ind_h = size_h - start_ind
 
     val_range_v = floor.(Int, range(start_ind, step=sub_img_size-overlap,  stop=last_ind_v))
     val_range_h = floor.(Int, range(start_ind, step=sub_img_size-overlap,  stop=last_ind_h))
+
+	if isempty(val_range_v) && size_v <= sub_img_size
+		val_range_v = [start_ind]
+	end
+
+	if isempty(val_range_h) && size_h <= sub_img_size
+		val_range_h = [start_ind]
+	end
 
     num_indexes_v = size(val_range_v,1)
     num_indexes_h = size(val_range_h,1)
@@ -516,13 +535,14 @@ function rearrange_filters_arr(im_filter; showing_number=-1, columns=-1)
 end
 
 
-
+# TODO remove img size from arguments
 function get_local_correlations(method::String, img, img_size, sub_img_size;
                                                         masks = 0,
                                                         points_per_dim=1,
                                                         shift=0,
                                                         with_grad = true,
-                                                        overlap = 0)
+                                                        overlap = 0,
+                                                        use_square=true)
     if method == "correlation"
         @debug "local correlation"
         centers = get_local_img_centers(points_per_dim, img_size, shift,
@@ -531,14 +551,14 @@ function get_local_correlations(method::String, img, img_size, sub_img_size;
                                                             sub_img_size, shift)
 
     elseif  method == "gradient_gabor"
-        @debug "local gradient gabor comparison"
+        @info "local gradient gabor comparison"
         centers = get_img_local_centers(img_size, sub_img_size)
         local_correlations = get_local_img_correlations(img, centers, masks;
                                                     with_gradient = with_grad)
 
     elseif  method == "gabor"
         @debug "local gabor comparison"
-        centers = get_img_local_centers(img_size, sub_img_size; overlap = overlap)
+        centers = get_img_local_centers(img_size, sub_img_size; overlap = overlap, use_square=use_square)
         local_correlations = get_local_img_correlations(img, centers, masks )
 
     elseif  method == "gradient"

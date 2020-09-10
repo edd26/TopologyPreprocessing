@@ -258,37 +258,38 @@ end
 # Function taken from: https://github.com/alexyarosh/hyperbolic
 # """
 # To be deleted
-# function bettis_eirene(matr, maxdim;
-# 							mintime=-Inf, maxtime=Inf, numofsteps=Inf, mindim=1)
-#     c = eirene(matr, minrad = mintime, maxrad= maxtime, numrad= numofsteps, maxdim=maxdim)
-#
-#     int_length = maxtime-mintime
-#     step_length= int_length/numofsteps
-#
-#     if (mintime == -Inf) || (maxtime == Inf) || (numofsteps == Inf)
-# 		@debug "Inf mintime, maxtime or number of steps."
-#         # return [betticurve(c, dim=maxdim) for d=1:maxdim]
-# 		result = vectorize_bettis(c, maxdim, mindim)
-#    end
-#
-#     betts = zeros(numofsteps, maxdim)
-#     # For every dimension compute betti curve
-#     for dim=1:maxdim
-#         bet = betticurve(c, dim=dim)
-#
-#         #for every element in betti curve return betti value if index is positive
-#         for i=1:size(bet,1)
-#             b = bet[i,:]
-#             ind = Int(ceil((b[1]-mintime)/step_length))
-#             if ind > 0
-#                 betts[ind,dim]=b[2]
-#             else
-#                 betts[1,dim]=b[2]
-#             end
-#         end
-#     end
-#     return betts
-# end
+function bettis_eirene(matr, maxdim;
+							mintime=-Inf, maxtime=Inf, numofsteps=Inf, mindim=1)
+    c = eirene(matr, minrad = mintime, maxrad= maxtime, numrad= numofsteps, maxdim=maxdim)
+
+    int_length = maxtime-mintime
+    step_length= int_length/numofsteps
+
+    if (mintime == -Inf) || (maxtime == Inf) || (numofsteps == Inf)
+		@debug "Inf mintime, maxtime or number of steps."
+        # return [betticurve(c, dim=maxdim) for d=1:maxdim]
+		result = vectorize_bettis(c, maxdim, mindim)
+		return result
+   end
+
+    betts = zeros(numofsteps, maxdim)
+    # For every dimension compute betti curve
+    for dim=1:maxdim
+        bet = betticurve(c, dim=dim)
+
+        #for every element in betti curve return betti value if index is positive
+        for i=1:size(bet,1)
+            b = bet[i,:]
+            ind = Int(ceil((b[1]-mintime)/step_length))
+            if ind > 0
+                betts[ind,dim]=b[2]
+            else
+                betts[1,dim]=b[2]
+            end
+        end
+    end
+    return betts
+end
 
 
 # """
@@ -481,7 +482,7 @@ function multiscale_matrix_testing(sample_space_dims = 3,
             pts_rand = [generate_random_point_cloud(sample_space_dim,space_samples) for i=1:maxsim]
             symm_mat_geom = [generate_geometric_matrix(pts_rand[i]') for i=1:maxsim]
             ordered_mat_geom = [get_ordered_matrix(symm_mat_geom[i];
-									assing_same_values=false) for i=1:maxsim]
+									assign_same_values=false) for i=1:maxsim]
 
             # ======================================================================
             # ========================= Do the Betti analysis ======================
@@ -619,7 +620,7 @@ function get_bettis_from_image2(img_name; file_path="",
     @warn "Eirene may have trobules with big matrices/images."
   end
 
-  ordered_matrix = get_ordered_matrix(C_ij; assing_same_values=false)
+  ordered_matrix = get_ordered_matrix(C_ij; assign_same_values=false)
 
 
   # ==============================================================================
@@ -632,7 +633,7 @@ function get_bettis_from_image2(img_name; file_path="",
 
   if plot_heatmaps
 
-    full_ordered_matrix= get_ordered_matrix(C_ij; assing_same_values=false)
+    full_ordered_matrix= get_ordered_matrix(C_ij; assign_same_values=false)
     heat_map2 = plot_square_heatmap(full_ordered_matrix, 10, img_size;
             plt_title = "Order matrix of $(file_n)")
 
@@ -662,7 +663,7 @@ function plot_and_save_bettis2(eirene_results, plot_title::String,
 								extend_title=true, do_normalise=true, min_dim=0,
 								max_dim=3, legend_on=true)
 
-    bettis = get_bettis(eirene_results, max_dim);
+    bettis = get_bettis(eirene_results, max_dim, min_dim=min_dim);
     norm_bettis = normalise_bettis(bettis);
     plot_ref = plot_bettis2(bettis, plot_title, legend_on=legend_on, min_dim=min_dim);
 
@@ -684,36 +685,48 @@ function plot_and_save_bettis2(eirene_results, plot_title::String,
 end
 
 
+"""
+    function get_bettis_color_palete()
+
+Generates vector with colours used for Betti plots.
+"""
+function get_bettis_color_palete(;min_dim=1)
+    cur_colors = get_color_palette(:auto, 17)
+    cur_colors2 = get_color_palette(:cyclic1, 40)
+    if min_dim == 0
+        colors_set =  [cur_colors[3], cur_colors[5], [:red], cur_colors[1]] #cur_colors[7],
+    else
+        colors_set =  [cur_colors[5], [:red], cur_colors[1], cur_colors[14]]
+    end
+    for c =  [collect(11:25);]
+        push!(colors_set, cur_colors2[c])
+    end
+
+    return colors_set
+end
+
 function plot_bettis2(bettis, plot_title; legend_on=true, min_dim=1)#; plot_size = (width=1200, height=800),
                                         #                        base_dpi = 500)
 	max_dim = size(bettis,1)
 	all_dims = min_dim:max_dim
 
 	# set_default_plotting_params()
-    cur_colors = get_color_palette(:auto, 17)
-	cur_colors2 = get_color_palette(:cyclic1, 40)
-	if min_dim == 0
-		colors_set =  [cur_colors[3], cur_colors[5], [:red], cur_colors[1]] #cur_colors[7],
-	else
-    	colors_set =  [cur_colors[5], [:red], cur_colors[1]] #cur_colors[7],
-	end
-	for c =  [collect(11:17);]
-		push!(colors_set, cur_colors2[c])
-	end
+	colors_set = get_bettis_color_palete()
 
     # final_title = "Eirene betti curves, "*plot_title
 	plot_ref = plot(title=plot_title);
     for p = 1:(max_dim)
 		# @info p
-        plot!(bettis[p][:,1], bettis[p][:,2], label="\\beta_$(all_dims[p])",
+        plot!(bettis[p][:,1], bettis[p][:,2],
+											label="β$(all_dims[p])",
+											# label="a",
 													lc=colors_set[p],
-													linewidth = 2,);
+													linewidth = 2,)
         if legend_on
             plot!(legend=true)
         else
             plot!(legend=false)
         end
-
     end
     ylabel!("Number of cycles")
 	xlabel!("Edge density")
