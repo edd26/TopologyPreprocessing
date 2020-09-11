@@ -130,9 +130,45 @@ end
 
 
 @testset "MatrixProcessing.jl -> arrays of arrays" begin
+    # Need to be taken from Bettis
+    # arr_of_arrs
+
+    # reduce_arrs_to_min_len(arr_of_arrs)
 
 end
 
 @testset "MatrixProcessing.jl -> matrix ordering" begin
+    power_matrix = zeros(Int, (2,3,4))
+    for k = 1:4
+        power_matrix[:,:,k] = reshape([(k+1)^n for n =1:6], (2,3))
+    end
+
+    ordered_power_matrix = copy(power_matrix)
+    ordered_power_matrix[:, :, 1] =[1  6  12;
+                                    3  8  13]
+    ordered_power_matrix[:, :, 2] =[2  11  17;
+                                        7  15  20]
+    ordered_power_matrix[:, :, 3] = [4  14  21;
+                                        9  18  23]
+    ordered_power_matrix[:, :, 4] =[5  16  22;
+                                    10  19  24]
+
+    square_matrix1 = [1 2 3;
+                     4 5 6;
+                     7 8 9]
+
+     square_matrix2 = [1 4 7;
+                        2 5 8;
+                        3 6 9]
+
+    @test sum(get_ordered_matrix2(square_matrix1) .== square_matrix1) == 9
+    @test sum(get_ordered_matrix2(square_matrix2) .== square_matrix2) == 9
+
+    @test get_ordered_matrix2(power_matrix) == ordered_power_matrix
+
+    @test !isempty(get_ordered_matrix(power_matrix) == ordered_power_matrix)
+
+
+
 
 end
