@@ -180,8 +180,10 @@ function get_ordered_matrix(in_matrix::Matrix;
     # how many elements are above diagonal
     if issymmetric(in_matrix) || force_symmetry
         matrix_indices = generate_indices(mat_size, symmetry_order=true)
+        do_symmetry = true
     else
-        matrix_indices = generate_indices(mat_size)
+        matrix_indices = generate_indices(mat_size, symmetry_order=false)
+        do_symmetry = false
     end
     total_elements = length(matrix_indices)
 
@@ -192,7 +194,7 @@ function get_ordered_matrix(in_matrix::Matrix;
     index_sorting = sort_index_by_values(in_matrix, all_ind_collected)
 
     ordering_number = 0
-    for k=1:total_elements
+    for k = 1:total_elements
         # global ordering_number
         next_sorted_pos = index_sorting[k]
         mat_ind = matrix_indices[next_sorted_pos]
@@ -206,15 +208,15 @@ function get_ordered_matrix(in_matrix::Matrix;
             cond3 = abs(in_matrix[prev_mat_ind] - in_matrix[mat_ind]) < min_dist
 
             if cond1 || (cond2 && cond3)
-                symmetric_set_values(ord_mat, mat_ind, ordering_number-1)
-            else
-                symmetric_set_values(ord_mat, mat_ind, ordering_number)
-                ordering_number+=1
+                ordering_number-=1
             end
-        else
-            symmetric_set_values(ord_mat, mat_ind, ordering_number)
-            ordering_number+=1
         end
+        set_values!(ord_mat, mat_ind, ordering_number; do_symmetry=do_symmetry)
+        ordering_number+=1
+        # else
+        #     set_values!(ord_mat, mat_ind, ordering_number; do_symmetry=do_symmetry)
+        #     ordering_number+=1
+        # end
     end
 
     return ord_mat
@@ -393,13 +395,26 @@ end
 Assigns 'taeget_value' to indices at 'input_matrix[position[1], position[2]]'
 and 'input_matrix[position[2], position[1]]'.
 """
-function symmetric_set_values!(input_matrix:Matrix, position::CartesianIndex, target_value::Number)
+function set_values!(input_matrix::Matrix, position::CartesianIndex, target_value::Number; do_symmetry=false)
     input_matrix[position[1], position[2]] = target_value
-    input_matrix[position[2], position[1]] = target_value
+    if do_symmetry
+         input_matrix[position[2], position[1]] = target_value
+    end
     return input_matrix
 end
+
 # matrix ordering
 # =====
+
+
+
+
+
+
+
+
+
+
 
 
 function get_high_dim_ordered_matrix(input_matrix)
@@ -411,6 +426,15 @@ function get_high_dim_ordered_matrix(input_matrix)
     end
     return ordered_matrix_3D
 end
+
+
+
+
+
+
+
+
+
 
 
 """
