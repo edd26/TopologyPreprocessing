@@ -1,5 +1,6 @@
 using LinearAlgebra
 using StatsBase
+
 """
     shift_to_non_negative(matrix::Matrix)
 
@@ -169,6 +170,10 @@ function get_ordered_matrix(in_matrix;
     #   to be further investigated
     # TODO not working for negative only values
 
+    # ===
+    #
+    # ===
+
     # ==
     if length(size(in_matrix)) > 2
         ord_mat = zeros(Int, size(in_matrix))
@@ -177,12 +182,12 @@ function get_ordered_matrix(in_matrix;
         min_val = findmin(mat_sizes)[1]
         max_val = findmax(mat_sizes)[1]
 
-        min_vals_occurence = length(findall(x->x==min_val,mat_sizes))
-        max_vals_occurence = length(findall(x->x==max_val,mat_sizes))
-        if min_vals_occurence > max_vals_occurence && min_vals_occurence >= 2
+        total_min_vals = length(findall(x->x==min_val,mat_sizes))
+        total_max_vals = length(findall(x->x==max_val,mat_sizes))
+        if total_min_vals > total_max_vals && total_min_vals >= 2
             mat_size = size(in_matrix,findall(x->x==min_val,mat_sizes)[1])
             slices = size(in_matrix,findall(x->x==max_val,mat_sizes)[1])
-        elseif min_vals_occurence < max_vals_occurence && max_vals_occurence >= 2
+        elseif total_min_vals < total_max_vals && total_max_vals >= 2
             mat_size = size(in_matrix,findall(x->x==max_val,mat_sizes)[1])
             slices =  size(in_matrix,findall(x->x==min_val,mat_sizes)[1])
         else
@@ -198,7 +203,6 @@ function get_ordered_matrix(in_matrix;
     for m=1:slices
         ordered_matrix = ord_mat[:,:,m]
         input_matrix = in_matrix[:,:,m]
-    # ==
 
         if issymmetric(input_matrix) || force_symmetry
             symetry_order = true
@@ -210,7 +214,7 @@ function get_ordered_matrix(in_matrix;
         # distance_groups !=0 && group_distances!(input_matrix, distance_groups)
 
         # ====
-        matrix_indices = generate_indices(mat_size, symetry_order)
+        matrix_indices = generate_indices(mat_size, symmetry_order=symetry_order)
 
 
         # Get number of elements to be ordered
@@ -273,8 +277,59 @@ function get_ordered_matrix(in_matrix;
         end
         ord_mat[:,:,m] = ordered_matrix
     end # for loop
+
     return ord_mat
 end
+
+function get_ordered_matrix2(input_array::Array; do_slices = true, dims = 0)
+    arr_size = size(input_array)
+    out_arr = zeros(Int, arr_size)
+
+    if do_slices
+        # param check
+        if dims > length(arr_size)
+            throw(DomainError("Given dimension is greater than total size of array."))
+        elseif dims>0
+            throw(DomainError("Given dimension must be positive value."))
+        elseif dims<=3
+            throw(DomainError("Given dimension must be lower than 3."))
+        end
+
+        for dim in 1:arr_size[dims]
+            if dims == 1
+                out_arr[dim,:,:] = get_ordered_matrix2(input_array[dim,:,:])
+            elseif dims == 2
+                out_arr[:,dim,:] = get_ordered_matrix2(input_array[:,dim,:])
+            elseif dims == 3
+                out_arr[:,:,dim] = get_ordered_matrix2(input_array[:,:,dim])
+            end
+        end
+    else
+        out_arr = get_ordered_matrix2(input_array)
+    end
+end
+
+function get_ordered_matrix2(input_array::Array)
+    out_array = copy(input_array)
+    arr_size = size(input_array)
+    total_elements = length(input_array)
+
+    # Collect vector of indices
+    all_ind_collected = collect(reshape(generate_indices(arr_size), (length(input_array))))
+
+    # Sort indices vector according to inpu array
+    index_sorting = sort!([1:total_elements;],
+                        by=i->(input_array[all_ind_collected][i],all_ind_collected[i]))
+
+    for k = 1:total_elements
+        target = index_sorting[k]
+        out_array[target] = k
+    end
+
+    return out_array
+end
+
+
 
 """
     function group_distances!(input_matrix, total_dist_groups)
@@ -352,6 +407,19 @@ function generate_indices(matrix_size; symmetry_order=false, include_diagonal=fa
     return matrix_indices
 end
 
+
+"""
+    function generate_indices(dims::Tuple)
+
+Generate indices for a matrix of given dimensions.
+"""
+function generate_indices(dims::Tuple)
+    total_dims = length(dims)
+    matrix_indices = CartesianIndices(dims)
+end
+
+dims = (12,4,6)
+
 # matrix ordering
 # =====
 
@@ -374,7 +442,7 @@ Takes vector of vectors of different length and returns array of arrays which
 are of the same length. Length in the output is the shortest vector length from
 the input- values above this size are discarded.
 """
-function reduce_arrs_to_min_len(arrs)
+function reduce_arrs_to_min_len(arrs::Array)
     new_arr = copy(arrs)
 
     simulation = size(new_arr,1)
