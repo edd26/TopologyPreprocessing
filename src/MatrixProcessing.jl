@@ -177,34 +177,19 @@ function get_ordered_matrix(in_matrix::Matrix;
     mat_size = size(in_matrix)
     ord_mat = zeros(Int, mat_size)
 
-    ordered_matrix = ord_mat[:,:]
-    input_matrix = in_matrix[:,:]
-
-    if issymmetric(input_matrix) || force_symmetry
-        # how many elements are above diagonal
-        # repetition_number = Int(ceil((mat_size * (mat_size-1))/2))
+    # how many elements are above diagonal
+    if issymmetric(in_matrix) || force_symmetry
         matrix_indices = generate_indices(mat_size, symmetry_order=true)
     else
-        # how many elements are in whole matrix
-        # repetition_number = Int(ceil((size(input_matrix)[1] * size(input_matrix)[1])))
         matrix_indices = generate_indices(mat_size)
     end
     total_elements = length(matrix_indices)
 
-    # ===
     # Collect vector of indices
     all_ind_collected = arr_to_vec(matrix_indices)
 
     # Sort indices vector according to inpu array
-    index_sorting = sort_index_by_values(input_matrix, all_ind_collected)
-
-    # # Get all values which will be sorted
-    # matrix_values_for_sort = input_matrix[matrix_indices]
-    #
-    # # Sort indices by values (highest to lowest)
-    # # Create a list of indices, which corresponding valeus are ordered
-    # sorted_indices = sort!([1:repetition_number;],
-    #                     by=i->(matrix_values_for_sort[i],matrix_indices[i]))
+    index_sorting = sort_index_by_values(in_matrix, all_ind_collected)
 
     ordering_number = 0
     for k=1:total_elements
@@ -216,18 +201,18 @@ function get_ordered_matrix(in_matrix::Matrix;
             prev_sorted_pos = index_sorting[k-1]
             prev_mat_ind = matrix_indices[prev_sorted_pos]
 
-            cond1 = input_matrix[prev_mat_ind] == input_matrix[mat_ind]
+            cond1 = in_matrix[prev_mat_ind] == in_matrix[mat_ind]
             cond2 = small_dist_grouping
-            cond3 = abs(input_matrix[prev_mat_ind] - input_matrix[mat_ind]) < min_dist
+            cond3 = abs(in_matrix[prev_mat_ind] - in_matrix[mat_ind]) < min_dist
 
             if cond1 || (cond2 && cond3)
-                symmetric_set_values(ordered_matrix, mat_ind, ordering_number-1)
+                symmetric_set_values(ord_mat, mat_ind, ordering_number-1)
             else
-                symmetric_set_values(ordered_matrix, mat_ind, ordering_number)
+                symmetric_set_values(ord_mat, mat_ind, ordering_number)
                 ordering_number+=1
             end
         else
-            symmetric_set_values(ordered_matrix, mat_ind, ordering_number)
+            symmetric_set_values(ord_mat, mat_ind, ordering_number)
             ordering_number+=1
         end
     end
