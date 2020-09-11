@@ -85,10 +85,10 @@ function diagonal_symmetrize(image::Matrix; below_over_upper=false)
 
   # Substitute elements
   for k=1:repetition_number
-      # next_position = matrix_indices[k]
-      matrix_index = matrix_indices[k]
-      # ordered_matrix[matrix_index] = k
-      img[matrix_index[2], matrix_index[1]] = img[matrix_index]
+      # n_pos = matrix_indices[k]
+      mat_ind = matrix_indices[k]
+      # ordered_matrix[mat_ind] = k
+      img[mat_ind[2], mat_ind[1]] = img[mat_ind]
   end
 
   try
@@ -160,115 +160,83 @@ julia> get_ordered_matrix(b; assign_same_values=true)
 1  2  1  0
 ```
 """
-function get_ordered_matrix(in_matrix;
-                                assign_same_values=false,
-                                force_symmetry=false,
+function get_ordered_matrix(in_matrix::Matrix;
+                                assign_same_values::Bool=false,
+                                force_symmetry::Bool=false,
                                 small_dist_grouping=false,
                                 min_dist=1e-16,
                                 total_dist_groups=0)
+
     # TODO Symmetry must be forced for matrix in which there are NaN elements- needs
     #   to be further investigated
     # TODO not working for negative only values
 
-    # ===
-    #
-    # ===
+    # TODO check for square matrix
 
     # ==
-    if length(size(in_matrix)) > 2
-        ord_mat = zeros(Int, size(in_matrix))
+    mat_size = size(in_matrix)
+    ord_mat = zeros(Int, mat_size)
 
-        mat_sizes = size(in_matrix)
-        min_val = findmin(mat_sizes)[1]
-        max_val = findmax(mat_sizes)[1]
+    ordered_matrix = ord_mat[:,:]
+    input_matrix = in_matrix[:,:]
 
-        total_min_vals = length(findall(x->x==min_val,mat_sizes))
-        total_max_vals = length(findall(x->x==max_val,mat_sizes))
-        if total_min_vals > total_max_vals && total_min_vals >= 2
-            mat_size = size(in_matrix,findall(x->x==min_val,mat_sizes)[1])
-            slices = size(in_matrix,findall(x->x==max_val,mat_sizes)[1])
-        elseif total_min_vals < total_max_vals && total_max_vals >= 2
-            mat_size = size(in_matrix,findall(x->x==max_val,mat_sizes)[1])
-            slices =  size(in_matrix,findall(x->x==min_val,mat_sizes)[1])
-        else
-            error("Can not resolve matrix size")
-        end
+    if issymmetric(input_matrix) || force_symmetry
+        # how many elements are above diagonal
+        # repetition_number = Int(ceil((mat_size * (mat_size-1))/2))
+        matrix_indices = generate_indices(mat_size, symmetry_order=true)
     else
-        mat_size = size(in_matrix,1)
-        ord_mat = zeros(Int, mat_size, mat_size)
-        mat_size = size(in_matrix,1)
-        slices = 1
+        # how many elements are in whole matrix
+        # repetition_number = Int(ceil((size(input_matrix)[1] * size(input_matrix)[1])))
+        matrix_indices = generate_indices(mat_size)
     end
+    total_elements = length(matrix_indices)
 
-    for m=1:slices
-        ordered_matrix = ord_mat[:,:,m]
-        input_matrix = in_matrix[:,:,m]
+    # ===
+    # Collect vector of indices
+    all_ind_collected = arr_to_vec(matrix_indices)
 
-        if issymmetric(input_matrix) || force_symmetry
-            symetry_order = true
-        else
-            symetry_order = false
-            @warn "Doing non-symetric ordering"
-        end
+    # Sort indices vector according to inpu array
+    index_sorting = sort_index_by_values(input_matrix, all_ind_collected)
 
-        # distance_groups !=0 && group_distances!(input_matrix, distance_groups)
+    # # Get all values which will be sorted
+    # matrix_values_for_sort = input_matrix[matrix_indices]
+    #
+    # # Sort indices by values (highest to lowest)
+    # # Create a list of indices, which corresponding valeus are ordered
+    # sorted_indices = sort!([1:repetition_number;],
+    #                     by=i->(matrix_values_for_sort[i],matrix_indices[i]))
 
-        # ====
-        matrix_indices = generate_indices(mat_size, symmetry_order=symetry_order)
+    ordering_number = 0
+    for k=1:total_elements
+        # global ordering_number
+        next_sorted_pos = index_sorting[k]
+        mat_ind = matrix_indices[next_sorted_pos]
 
+        if assign_same_values && k!=1
+            prev_sorted_pos = index_sorting[k-1]
+            prev_mat_ind = matrix_indices[prev_sorted_pos]
 
-        # Get number of elements to be ordered
-        if symetry_order
-            # how many elements are above diagonal
-            repetition_number = Int(ceil((mat_size * (mat_size-1))/2))
-        else
-            # how many elements are in whole matrix
-            repetition_number = Int(ceil((size(input_matrix)[1] * size(input_matrix)[1])))
-        end
+            cond1 = input_matrix[prev_mat_ind] == input_matrix[mat_ind]
+            cond2 = small_dist_grouping
+            cond3 = abs(input_matrix[prev_mat_ind] - input_matrix[mat_ind]) < min_dist
 
-        # Get all values which will be sorted
-        matrix_values_for_sort = input_matrix[matrix_indices]
-
-        # Sort indices by values (highest to lowest)
-        # Create a list of indices, which corresponding valeus are ordered
-        sorted_indices = sort!([1:repetition_number;],
-                            by=i->(matrix_values_for_sort[i],matrix_indices[i]))
-
-        ordering_number = 0
-        for k=1:repetition_number
-            # global ordering_number
-            next_position = sorted_indices[k]
-            matrix_index = matrix_indices[next_position]
-
-            if assign_same_values && k!=1
-                prev_index = sorted_indices[k-1]
-                prev_matrix_index = matrix_indices[prev_index]
-
-                conditioin1 = input_matrix[prev_matrix_index] == input_matrix[matrix_index]
-                conditioin2 = small_dist_grouping
-                conditioin3 = abs(input_matrix[prev_matrix_index] - input_matrix[matrix_index]) > min_dist
-
-                if conditioin1 || (conditioin2 && conditioin3)
-                    ordered_matrix[matrix_index] = ordering_number-1
-                    ordered_matrix[matrix_index[2], matrix_index[1]] = ordering_number-1
-                else
-                    ordered_matrix[matrix_index] = ordering_number
-                    ordered_matrix[matrix_index[2], matrix_index[1]] = ordering_number
-                    ordering_number+=1
-                end
+            if cond1 || (cond2 && cond3)
+                symmetric_set_values(ordered_matrix, mat_ind, ordering_number-1)
             else
-                ordered_matrix[matrix_index[1], matrix_index[2]] = ordering_number
-                ordered_matrix[matrix_index[2], matrix_index[1]] = ordering_number
+                symmetric_set_values(ordered_matrix, mat_ind, ordering_number)
                 ordering_number+=1
             end
+        else
+            symmetric_set_values(ordered_matrix, mat_ind, ordering_number)
+            ordering_number+=1
         end
-
-        ord_mat[:,:,m] = ordered_matrix
-    end # for loop
+    end
 
     return ord_mat
 end
 
+
+# TODO this one has to be specified for 3 dim matrix
 function get_ordered_matrix2(input_array::Array; do_slices = true, dims = 0)
     arr_size = size(input_array)
     out_arr = zeros(Int, arr_size)
@@ -379,9 +347,9 @@ Return all the possible indices of the matrix of size 'matrix_size'. If
 'symetry_order' is set to'true', then only indices of values below diagonal are
 returned.
 """
-function generate_indices(matrix_size; symmetry_order=false, include_diagonal=false)
+function generate_indices(matrix_size::Tuple; symmetry_order=false, include_diagonal=false)
     # Get all cartesian indices from input matrix
-    matrix_indices = CartesianIndices((1:matrix_size, 1:matrix_size))
+    matrix_indices = CartesianIndices(matrix_size)
     # Filter out indices below diagonal
     if symmetry_order
         if include_diagonal
@@ -395,19 +363,56 @@ function generate_indices(matrix_size; symmetry_order=false, include_diagonal=fa
     return matrix_indices
 end
 
-
-"""
-    function generate_indices(dims::Tuple)
-
-Generate indices for a matrix of given dimensions.
-"""
-function generate_indices(dims::Tuple)
-    total_dims = length(dims)
-    matrix_indices = CartesianIndices(dims)
+function generate_indices(matrix_size::Int; symmetry_order=false, include_diagonal=false)
+    return generate_indices((matrix_size,matrix_size); symmetry_order=symmetry_order, include_diagonal=include_diagonal)
 end
 
-dims = (12,4,6)
 
+# """
+#     function generate_indices(dims::Tuple)
+#
+# Generate indices for a matrix of given dimensions.
+# """
+# function generate_indices(dims::Tuple)
+#     total_dims = length(dims)
+#     matrix_indices = CartesianIndices(dims)
+# end
+
+
+"""
+    function arr_to_vec(some_array::Array)
+
+Takes an array and reshapes it into a vector.
+"""
+function arr_to_vec(some_array::Array)
+    return collect(reshape(some_array, length(some_array)))
+end
+
+
+
+"""
+    sort_index_by_values(input_matrix::Matrix, index_vector::Vector)
+
+Sorts the 'index_vector' according to corresponding values in the 'input_matrix'
+and returns an order of 'sorted index_vector'.
+"""
+function sort_index_by_values(input_matrix::Matrix, index_vector::Vector)
+    total_elements = length(index_vector)
+    return sort!([1:total_elements;],
+                    by=i->(input_matrix[index_vector][i],index_vector[i]))
+end
+
+"""
+    symmetric_set_values!(input_matrix:Matrix, position::CartesianIndex, target_value::Number)
+
+Assigns 'taeget_value' to indices at 'input_matrix[position[1], position[2]]'
+and 'input_matrix[position[2], position[1]]'.
+"""
+function symmetric_set_values!(input_matrix:Matrix, position::CartesianIndex, target_value::Number)
+    input_matrix[position[1], position[2]] = target_value
+    input_matrix[position[2], position[1]] = target_value
+    return input_matrix
+end
 # matrix ordering
 # =====
 
