@@ -168,6 +168,14 @@ end
 
     @test !isempty(get_ordered_matrix(power_matrix) == ordered_power_matrix)
 
+    begin
+        non_zero_input = findall(x->x!=0,input_matrix)
+        min_orig = findmin(input_matrix[non_zero_input])[2]
+        max_new = findall(x->x==1,ordered_matrix)#[1]
+        @test min_orig .== max_new
+
+    end
+
 
 
 
