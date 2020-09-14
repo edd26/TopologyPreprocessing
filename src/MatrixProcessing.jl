@@ -179,7 +179,7 @@ function get_ordered_matrix(in_matrix::Matrix;
 
     # how many elements are above diagonal
     if issymmetric(in_matrix) || force_symmetry
-        matrix_indices = generate_indices(mat_size, symmetry_order=true)
+        matrix_indices = generate_indices(mat_size, symmetry_order=true, include_diagonal=false)
         do_symmetry = true
     else
         matrix_indices = generate_indices(mat_size, symmetry_order=false)
@@ -224,7 +224,7 @@ end
 
 
 # TODO this one has to be specified for 3 dim matrix
-function get_ordered_matrix2(input_array::Array; do_slices = true, dims = 0)
+function get_ordered_matrix(input_array::Array; do_slices = true, dims = 0)
     arr_size = size(input_array)
     out_arr = zeros(Int, arr_size)
 
@@ -252,7 +252,7 @@ function get_ordered_matrix2(input_array::Array; do_slices = true, dims = 0)
     end
 end
 
-function get_ordered_matrix2(input_array::Array)
+function get_ordered_matrix(input_array::Array)
     out_array = copy(input_array)
     arr_size = size(input_array)
     total_elements = length(input_array)
@@ -334,23 +334,24 @@ Return all the possible indices of the matrix of size 'matrix_size'. If
 'symetry_order' is set to'true', then only indices of values below diagonal are
 returned.
 """
-function generate_indices(matrix_size::Tuple; symmetry_order=false, include_diagonal=false)
+function generate_indices(matrix_size::Tuple; symmetry_order=false, include_diagonal=true)
     # Get all cartesian indices from input matrix
     matrix_indices = CartesianIndices(matrix_size)
     # Filter out indices below diagonal
     if symmetry_order
-        if include_diagonal
-            matrix_indices = findall(x->x[1]<=x[2], matrix_indices)
-        else
-            matrix_indices = findall(x->x[1]<x[2], matrix_indices)
-        end
+        matrix_indices = findall(x->x[1]<=x[2], matrix_indices)
     else
         matrix_indices = findall(x->true, matrix_indices)
     end
+
+    if !include_diagonal
+        filter!(x->x[1]!=x[2],matrix_indices)
+    end
+
     return matrix_indices
 end
 
-function generate_indices(matrix_size::Int; symmetry_order=false, include_diagonal=false)
+function generate_indices(matrix_size::Int; symmetry_order=false, include_diagonal=true)
     return generate_indices((matrix_size,matrix_size); symmetry_order=symmetry_order, include_diagonal=include_diagonal)
 end
 
