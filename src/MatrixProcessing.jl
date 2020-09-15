@@ -240,15 +240,15 @@ function get_ordered_matrix(input_array::Array; do_slices = true, dims = 0)
 
         for dim in 1:arr_size[dims]
             if dims == 1
-                out_arr[dim,:,:] = get_ordered_matrix2(input_array[dim,:,:])
+                out_arr[dim,:,:] = get_ordered_matrix(input_array[dim,:,:])
             elseif dims == 2
-                out_arr[:,dim,:] = get_ordered_matrix2(input_array[:,dim,:])
+                out_arr[:,dim,:] = get_ordered_matrix(input_array[:,dim,:])
             elseif dims == 3
-                out_arr[:,:,dim] = get_ordered_matrix2(input_array[:,:,dim])
+                out_arr[:,:,dim] = get_ordered_matrix(input_array[:,:,dim])
             end
         end
     else
-        out_arr = get_ordered_matrix2(input_array)
+        out_arr = get_ordered_matrix(input_array)
     end
 end
 
@@ -279,7 +279,6 @@ end
 
 Takes a matrix and rearranges values into 'total_dist_groups' number of groups.
 Every group is assigned with number value from range '<0,1>'.
-
 """
 # Care must be taken so that values from 'input_matrix' are within distance
 # groups, otherwise error is thrown.
@@ -309,30 +308,15 @@ function group_distances(input_matrix::Array, total_dist_groups::Int)
 end
 
 
-# function group_distances(input_matrix::Matrix, total_dist_groups::Int)
-#     new_matrix = copy(input_matrix)
-#     group_distances!(new_matrix, total_dist_groups)
-#     return new_matrix
-# end
-
-# function normalize_distances!(input_matrix)
-#     max_val = findmax(input_matrix)[1]
-#     min_val = findmin(input_matrix)[1]
-#
-#     if min_val < 0
-#         input_matrix .+= abs(min_val)
-#     else
-#         input_matrix .-= abs(min_val)
-#     end
-#     input_matrix ./= abs(max_val)
-# end
-
 """
-    function generate_indices(matrix_size; symetry_order=false)
+    generate_indices(matrix_size::Tuple; symmetry_order=false, include_diagonal=true)
 
-Return all the possible indices of the matrix of size 'matrix_size'. If
-'symetry_order' is set to'true', then only indices of values below diagonal are
-returned.
+Return all the possible indices of the matrix of size 'matrix_size'.
+'matrix_size' may be a tuple or a series of integer arguments corresponding to
+the lengths in each dimension.
+
+If 'symetry_order' is set to'true', then only indices of values below diagonal
+are returned.
 """
 function generate_indices(matrix_size::Tuple; symmetry_order=false, include_diagonal=true)
     # Get all cartesian indices from input matrix
@@ -351,24 +335,19 @@ function generate_indices(matrix_size::Tuple; symmetry_order=false, include_diag
     return matrix_indices
 end
 
+"""
+    generate_indices(matrix_size::Int; symmetry_order=false, include_diagonal=true)
+
+Generate indices for a matrix of given dimensions. 'generate_indices' is a
+series of integer arguments corresponding to the lengths in each dimension.
+"""
 function generate_indices(matrix_size::Int; symmetry_order=false, include_diagonal=true)
     return generate_indices((matrix_size,matrix_size); symmetry_order=symmetry_order, include_diagonal=include_diagonal)
 end
 
 
-# """
-#     function generate_indices(dims::Tuple)
-#
-# Generate indices for a matrix of given dimensions.
-# """
-# function generate_indices(dims::Tuple)
-#     total_dims = length(dims)
-#     matrix_indices = CartesianIndices(dims)
-# end
-
-
 """
-    function arr_to_vec(some_array::Array)
+    arr_to_vec(some_array::Array)
 
 Takes an array and reshapes it into a vector.
 """
@@ -376,25 +355,32 @@ function arr_to_vec(some_array::Array)
     return collect(reshape(some_array, length(some_array)))
 end
 
-
-
-"""
-    sort_index_by_values(input_matrix::Matrix, index_vector::Vector)
-
-Sorts the 'index_vector' according to corresponding values in the 'input_matrix'
-and returns an order of 'sorted index_vector'.
-"""
-function sort_index_by_values(input_matrix::Matrix, index_vector::Vector)
-    total_elements = length(index_vector)
-    return sort!([1:total_elements;],
-                    by=i->(input_matrix[index_vector][i],index_vector[i]))
+function cartesianInd_to_vec(some_array::CartesianIndices)
+    return collect(reshape(some_array, length(some_array)))
 end
 
 """
-    symmetric_set_values!(input_matrix:Matrix, position::CartesianIndex, target_value::Number)
+    sort_index_by_values(values_matrix::Matrix, index_vector::Vector)
 
-Assigns 'taeget_value' to indices at 'input_matrix[position[1], position[2]]'
-and 'input_matrix[position[2], position[1]]'.
+Sorts the 'index_vector' according to corresponding values in the 'values_matrix'
+and returns a Vector of intigers which is an list of ordering of
+'sorted index_vector'.
+"""
+function sort_index_by_values(values_matrix::T, index_vector) where {T<:VecOrMat}
+    if !isa(index_vector,Vector)
+        throw(TypeError(:sort_index_by_values, "\'index_vector\' must be a vector, otherwise an ordering list can no be created!", Vector, typeof(index_vector)))
+    end
+    total_elements = length(index_vector)
+    return sort!([1:total_elements;],
+                    by=i->(values_matrix[index_vector][i],index_vector[i]))
+end
+
+"""
+    set_values!(input_matrix::Matrix, position::CartesianIndex, target_value::Number; do_symmetry=false)
+
+Assigns 'target_value' to indices at 'input_matrix[position[1], position[2]]'.
+If 'do_symmetry' is set to 'true', then the 'target_value' is also assigned at
+position 'input_matrix[position[2], position[1]]'.
 """
 function set_values!(input_matrix::Matrix, position::CartesianIndex, target_value::Number; do_symmetry=false)
     input_matrix[position[1], position[2]] = target_value
