@@ -1,27 +1,6 @@
 # ==============================
 #  ======== Tested code ========
-
-
-# ==============================
-#  ======= Untested code =======
-# using Plots
-# using PlotThemes
-# using PlotUtils
-# using Eirene
-# using Measures
-# using Plots.PlotMeasures
-# include("MatrixProcessing.jl")
-
-#
-# # Source: https://github.com/JuliaPlots/Plots.jl/issues/897
-# function setdefaultplottingparams(;upscale=2)
-#     #8x upscaling in resolution
-#     fntsm = Plots.font("sans-serif", pointsize=round(12.0*upscale))
-#     fntlg = Plots.font("sans-serif", pointsize=round(18.0*upscale))
-#     default(titlefont=fntlg, guidefont=fntlg, tickfont=fntsm, legendfont=fntsm)
-#     default(size=(800*upscale,600*upscale)) #Plot canvas size
-#     default(dpi=500) #Only for PyPlot - presently broken
-# end
+using Eirene
 
 # ====
 """
@@ -45,6 +24,7 @@ end
 
 Normalise the number of steps for every Eirene betti number in 'bettis' variable.
 """
+# TODO this hould work for both get bettis and bettis from Eirene library
 function normalise_bettis(bettis)
     norm_bettis = copy(bettis)
     @debug "norm_bettis size :" size(norm_bettis)[1][1]
@@ -59,6 +39,30 @@ function normalise_bettis(bettis)
     end
     return norm_bettis
 end
+
+# ==============================
+#  ======= Untested code =======
+# using Plots
+# using PlotThemes
+# using PlotUtils
+
+# using Measures
+# using Plots.PlotMeasures
+# include("MatrixProcessing.jl")
+
+#
+# # Source: https://github.com/JuliaPlots/Plots.jl/issues/897
+# function setdefaultplottingparams(;upscale=2)
+#     #8x upscaling in resolution
+#     fntsm = Plots.font("sans-serif", pointsize=round(12.0*upscale))
+#     fntlg = Plots.font("sans-serif", pointsize=round(18.0*upscale))
+#     default(titlefont=fntlg, guidefont=fntlg, tickfont=fntsm, legendfont=fntsm)
+#     default(size=(800*upscale,600*upscale)) #Plot canvas size
+#     default(dpi=500) #Only for PyPlot - presently broken
+# end
+
+
+
 
 # ====
 
