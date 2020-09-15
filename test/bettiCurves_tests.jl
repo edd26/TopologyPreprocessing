@@ -66,6 +66,30 @@ using Test
                                   25 26 27 28 29 30 31 32 1  45;
                                   33 34 35 36 37 38 39 40 45 1;]
 
+        #  as betticurve results
+        for matrix = [sample_distance_matrix1, sample_distance_matrix2]
+            for max_B_dim = 1:4
+                if min_B_dim > max_B_dim
+                    @debug "Continue at " min_B_dim, max_B_dim
+                    continue
+                end
+                eirene_results = eirene(matrix, model="vr", maxdim = max_B_dim)
+                betti_result = betticurve(eirene_results, dim=max_B_dim)
+
+                normed_all_bettis = normalise_bettis(betti_result)
+                @test typeof(normed_all_bettis) == typeof(betti_result)
+                @test length(normed_all_bettis) != max_B_dim
+                @test size(normed_all_bettis) == size(betti_result)
+                @test normed_all_bettis isa Array{Float64,2}
+
+                # Betti values are unchanged:
+                @test normed_all_bettis[:,2] == betti_result[:,2]
+                # Max val is 1
+                @test findmax(normed_all_bettis[:,1])[1] == 1.
+            end
+        end
+
+        #  as get_bettis results
         for matrix = [sample_distance_matrix1, sample_distance_matrix2]
             for max_B_dim = 1:4, min_B_dim = 1:3
                 if min_B_dim > max_B_dim
@@ -87,7 +111,5 @@ using Test
             end
         end
     end
-
-
 
 end

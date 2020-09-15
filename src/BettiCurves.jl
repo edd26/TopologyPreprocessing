@@ -25,7 +25,8 @@ end
 Normalise the number of steps for every Eirene betti number in 'bettis' variable.
 """
 # TODO this hould work for both get bettis and bettis from Eirene library
-function normalise_bettis(bettis)
+function normalise_bettis(bettis::Vector)
+	@debug "Vector version"
     norm_bettis = copy(bettis)
     @debug "norm_bettis size :" size(norm_bettis)[1][1]
 
@@ -38,33 +39,19 @@ function normalise_bettis(bettis)
         end
     end
     return norm_bettis
+
 end
 
-# ==============================
-#  ======= Untested code =======
-# using Plots
-# using PlotThemes
-# using PlotUtils
+function normalise_bettis(bettis::Array)
+	@debug "Array version"
+    norm_bettis = copy(bettis)
+    @debug "norm_bettis size :" size(norm_bettis)
 
-# using Measures
-# using Plots.PlotMeasures
-# include("MatrixProcessing.jl")
-
-#
-# # Source: https://github.com/JuliaPlots/Plots.jl/issues/897
-# function setdefaultplottingparams(;upscale=2)
-#     #8x upscaling in resolution
-#     fntsm = Plots.font("sans-serif", pointsize=round(12.0*upscale))
-#     fntlg = Plots.font("sans-serif", pointsize=round(18.0*upscale))
-#     default(titlefont=fntlg, guidefont=fntlg, tickfont=fntsm, legendfont=fntsm)
-#     default(size=(800*upscale,600*upscale)) #Plot canvas size
-#     default(dpi=500) #Only for PyPlot - presently broken
-# end
-
-
-
-
-# ====
+    if !isempty(norm_bettis)
+        norm_bettis[:,1] /= findmax(norm_bettis[:,1])[1]
+    end
+    return norm_bettis
+end
 
 """
 	vectorize_bettis(eirene_results, maxdim, mindim)
@@ -105,6 +92,32 @@ function vectorize_bettis(eirene_results, maxdim, mindim)
 	   end
 	end
 end
+
+# ==============================
+#  ======= Untested code =======
+# using Plots
+# using PlotThemes
+# using PlotUtils
+
+# using Measures
+# using Plots.PlotMeasures
+# include("MatrixProcessing.jl")
+
+#
+# # Source: https://github.com/JuliaPlots/Plots.jl/issues/897
+# function setdefaultplottingparams(;upscale=2)
+#     #8x upscaling in resolution
+#     fntsm = Plots.font("sans-serif", pointsize=round(12.0*upscale))
+#     fntlg = Plots.font("sans-serif", pointsize=round(18.0*upscale))
+#     default(titlefont=fntlg, guidefont=fntlg, tickfont=fntsm, legendfont=fntsm)
+#     default(size=(800*upscale,600*upscale)) #Plot canvas size
+#     default(dpi=500) #Only for PyPlot - presently broken
+# end
+
+
+
+
+# ====
 
 # ====
 """
