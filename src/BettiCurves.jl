@@ -59,8 +59,8 @@ end
 """
 	vectorize_bettis(eirene_results, maxdim, mindim)
 
-Returns the betti curves in the form of matrix, which rows are Betti values, and
-columns are Betti dimensions starting with @mindim up to @maxdim.
+Returns the betti curves in the form of matrix, where in rows represent Betti
+values, and columns are Betti dimensions starting with @mindim up to @maxdim.
 """
 function vectorize_bettis(eirene_results, maxdim, mindim)
 	# TODO change description
