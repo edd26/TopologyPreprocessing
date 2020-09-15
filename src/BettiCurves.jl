@@ -20,11 +20,13 @@ end
 
 # ====
 """
-	normalise_bettis(bettis)
+	normalise_bettis(bettis::Vector)
+    normalise_bettis(bettis::Array)
 
-Normalise the number of steps for every Eirene betti number in 'bettis' variable.
+Normalise the number of steps for Betti curves. 'bettis' can be either vector of
+arrays (each array contain Betti curve of different dimension) or an array
+containing Betti curve of a single dimension.
 """
-# TODO this hould work for both get bettis and bettis from Eirene library
 function normalise_bettis(bettis::Vector)
 	@debug "Vector version"
     norm_bettis = copy(bettis)
@@ -53,6 +55,7 @@ function normalise_bettis(bettis::Array)
     return norm_bettis
 end
 
+# ===
 """
 	vectorize_bettis(eirene_results, maxdim, mindim)
 
