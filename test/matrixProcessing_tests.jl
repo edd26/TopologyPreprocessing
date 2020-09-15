@@ -133,13 +133,13 @@ end
 end
 
 
-@testset "MatrixProcessing.jl -> arrays of arrays" begin
-    # Need to be taken from Bettis
-    # arr_of_arrs
-
-    # reduce_arrs_to_min_len(arr_of_arrs)
-
-end
+# @testset "MatrixProcessing.jl -> arrays of arrays" begin
+#     # Need to be taken from Bettis
+#     # arr_of_arrs
+#
+#     # reduce_arrs_to_min_len(arr_of_arrs)
+#
+# end
 
 @testset "MatrixProcessing.jl -> matrix ordering helping functions" begin
     let testing_matrix0 = Array{Float64,2}(undef, 2, 3),
@@ -243,7 +243,7 @@ end
             @test another_matrix === some_matrix
         end
 
-        let some_gatrix = [1 2 3; 4 5 6; 7 8 9]
+        let some_matrix = [1 2 3; 4 5 6; 7 8 9]
 
             another_matrix = set_values!(some_matrix, target_coords1, target_value; do_symmetry=true)
             @test some_matrix[target_coords1] == target_value
@@ -358,47 +358,41 @@ end
                         5  6  7  8  1  13;
                         9  10 11 12 13 1 ;]
 
-        let test_mat_b3_ord1 = [ 0  0  5  3  6  10;
-                         0  0  1  4  7  11;
-                         5  1  0  2  8  12;
-                         3  4  2  0  9  13;
-                         6  7  8  9  0  14;
-                         10 11 12 13 14 0 ;],
-          test_mat_b3_indices = generate_indices(size(test_mat_b3))
-            filter!(x->x!=CartesianIndex(1,3), test_mat_b3_indices)
-            filter!(x->x!=CartesianIndex(1,4), test_mat_b3_indices)
-            filter!(x->x!=CartesianIndex(2,4), test_mat_b3_indices)
-            filter!(x->x!=CartesianIndex(3,4), test_mat_b3_indices)
-            filter!(x->x!=CartesianIndex(3,1), test_mat_b3_indices)
-            filter!(x->x!=CartesianIndex(4,1), test_mat_b3_indices)
-            filter!(x->x!=CartesianIndex(4,2), test_mat_b3_indices)
-            filter!(x->x!=CartesianIndex(4,3), test_mat_b3_indices)
+        let test_mat_b1_ord1 = [ 0   0   1   5   6  10;
+                                  0   0   2   3   7  11;
+                                  1   2   0   4   8  12;
+                                  5   3   4   0   9  13;
+                                  6   7   8   9   0  14;
+                                 10  11  12  13  14   0],
+            test_mat_b1_indices = generate_indices(size(test_mat_b1))
 
-            ord_mat_b3_1 = get_ordered_matrix(10 .*test_mat_b3, force_symmetry=false, assign_same_values=false)
-            @test issymmetric(ord_mat_b3_1)
-            @test ord_mat_b3_1[test_mat_b3_indices] == test_mat_b3_ord1[test_mat_b3_indices]
+            ord_mat_b1_1 = get_ordered_matrix(10 .*test_mat_b1, force_symmetry=false, assign_same_values=false)
+            @test issymmetric(ord_mat_b1_1)
+            @test ord_mat_b1_1[test_mat_b1_indices] == test_mat_b1_ord1[test_mat_b1_indices]
 
-            ord_mat_b3_2 = get_ordered_matrix(10 .*test_mat_b3, force_symmetry=true, assign_same_values=false)
-            @test issymmetric(ord_mat_b3_2)
-            @test ord_mat_b3_2[test_mat_b3_indices] == test_mat_b3_ord1[test_mat_b3_indices]
+            ord_mat_b1_2 = get_ordered_matrix(10 .*test_mat_b1, force_symmetry=true, assign_same_values=false)
+            @test issymmetric(ord_mat_b1_2)
+            @test ord_mat_b1_2[test_mat_b1_indices] == test_mat_b1_ord1[test_mat_b1_indices]
         end
 
-        let test_mat_b3_ord2 = [ 0  0  2  3  4  8 ;
+        let test_mat_b1_ord2 = [ 0  0  0  3  4  8 ;
                                  0  0  1  2  5  9 ;
-                                 2  1  0  2  6  10;
+                                 0  1  0  2  6  10;
                                  3  2  2  0  7  11;
                                  4  5  6  7  0  12;
                                  8  9  10 11 12 0 ;]
 
-            ord_mat_b3_3 = get_ordered_matrix(10 .*test_mat_b3, force_symmetry=false, assign_same_values=true)
-            @test issymmetric(ord_mat_b3_3)
-            @test ord_mat_b3_3 == (test_mat_b3 .-1)
-            @test ord_mat_b3_3 == test_mat_b3_ord2
+            let ord_mat_b1_3 = get_ordered_matrix(10 .*test_mat_b1, force_symmetry=false, assign_same_values=true)
+                @test issymmetric(ord_mat_b1_3)
+                @test ord_mat_b1_3 == (test_mat_b1 .-1)
+                @test ord_mat_b1_3 == test_mat_b1_ord2
+            end
 
-            ord_mat_b3_4 = get_ordered_matrix(10 .*test_mat_b3, force_symmetry=true, assign_same_values=true)
-            @test issymmetric(ord_mat_b3_4)
-            @test ord_mat_b3_4 == (test_mat_b3 .-1)
-            @test ord_mat_b3_4 == test_mat_b3_ord2
+            let ord_mat_b1_4 = get_ordered_matrix(10 .*test_mat_b1, force_symmetry=true, assign_same_values=true)
+                @test issymmetric(ord_mat_b1_4)
+                @test ord_mat_b1_4 == (test_mat_b1 .-1)
+                @test ord_mat_b1_4 == test_mat_b1_ord2
+            end
         end
 
         let input_matrix = 10 .*test_mat_b1
@@ -591,23 +585,24 @@ end
             @test length(unique(ord_mat_b5_2)) == (size(test_mat_b5,1)*(size(test_mat_b5,1)-1))/2
         end
 
-        let test_mat_b5_ord2 = [0  0  2  3  4  8; # invert this
-                                0  0  1  2  5  9;
-                                13 1  0  2  6  10;
-                                3  14 2  0  7  11;
-                                4  4  6  7  0  12;
-                                8  9  10 11 12 0 ;]
+        let test_mat_b5_ord2 = [14 14 12 11 10 6;
+                                14 14 13 12 9  5;
+                                1  13 14 12 8  4;
+                                11 0  12 14 7  3;
+                                10 10 8  7  14 2;
+                                6  5  4  3  2  14],
             ord_mat_b5_3 = get_ordered_matrix(10 .*test_mat_b5, force_symmetry=false, assign_same_values=true)
+
             @test !issymmetric(ord_mat_b5_3)
             @test ord_mat_b5_3 == test_mat_b5_ord2
         end
 
-        let test_mat_b5_ord3 = [0  0  2   3   4  8 # invert this
-                                0  0  1   2   5  9
-                                2  1  0   2   6  10
-                                3  2  2   0   7  11
-                                4  5  6   7   0  12
-                                8  9  10  11  12 0 ;]
+        let test_mat_b5_ord3 = [0  12 10 9  8  4;
+                                12 0  11 10 7  3;
+                                10 11 0  10 6  2;
+                                9  10 10 0  5  1;
+                                8  7  6  5  0  0;
+                                4  3  2  1  0  0]
             ord_mat_b5_4 = get_ordered_matrix(10 .*test_mat_b5, force_symmetry=true, assign_same_values=true)
             @test issymmetric(ord_mat_b5_4)
             @test ord_mat_b5_4 == test_mat_b5_ord3
