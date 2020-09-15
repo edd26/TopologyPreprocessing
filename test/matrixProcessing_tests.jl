@@ -142,7 +142,130 @@ end
 end
 
 @testset "MatrixProcessing.jl -> matrix ordering helping functions" begin
+    let testing_matrix0 = Array{Float64,2}(undef, 2, 3),
+        testing_matrix1 = [1 2 3; 4 5 6; 7 8 9],
+        testing_matrix2 = ones((2,3,4))
+        testing_matrix3 = [1 2 3; 4 5 6]
+        testing_matrix4 = [1, 4, 7, 2, 5, 8, 3, 6, 9]
 
+        @test arr_to_vec(testing_matrix0) isa Vector
+        @test length(testing_matrix0) == length(arr_to_vec(testing_matrix0))
+
+        @test arr_to_vec(testing_matrix1) isa Vector
+        @test length(testing_matrix1) == length(arr_to_vec(testing_matrix1))
+        @test arr_to_vec(testing_matrix1) == [1, 4, 7, 2, 5, 8, 3, 6, 9]
+
+        @test arr_to_vec(testing_matrix2) isa Vector
+        @test length(testing_matrix2) == length(arr_to_vec(testing_matrix2))
+
+        @test arr_to_vec(testing_matrix3) isa Vector
+        @test length(testing_matrix3) == length(arr_to_vec(testing_matrix3))
+        @test arr_to_vec(testing_matrix3) == [1, 4, 2, 5, 3, 6]
+
+        @test arr_to_vec(testing_matrix4) isa Vector
+        @test length(testing_matrix4) == length(arr_to_vec(testing_matrix4))
+        @test arr_to_vec(testing_matrix4) == [1, 4, 7, 2, 5, 8, 3, 6, 9]
+    end
+
+    let testing_matrix1 = CartesianIndices((2,2)),
+        testing_matrix2 = CartesianIndices((9,1))
+
+        @test cartesianInd_to_vec(testing_matrix1) isa Vector
+        @test length(cartesianInd_to_vec(testing_matrix1)) == length(testing_matrix1)
+
+        @test cartesianInd_to_vec(testing_matrix2) isa Vector
+        @test length(cartesianInd_to_vec(testing_matrix2)) == length(testing_matrix2)
+    end
+
+    let vals_matrix1a = [1 2 3; 4 5 6],
+        vals_matrix1b = [6 5 4; 3 2 1],
+        vals_matrix1c = [4 5 6; 1 2 3]
+        let index_matrix1a = [CartesianIndex(1,1), CartesianIndex(1,2), CartesianIndex(1,3), CartesianIndex(2,1), CartesianIndex(2,2), CartesianIndex(2,3)]
+            @test length(sort_index_by_values(vals_matrix1a, index_matrix1a)) == length(vals_matrix1a)
+            @test sort_index_by_values(vals_matrix1a, index_matrix1a) == collect(1:6)
+
+            @test length(sort_index_by_values(vals_matrix1b, index_matrix1a)) == length(vals_matrix1b)
+            @test sort_index_by_values(vals_matrix1b, index_matrix1a) == collect(6:-1:1)
+
+            @test length(sort_index_by_values(vals_matrix1c, index_matrix1a)) == length(vals_matrix1c)
+            @test sort_index_by_values(vals_matrix1c, index_matrix1a) == [4, 5, 6, 1, 2, 3]
+        end
+
+        let index_matrix1b = CartesianIndices((2,3))
+            @test_throws TypeError sort_index_by_values(vals_matrix1a, index_matrix1b)
+        end
+    end
+
+    let vals_matrix2 = [1 2 3; 4 5 6; 7 8 9],
+        index_matrix2a = CartesianIndices((3,3)),
+        index_matrix2b =   [CartesianIndex(1,1) CartesianIndex(1,2) CartesianIndex(1,3);
+                            CartesianIndex(2,1) CartesianIndex(2,2) CartesianIndex(2,3);
+                            CartesianIndex(3,1) CartesianIndex(3,2) CartesianIndex(3,3)],
+        index_matrix2c =   [CartesianIndex(1,1), CartesianIndex(1,2), CartesianIndex(1,3),
+                            CartesianIndex(2,1), CartesianIndex(2,2), CartesianIndex(2,3),
+                            CartesianIndex(3,1), CartesianIndex(3,2), CartesianIndex(3,3)]
+
+        @test_throws TypeError sort_index_by_values(vals_matrix2, index_matrix2a)
+        @test_throws TypeError sort_index_by_values(vals_matrix2, index_matrix2b)
+
+        @test sort_index_by_values(vals_matrix2, index_matrix2c) isa Vector
+        @test sort_index_by_values(vals_matrix2, index_matrix2c) == 1:9
+        @test length(sort_index_by_values(vals_matrix2, index_matrix2c)) == length(vals_matrix2)
+    end
+
+    let vals_matrix3 = [1, 4, 7, 2, 5, 8, 3, 6, 9],
+        index_matrix3a = CartesianIndices((9,1)),
+        index_matrix3b = CartesianIndices((9,)),
+        index_matrix3c = [1, 4, 7, 2, 5, 8, 3, 6, 9]
+
+        @test_throws TypeError sort_index_by_values(vals_matrix3, index_matrix3a)
+        @test_throws TypeError sort_index_by_values(vals_matrix3, index_matrix3b)
+
+        @test sort_index_by_values(vals_matrix3, index_matrix3c) isa Vector
+        @test sort_index_by_values(vals_matrix3, index_matrix3c) == 1:9
+        @test length(sort_index_by_values(vals_matrix3, index_matrix3c)) == length(vals_matrix3)
+    end
+
+    let target_coords1 = CartesianIndex(2,3),
+        target_value = -20
+
+        let some_matrix = [1 2 3; 4 5 6; 7 8 9]
+
+            set_values!(some_matrix, target_coords1, target_value; do_symmetry=false)
+            @test some_matrix[target_coords1] == target_value
+        end
+
+        let some_matrix = [1 2 3; 4 5 6; 7 8 9]
+
+            another_matrix = set_values!(some_matrix, target_coords1, target_value; do_symmetry=false)
+            @test some_matrix[target_coords1] == target_value
+            @test another_matrix[target_coords1] == target_value
+            @test another_matrix === some_matrix
+        end
+
+        let some_gatrix = [1 2 3; 4 5 6; 7 8 9]
+
+            another_matrix = set_values!(some_matrix, target_coords1, target_value; do_symmetry=true)
+            @test some_matrix[target_coords1] == target_value
+            @test some_matrix[target_coords1[1],target_coords1[2]] == target_value
+            @test some_matrix[target_coords1[2],target_coords1[1]] == target_value
+            @test another_matrix === some_matrix
+        end
+
+        let some_matrix = [1 2 3; 4 5 6; 7 8 9],
+            some_matrix2 = [1 2 3; 4 5 6; 7 8 9],
+            target_coords2 = CartesianIndex(8,9)
+
+            @test_throws BoundsError set_values!(some_matrix, target_coords2, target_value; do_symmetry=false)
+            @test some_matrix == some_matrix2
+        end
+
+        let some_matrix = [1 2 3; 4 5 6; 7 8 9],
+            target_coords3 = CartesianIndices((2,2))
+
+            @test_throws MethodError set_values!(some_matrix, target_coords3, target_value; do_symmetry=false)
+        end
+    end
 end
 
 @testset "MatrixProcessing.jl -> matrix ordering" begin
