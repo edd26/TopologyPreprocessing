@@ -91,6 +91,19 @@ using Test
         end
     end
 
-    
+    # get_vectorized_bettis
+    let max_B_dim = 5,
+        min_B_dim = 1,
+        eirene_results = eirene(sample_distance_matrix1, model="vr", maxdim = max_B_dim)
+
+        let eirene_bettis = get_bettis(eirene_results, max_B_dim, min_dim=min_B_dim),
+            vectorized_bettis = get_vectorized_bettis(eirene_results, max_B_dim, min_dim=min_B_dim)
+
+            @test size(vectorized_bettis)[2] == max_B_dim - (min_B_dim-1)
+            for d in min_B_dim:max_B_dim
+                @test vectorized_bettis[:,d] == eirene_bettis[d][:,2]
+            end
+        end
+    end
 
 end
