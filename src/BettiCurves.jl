@@ -4,15 +4,18 @@ using Eirene
 
 # ====
 """
-	get_bettis(results_eirene::Dict, max_dim::Integer; min_dim=1)
+    get_bettis(results_eirene::Dict, max_dim::Integer; min_dim::Int=1)
 
 Uses betticurve function to generate Betti curves up to `max_dim` diemsion from
 the `results_eirene` dictionary.
 """
-function get_bettis(results_eirene::Dict, max_dim::Int; min_dim=1)
+function get_bettis(results_eirene::Dict, max_dim::Integer; min_dim::Int=1)
     bettis = Matrix{Float64}[]
-    for d =min_dim:max_dim
+    for d = min_dim:max_dim
         result = betticurve(results_eirene, dim=d)
+        if isempty(result) && d>1
+            result=zeros(size(bettis[d-1]))
+        end
         push!(bettis, result)
     end
     return bettis
@@ -57,46 +60,21 @@ end
 
 # ===
 """
-	get_vectorized_bettis(eirene_results::Dict, maxdim::Integer, mindim::Integer)
+	get_vectorized_bettis(results_eirene::Dict, max_dim::Integer; min_dim::Int=1)
 
 Takes the eirene result and computes Betti curves for dimensions in range
-'mindim:maxdim'. Evry Betti curve is stored in successive column of the
+'mindim:maxdim'. Every Betti curve is stored in successive column of the
 resulting array.
 """
-function get_vectorized_bettis(eirene_results::Dict, maxdim::Integer, mindim::Integer)
-	number_of_steps = length(betticurve(eirene_results, dim=0)[:,1])
-	number_of_bettis = maxdim-mindim+1
+function get_vectorized_bettis(results_eirene::Dict, max_dim::Integer; min_dim::Int=1)
+    all_bettis = get_bettis(eirene_results, max_dim, min_dim=min_dim)
+    bettis_vector = hcat([all_bettis[k][:,2] for k=min_dim:max_dim]...)
 
-	result = zeros(number_of_steps, number_of_bettis)
-	try
-		iter=1
-		for d=mindim:maxdim
-			bett_res = betticurve(eirene_results, dim=d)[:,2]
-			if size(bett_res,1) == 0
-				@warn "Computed betti curve had 0 elements, creating vector with zeros"
-				bett_res = zeros(size(result,1))
-			end
-			result[:,iter] = bett_res
-			iter+=1
-		end
-		@debug size(result)
-		return result
-	catch err
-		if isa(err, DimensionMismatch)
-			@error "Dimension mismatch error"
-			for d=mindim:maxdim
-				@error size(betticurve(c, dim=d))
-			end
-			@error hcat([betticurve(c, dim=d)[:,2] for d=mindim:maxdim]...)
-			throw(err)
-	   else
-			@error "Unknown error occurred"
-			throw(err)
-	   end
-	end
+    return bettis_vector
 end
 
-function get_vectorized_bettis(eirene_results::Dict, maxdim::Integer, mindim::Integer)
+# TODO add depraciated for this function:
+function vectorize_bettis(eirene_results::Dict, maxdim::Integer, mindim::Integer)
 	number_of_steps = length(betticurve(eirene_results, dim=0)[:,1])
 	number_of_bettis = maxdim-mindim+1
 
