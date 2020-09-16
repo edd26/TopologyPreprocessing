@@ -224,7 +224,7 @@ end
 
 
 # TODO this one has to be specified for 3 dim matrix
-function get_ordered_matrix(input_array::Array; do_slices = true, dims = 0)
+function get_ordered_matrix(input_array::Array{Any, 3}; do_slices = true, dims = 0)
     arr_size = size(input_array)
     out_arr = zeros(Int, arr_size)
 
