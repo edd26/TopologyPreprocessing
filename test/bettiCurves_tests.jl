@@ -1,8 +1,6 @@
 using TopologyPreprocessing
 using Test
 
-# using MatrixOrganization
-
 @testset "BettiCurves.jl" begin
     sample_distance_matrix1 = [0  1  25 4  5  9  13 17;
                                   1  0  2  26 6  10 14 18;
@@ -106,4 +104,96 @@ using Test
         end
     end
 
+end
+
+
+@testset "BettiCurves.jl -> plot bettis" begin
+    sample_distance_matrix1 = [0  1  25 4  5  9  13 17;
+                                  1  0  2  26 6  10 14 18;
+                                  25 2  0  3  7  11 15 19;
+                                  4  26 3  0  8  12 16 20;
+                                  5  6  7  8  0  21 27 24;
+                                  9  10 11 12 21 0  22 28;
+                                  13 14 15 16 27 22 0  23;
+                                  17 18 19 20 24 28 23 0 ]
+    sample_distance_matrix2 = [1  1  41 4  5  9  13 17 25 33;
+                               1  1  2  42 6  10 14 18 26 34;
+                               41 2  1  3  7  11 15 19 27 35;
+                               4  42 3  1  8  12 16 20 28 36;
+                               5  6  7  8  1  21 43 24 29 37;
+                               9  10 11 12 21 1  22 44 30 38;
+                               13 14 15 16 43 22 1  23 31 39;
+                               17 18 19 20 24 44 23 1  32 40;
+                               25 26 27 28 29 30 31 32 1  45;
+                               33 34 35 36 37 38 39 40 45 1;]
+
+    # plot_bettis tests for get_bettis:
+    let max_B_dim = 5,
+        min_B_dim = 1,
+        eirene_results = eirene(sample_distance_matrix1, model="vr", maxdim = max_B_dim)
+        all_bettis = get_bettis(eirene_results, max_B_dim)
+
+        p = plot_bettis(all_bettis)
+        @test length(p.series_list) == max_B_dim-(min_B_dim-1)
+        @test p.attr[:plot_title] == ""
+
+        @test_throws DomainError plot_bettis(all_bettis, min_dim=max_B_dim+1)
+
+        for dim = min_B_dim:max_B_dim
+            @test p.series_list[dim][:label] == "β$(dim)"
+            @test p.series_list[dim][:x] == all_bettis[dim][:,1]
+            @test p.series_list[dim][:y] == all_bettis[dim][:,2]
+        end
+
+
+        for dim = min_B_dim:max_B_dim
+            p = plot_bettis(all_bettis, min_dim = dim)
+            @test length(p.series_list) == max_B_dim-(dim-1)
+        end
+
+
+        let p1 = plot_bettis(all_bettis, betti_labels=false)
+            for dim = min_B_dim:max_B_dim
+                @test p1.series_list[dim][:label] == "y$(dim)"
+                @test p1.series_list[dim][:x] == all_bettis[dim][:,1]
+                @test p1.series_list[dim][:y] == all_bettis[dim][:,2]
+            end
+        end
+
+        let lw=4,
+            p1 = plot_bettis(all_bettis, betti_labels=true, lw=lw)
+            for dim = min_B_dim:max_B_dim
+                @test p1.series_list[dim][:label] == "β$(dim)"
+                @test p1.series_list[dim][:linewidth] == lw
+            end
+        end
+
+        let plt_title = "test_title",
+            p1 = plot_bettis(all_bettis, title=plt_title, lw=9, xlabel="2")
+            @test_skip p1.attr[:plot_title] == plt_title # why plot-title is not returning the title?
+            for dim = min_B_dim:max_B_dim
+                @test p1.series_list[dim][:label] == "β$(dim)"
+            end
+        end
+
+        let plt_title = "test_title",
+            lw = 9,
+            p1 =  plot_bettis(all_bettis, title=plt_title, lw=lw, xlabel="2", default_labels=false)
+            @test_skip p1.attr[:plot_title] == plt_title # why plot-title is not returning the title?
+            for dim = min_B_dim:max_B_dim
+                @test p1.series_list[dim][:label] == "β$(dim)"
+                @test p1.series_list[dim][:linewidth] == lw
+                # @test for xlabel
+                # @test for no  label
+            end
+        end
+
+    end
+    # plot_bettis tests for get_vectorized_bettis:
+    let max_B_dim = 5,
+        min_B_dim = 1,
+        eirene_results = eirene(sample_distance_matrix1, model="vr", maxdim = max_B_dim)
+        all_bettis = get_vectorized_bettis(eirene_results, max_B_dim)
+
+    end
 end
