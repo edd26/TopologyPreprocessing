@@ -1,5 +1,6 @@
 using TopologyPreprocessing
 using Test
+using Eirene
 
 @testset "BettiCurves.jl" begin
     sample_distance_matrix1 = [0  1  25 4  5  9  13 17;
@@ -46,7 +47,7 @@ using Test
     # normalise_bettis
     #  as betticurve results
     for matrix = [sample_distance_matrix1, sample_distance_matrix2]
-        for max_B_dim = 1:4
+        for max_B_dim = 1:4, min_B_dim = 1:3
             if min_B_dim > max_B_dim
                 @debug "Continue at " min_B_dim, max_B_dim
                 continue
