@@ -73,7 +73,7 @@ function get_vectorized_bettis(results_eirene::Dict, max_dim::Integer; min_dim::
     return bettis_vector
 end
 
-# TODO add depraciated for this function:
+# TODO add depreciated for this function:
 function vectorize_bettis(eirene_results::Dict, maxdim::Integer, mindim::Integer)
 	number_of_steps = length(betticurve(eirene_results, dim=0)[:,1])
 	number_of_bettis = maxdim-mindim+1
@@ -107,6 +107,58 @@ function vectorize_bettis(eirene_results::Dict, maxdim::Integer, mindim::Integer
 	end
 end
 
+# TODO compare with first version;
+# TODO add kwargs for collecting plot arguments
+"""
+    plot_bettis(bettis; min_dim::Integer=1, betti_labels::Bool=true, default_labels::Bool=true kwargs...)
+
+Creates a plot for set of betti numbers stored in `bettis` and return the
+handler to the plot.
+
+'kwargs' are plot parameters
+
+Some of the possible 'kwargs' are (for more, see plots documentation):
+    - title::String
+    - legend:Bool
+    - size::Tuple{T, T} where {T::Number}
+"""
+function plot_bettis(bettis; min_dim::Integer=1, betti_labels::Bool=true, default_labels::Bool=true kwargs...)#; plot_size = (width=1200, height=800),
+    # TODO check if min dim is does not exceed bettis dims
+    colors_set = get_bettis_color_palete()
+
+    max_dim = size(bettis,1)
+	all_dims = 1:max_dim
+
+	plot_ref = plot(kwargs...)
+
+    for p = min_dim:(max_dim)
+        if betti_labels
+            plot!(bettis[p][:,1],
+                    bettis[p][:,2],
+                    label="β$(all_dims[p])",
+                    lc=colors_set[p],
+                    linewidth = 2)
+        else
+            plot!(bettis[p][:,1],
+                    bettis[p][:,2],
+                    lc=colors_set[p],
+                    linewidth = 2)
+        end
+        # legend_on ? plot!(legend=true) : plot!(legend=false)
+    end
+
+    # kwargs = some_named_tuple
+    # legend_pos = findfirst(x->x==:legend, keys(kwargs))
+    # (betti_labels && (!isnothing(legend_pos) && !kwargs[legend_pos])) && plot!(legend=false)
+    !betti_labels && plot!(legend=false)
+
+    if default_labels
+        ylabel!("Number of cycles")
+        xlabel!("Edge density")
+    end
+    return plot_ref
+end
+
 # ==============================
 #  ======= Untested code =======
 # using Plots
@@ -134,53 +186,6 @@ end
 # ====
 
 # ====
-"""
-	plot_bettis(bettis, plot_title; legend_on=true)
-
-Creates a plot for set of betti numbers stored in `bettis` and return the
-handler to the plot.
-`plot_title` is used for the title of the plot.
-
-'kwargs' are plot parameters
-"""
-function plot_bettis(bettis, plot_title; legend_on=true, min_dim=0, kwargs...)
-	cgradients(:misc)
-    cur_colors = get_color_palette(:lightrainbow, plot_color(:white), 40)
-	cgradients(:colorcet)
-    cur_colors2 = get_color_palette(:cyclic1, plot_color(:white), 40)
-	if min_dim == 0
-		colors_set = [cur_colors[1]]
-	else
-		colors_set = typeof(cur_colors[1])[]
-	end
-	push!(colors_set, cur_colors[5])
-	push!(colors_set, cur_colors[2])
-	push!(colors_set, cur_colors2[5])
-    # colors_set =  [cur_colors[5], [:red], cur_colors[7]] #cur_colors[7],
-	for c =  [collect(7:17);]
-		push!(colors_set, cur_colors[c])
-	end
-
-    # final_title = "Eirene betti curves, "*plot_title
-	plot_ref = plot(title=plot_title);
-    max_dim = size(bettis)[1]
-    for p = (1+min_dim):(max_dim)
-        plot!(bettis[p][:,1], bettis[p][:,2], label="\\beta_"*string(p-1),
-                                                    lc=colors_set[p], lw = 2,
-													kwargs...);
-        if legend_on
-            plot!(legend=true)
-        else
-            plot!(legend=false)
-        end
-
-    end
-    ylabel!("Number of cycles")
-	xlabel!("Edge density")
-    return plot_ref
-end
-
-
 """
 	plot_bettis_collection(bettis_collection, bett_num; step=1, show_plt=true, R=0., G=0.4, B=1.0)
 
@@ -727,6 +732,23 @@ end
 
 Generates vector with colours used for Betti plots.
 """
+# TODO check code below for better colors
+# cgradients(:misc)
+# cur_colors = get_color_palette(:lightrainbow, plot_color(:white), 40)
+# cgradients(:colorcet)
+# cur_colors2 = get_color_palette(:cyclic1, plot_color(:white), 40)
+# if min_dim == 0
+#     colors_set = [cur_colors[1]]
+# else
+#     colors_set = typeof(cur_colors[1])[]
+# end
+# push!(colors_set, cur_colors[5])
+# push!(colors_set, cur_colors[2])
+# push!(colors_set, cur_colors2[5])
+# # colors_set =  [cur_colors[5], [:red], cur_colors[7]] #cur_colors[7],
+# for c =  [collect(7:17);]
+#     push!(colors_set, cur_colors[c])
+# end
 function get_bettis_color_palete(;min_dim=1)
     cur_colors = get_color_palette(:auto, 17)
     cur_colors2 = get_color_palette(:cyclic1, 40)
@@ -735,40 +757,14 @@ function get_bettis_color_palete(;min_dim=1)
     else
         colors_set =  [cur_colors[5], [:red], cur_colors[1], cur_colors[14]]
     end
-    for c =  [collect(11:25);]
-        push!(colors_set, cur_colors2[c])
-    end
+    # for c =  [collect(11:25);]
+    #     push!(colors_set, cur_colors2[c])
+    # end
+    colors_set = vcat(colors_set, [cur_colors2[c] for c in [collect(11:25);]])
 
     return colors_set
 end
 
-function plot_bettis2(bettis, plot_title; legend_on=true, min_dim=1)#; plot_size = (width=1200, height=800),
-                                        #                        base_dpi = 500)
-	max_dim = size(bettis,1)
-	all_dims = min_dim:max_dim
-
-	# set_default_plotting_params()
-	colors_set = get_bettis_color_palete()
-
-    # final_title = "Eirene betti curves, "*plot_title
-	plot_ref = plot(title=plot_title);
-    for p = 1:(max_dim)
-		# @info p
-        plot!(bettis[p][:,1], bettis[p][:,2],
-											label="β$(all_dims[p])",
-											# label="a",
-													lc=colors_set[p],
-													linewidth = 2,)
-        if legend_on
-            plot!(legend=true)
-        else
-            plot!(legend=false)
-        end
-    end
-    ylabel!("Number of cycles")
-	xlabel!("Edge density")
-    return plot_ref
-end
 
 function get_and_plot_bettis(eirene_results;max_dim=3, min_dim=1, plot_title="",
 	 															legend_on=false)
