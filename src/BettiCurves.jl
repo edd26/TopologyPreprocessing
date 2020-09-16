@@ -1,6 +1,9 @@
 # ==============================
 #  ======== Tested code ========
 using Eirene
+using Plots
+using PlotThemes
+using PlotUtils
 
 # ====
 """
@@ -107,8 +110,7 @@ function vectorize_bettis(eirene_results::Dict, maxdim::Integer, mindim::Integer
 	end
 end
 
-# TODO compare with first version;
-# TODO add kwargs for collecting plot arguments
+# ==
 """
     plot_bettis(bettis; min_dim::Integer=1, betti_labels::Bool=true, default_labels::Bool=true kwargs...)
 
@@ -121,49 +123,117 @@ Some of the possible 'kwargs' are (for more, see plots documentation):
     - title::String
     - legend:Bool
     - size::Tuple{T, T} where {T::Number}
+    - lw::Integer or linewidth:Integer
 """
-function plot_bettis(bettis; min_dim::Integer=1, betti_labels::Bool=true, default_labels::Bool=true kwargs...)#; plot_size = (width=1200, height=800),
-    # TODO check if min dim is does not exceed bettis dims
-    colors_set = get_bettis_color_palete()
-
+function plot_bettis(bettis::Vector; min_dim::Integer=1, betti_labels::Bool=true, default_labels::Bool=true, kwargs...)#; plot_size = (width=1200, height=800),
     max_dim = size(bettis,1)
 	all_dims = 1:max_dim
 
-	plot_ref = plot(kwargs...)
-
-    for p = min_dim:(max_dim)
-        if betti_labels
-            plot!(bettis[p][:,1],
-                    bettis[p][:,2],
-                    label="β$(all_dims[p])",
-                    lc=colors_set[p],
-                    linewidth = 2)
-        else
-            plot!(bettis[p][:,1],
-                    bettis[p][:,2],
-                    lc=colors_set[p],
-                    linewidth = 2)
-        end
-        # legend_on ? plot!(legend=true) : plot!(legend=false)
+    if min_dim>max_dim
+        throw(DomainError(min_dim, "\'min_dim\' must be greater that maximal dimension in \'bettis\'"))
     end
 
-    # kwargs = some_named_tuple
-    # legend_pos = findfirst(x->x==:legend, keys(kwargs))
-    # (betti_labels && (!isnothing(legend_pos) && !kwargs[legend_pos])) && plot!(legend=false)
-    !betti_labels && plot!(legend=false)
+    lw_pos = findfirst(x-> x==:lw || x==:linewidth, keys(kwargs))
+    if !isnothing(lw_pos)
+        lw = kwargs[lw_pos]
+    else
+        lw = 2
+    end
 
-    if default_labels
-        ylabel!("Number of cycles")
+    colors_set = get_bettis_color_palete()
+	plot_ref = plot(; kwargs...)
+    for p = min_dim:(max_dim)
+        args = (lc=colors_set[p],
+                linewidth = lw)
+        if betti_labels
+            args = (args..., label="β$(all_dims[p])")
+        end
+        plot!(bettis[p][:,1], bettis[p][:,2]; args...)
+    end
+
+    legend_pos = findfirst(x->x==:legend, keys(kwargs))
+    if !isnothing(legend_pos)
+        plot!(legend=kwargs[legend_pos])
+    else
+        plot!(legend=betti_labels)
+    end
+
+    x_pos = findfirst(x->x==:xlabel, keys(kwargs))
+    y_pos = findfirst(x->x==:ylabel, keys(kwargs))
+    if !isnothing(x_pos)
+        xlabel!(kwargs[x_pos])
+    elseif default_labels
         xlabel!("Edge density")
     end
+    if !isnothing(y_pos)
+        ylabel!(kwargs[y_pos])
+    elseif default_labels
+        ylabel!("Number of cycles")
+    end
+
     return plot_ref
+end
+
+"""
+    printready_plot_bettis(kwargs)
+
+Creates a plot using 'plot_bettis' with arguments which were tested to be very
+good for using them in prints. Used arguments are:
+
+"""
+function printready_plot_bettis(kwargs)
+    return nothing
+end
+
+
+"""
+    function get_bettis_color_palete()
+
+Generates vector with colours used for Betti plots.
+"""
+function get_bettis_color_palete(;min_dim=1, use_set::Integer=1)
+    # TODO what does the number in the function below is used for?
+
+    if use_set == 1
+        cur_colors = [Gray(bw) for bw = 0.0:0.025:0.5]
+        if min_dim == 0
+            colors_set = [RGB(87/256, 158/256, 0/256)]
+        else
+            colors_set = []
+        end
+        colors_set = vcat(colors_set,
+                        [RGB(255/256, 206/256, 0/256),
+                         RGB(248/256, 23/256, 0/256),
+                         RGB(97/256, 169/256, 255/256),
+                         RGB(163/256, 0/256, 185/256),
+                         RGB(33/256, 96/256, 45/256),
+                         RGB(4/256, 0/256, 199/256),
+                         RGB(135/256, 88/256, 0/256),
+                         ],
+                         cur_colors)
+    else use_set == 2
+        cur_colors = get_color_palette(:auto, 1)
+        cur_colors3 = get_color_palette(:lightrainbow, 1)
+        cur_colors2 = get_color_palette(:cyclic1, 1)
+        if min_dim == 0
+            # colors_set =  [cur_colors[3], cur_colors[5], [:red], cur_colors[1]] #cur_colors[7],
+            colors_set =  [cur_colors3[3], cur_colors[5], cur_colors3[end], cur_colors[1]] #cur_colors[7],
+        else
+            colors_set =  [cur_colors[5], cur_colors3[end], cur_colors[1]] #cur_colors[7],
+            # colors_set =  [cur_colors[5], [:red], cur_colors[1], cur_colors[14]]
+        end
+        # for c =  [collect(11:25);]
+        #     push!(colors_set, cur_colors2[c])
+        # end
+        colors_set = vcat(colors_set, [cur_colors2[c] for c in [collect(11:25);]])
+    end
+
+    return colors_set
 end
 
 # ==============================
 #  ======= Untested code =======
-# using Plots
-# using PlotThemes
-# using PlotUtils
+
 
 # using Measures
 # using Plots.PlotMeasures
@@ -724,45 +794,6 @@ function plot_and_save_bettis2(eirene_results, plot_title::String,
 
     end
     return plot_ref
-end
-
-
-"""
-    function get_bettis_color_palete()
-
-Generates vector with colours used for Betti plots.
-"""
-# TODO check code below for better colors
-# cgradients(:misc)
-# cur_colors = get_color_palette(:lightrainbow, plot_color(:white), 40)
-# cgradients(:colorcet)
-# cur_colors2 = get_color_palette(:cyclic1, plot_color(:white), 40)
-# if min_dim == 0
-#     colors_set = [cur_colors[1]]
-# else
-#     colors_set = typeof(cur_colors[1])[]
-# end
-# push!(colors_set, cur_colors[5])
-# push!(colors_set, cur_colors[2])
-# push!(colors_set, cur_colors2[5])
-# # colors_set =  [cur_colors[5], [:red], cur_colors[7]] #cur_colors[7],
-# for c =  [collect(7:17);]
-#     push!(colors_set, cur_colors[c])
-# end
-function get_bettis_color_palete(;min_dim=1)
-    cur_colors = get_color_palette(:auto, 17)
-    cur_colors2 = get_color_palette(:cyclic1, 40)
-    if min_dim == 0
-        colors_set =  [cur_colors[3], cur_colors[5], [:red], cur_colors[1]] #cur_colors[7],
-    else
-        colors_set =  [cur_colors[5], [:red], cur_colors[1], cur_colors[14]]
-    end
-    # for c =  [collect(11:25);]
-    #     push!(colors_set, cur_colors2[c])
-    # end
-    colors_set = vcat(colors_set, [cur_colors2[c] for c in [collect(11:25);]])
-
-    return colors_set
 end
 
 
