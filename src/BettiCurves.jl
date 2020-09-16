@@ -70,7 +70,7 @@ Takes the eirene result and computes Betti curves for dimensions in range
 resulting array.
 """
 function get_vectorized_bettis(results_eirene::Dict, max_dim::Integer; min_dim::Int=1)
-    all_bettis = get_bettis(eirene_results, max_dim, min_dim=min_dim)
+    all_bettis = get_bettis(results_eirene, max_dim, min_dim=min_dim)
     bettis_vector = hcat([all_bettis[k][:,2] for k=min_dim:max_dim]...)
 
     return bettis_vector
