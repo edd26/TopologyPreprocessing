@@ -1,14 +1,15 @@
 using LinearAlgebra
 using StatsBase
 
-"""
-    shift_to_non_negative(matrix::Matrix)
 
-Returns a matrix in which values are non-negative. This is done by finding the
-minimal value in the input matrix and adding its absolute value to the matrix
-elements.
-"""
 function shift_to_non_negative(matrix::Array)
+    """
+        shift_to_non_negative(matrix::Matrix)
+
+    Returns a matrix in which values are non-negative. This is done by finding the
+    minimal value in the input matrix and adding its absolute value to the matrix
+    elements.
+    """
 
     min_val = findmin(matrix)[1]
     if min_val < 0
@@ -19,16 +20,17 @@ function shift_to_non_negative(matrix::Array)
 end
 
 
-"""
-    normalize_to_01(matrix, norm_factor=256)
 
-Returns a matrix which values are in range [0, 1]. If 'use_factor' is set to
-'true' then values are normalized to 'norm_factor' (by default set to 256).
-
-If the values in the input matrix are below 0, then they are shifted so that only positive numbers are in
-the matrix (the values are normalized to new maximal value or norm_factor).
-"""
 function normalize_to_01(matrix::Array; use_factor=false, norm_factor=256)
+    """
+        normalize_to_01(matrix, norm_factor=256)
+
+    Returns a matrix which values are in range [0, 1]. If 'use_factor' is set to
+    'true' then values are normalized to 'norm_factor' (by default set to 256).
+
+    If the values in the input matrix are below 0, then they are shifted so that only positive numbers are in
+    the matrix (the values are normalized to new maximal value or norm_factor).
+    """
     normalized_matrix = copy(matrix)
 
     min_val = findmin(normalized_matrix)[1]
@@ -52,120 +54,122 @@ function normalize_to_01(matrix::Array; use_factor=false, norm_factor=256)
     return normalized_matrix
 end
 
-"""
-    function diagonal_symmetrize(image::Matrix; below_over_upper=false)
 
-Takes an 'image' in the form of a matrix and return a copy which is symmetric
-with respect to diagonal- values above diagonal are copied over values below the
-diagonal. This can be inverted by setting 'below_over_upper=true'.
-
-If the input matrix is not square, then square matrix is created by taking
-matrix of k times 'k' elements, 'k=min(r,c)' where 'r' is number of rows and 'c'
-is number of columns.
-"""
 # function symmetrize_image(image)
 function diagonal_symmetrize(image::Matrix; below_over_upper=false)
-  w, h = size(image)
-  mat_size = findmin([w,h])[1]
+    """
+        function diagonal_symmetrize(image::Matrix; below_over_upper=false)
 
-  img = copy(image[1:mat_size, 1:mat_size])
+    Takes an 'image' in the form of a matrix and return a copy which is symmetric
+    with respect to diagonal- values above diagonal are copied over values below the
+    diagonal. This can be inverted by setting 'below_over_upper=true'.
 
-  # Get all cartesian indices from input matrix
-  matrix_indices = CartesianIndices((1:mat_size, 1:mat_size))
-  # Filter out indices below diagonal
-  if below_over_upper
+    If the input matrix is not square, then square matrix is created by taking
+    matrix of k times 'k' elements, 'k=min(r,c)' where 'r' is number of rows and 'c'
+    is number of columns.
+    """
+    w, h = size(image)
+    mat_size = findmin([w,h])[1]
+
+    img = copy(image[1:mat_size, 1:mat_size])
+
+    # Get all cartesian indices from input matrix
+    matrix_indices = CartesianIndices((1:mat_size, 1:mat_size))
+    # Filter out indices below diagonal
+    if below_over_upper
       matrix_indices = findall(x->x[1]>x[2], matrix_indices)
-  else
+    else
         matrix_indices = findall(x->x[2]>x[1], matrix_indices)
     end
 
 
-  # how many elements are above diagonal
-  repetition_number = Int(ceil((mat_size * (mat_size-1))/2))
+    # how many elements are above diagonal
+    repetition_number = Int(ceil((mat_size * (mat_size-1))/2))
 
-  # Substitute elements
-  for k=1:repetition_number
+    # Substitute elements
+    for k=1:repetition_number
       # n_pos = matrix_indices[k]
       mat_ind = matrix_indices[k]
       # ordered_matrix[mat_ind] = k
       img[mat_ind[2], mat_ind[1]] = img[mat_ind]
-  end
+    end
 
-  try
+    try
       checksquare(img)
-  catch err
+    catch err
       if isa(err, DimensionMismatch)
           @error "Resulting matrix is not a square matrix"
           throw(err)
       end
-  end
-  # issymmetric(Float64.(img))
-  return img
+    end
+    # issymmetric(Float64.(img))
+    return img
 end
 
 
 # =====
 # matrix ordering
 
-"""
-    get_ordered_matrix(input_matrix; assign_same_values=false, force_symmetry=false,
-                            small_dist_grouping=false,
-                            min_dist=eps())
 
-Takes a @input_matrix and returns ordered form of this matrix.
-The ordered form is a matrix which elements represent ordering from smallest to
-highest values in @input_matrix.
-
-If @input_matrix is symmetric, then ordering happens only with upper diagonal.
-Lower diagonal is symetrically copied from values above diagonal.
-
-By default, if there is a geoup of entriess with the same value, they all are
-assigned with the same ordering number. This can be changed with
-@assign_same_values parameter.
-
-Symetry ordering can be froced with @force_symmetry parameter.
-
-By setting 'small_dist_grouping' to true, all the values that difference is
-lower than 'min_dist', will be assigned with the same order number.
-
-# Examples
-```julia-repl
-julia> a = [0 11 12;
-            11 0 13;
-            12 13 0];
-julia> get_ordered_matrix(a)
-3×3 Array{Int64,2}:
- 0  1  2
- 1  0  3
- 2  3  0
-```
-
-```julia-repl
-julia> b = [38 37 36 30;
-            37 34 30 32;
-            36 30 31 30;
-            30 32 30 29]
-julia> get_ordered_matrix(b; assign_same_values=false)
-4×4 Array{Int64,2}:
-0  6  5  2
-6  0  1  4
-5  1  0  3
-2  4  3  0
-
-julia> get_ordered_matrix(b; assign_same_values=true)
-4×4 Array{Int64,2}:
-0  4  3  1
-4  0  1  2
-3  1  0  1
-1  2  1  0
-```
-"""
 function get_ordered_matrix(in_matrix::Matrix;
                                 assign_same_values::Bool=false,
                                 force_symmetry::Bool=false,
                                 small_dist_grouping=false,
                                 min_dist=1e-16,
                                 total_dist_groups=0)
+    """
+        get_ordered_matrix(input_matrix; assign_same_values=false, force_symmetry=false,
+                                small_dist_grouping=false,
+                                min_dist=eps())
+
+    Takes a @input_matrix and returns ordered form of this matrix.
+    The ordered form is a matrix which elements represent ordering from smallest to
+    highest values in @input_matrix.
+
+    If @input_matrix is symmetric, then ordering happens only with upper diagonal.
+    Lower diagonal is symetrically copied from values above diagonal.
+
+    By default, if there is a geoup of entriess with the same value, they all are
+    assigned with the same ordering number. This can be changed with
+    @assign_same_values parameter.
+
+    Symetry ordering can be froced with @force_symmetry parameter.
+
+    By setting 'small_dist_grouping' to true, all the values that difference is
+    lower than 'min_dist', will be assigned with the same order number.
+
+    # Examples
+    ```julia-repl
+    julia> a = [0 11 12;
+                11 0 13;
+                12 13 0];
+    julia> get_ordered_matrix(a)
+    3×3 Array{Int64,2}:
+     0  1  2
+     1  0  3
+     2  3  0
+    ```
+
+    ```julia-repl
+    julia> b = [38 37 36 30;
+                37 34 30 32;
+                36 30 31 30;
+                30 32 30 29]
+    julia> get_ordered_matrix(b; assign_same_values=false)
+    4×4 Array{Int64,2}:
+    0  6  5  2
+    6  0  1  4
+    5  1  0  3
+    2  4  3  0
+
+    julia> get_ordered_matrix(b; assign_same_values=true)
+    4×4 Array{Int64,2}:
+    0  4  3  1
+    4  0  1  2
+    3  1  0  1
+    1  2  1  0
+    ```
+    """
 
     # TODO Symmetry must be forced for matrix in which there are NaN elements- needs
     #   to be further investigated
@@ -274,15 +278,17 @@ end
 
 
 
-"""
-    function group_distances!(input_matrix, total_dist_groups)
 
-Takes a matrix and rearranges values into 'total_dist_groups' number of groups.
-Every group is assigned with number value from range '<0,1>'.
-"""
 # Care must be taken so that values from 'input_matrix' are within distance
 # groups, otherwise error is thrown.
 function group_distances(input_matrix::Array, total_dist_groups::Int)
+    """
+        function group_distances!(input_matrix, total_dist_groups)
+
+    Takes a matrix and rearranges values into 'total_dist_groups' number of groups.
+    Every group is assigned with number value from range '<0,1>'.
+    """
+
     normed_matrix = normalize_to_01(input_matrix)
     target_matrix = copy(normed_matrix)
 
@@ -308,17 +314,19 @@ function group_distances(input_matrix::Array, total_dist_groups::Int)
 end
 
 
-"""
-    generate_indices(matrix_size::Tuple; symmetry_order=false, include_diagonal=true)
 
-Return all the possible indices of the matrix of size 'matrix_size'.
-'matrix_size' may be a tuple or a series of integer arguments corresponding to
-the lengths in each dimension.
-
-If 'symetry_order' is set to'true', then only indices of values below diagonal
-are returned.
-"""
 function generate_indices(matrix_size::Tuple; symmetry_order=false, include_diagonal=true)
+    """
+        generate_indices(matrix_size::Tuple; symmetry_order=false, include_diagonal=true)
+
+    Return all the possible indices of the matrix of size 'matrix_size'.
+    'matrix_size' may be a tuple or a series of integer arguments corresponding to
+    the lengths in each dimension.
+
+    If 'symetry_order' is set to'true', then only indices of values below diagonal
+    are returned.
+    """
+
     # Get all cartesian indices from input matrix
     matrix_indices = CartesianIndices(matrix_size)
     # Filter out indices below diagonal
@@ -335,23 +343,25 @@ function generate_indices(matrix_size::Tuple; symmetry_order=false, include_diag
     return matrix_indices
 end
 
-"""
-    generate_indices(matrix_size::Int; symmetry_order=false, include_diagonal=true)
 
-Generate indices for a matrix of given dimensions. 'generate_indices' is a
-series of integer arguments corresponding to the lengths in each dimension.
-"""
 function generate_indices(matrix_size::Int; symmetry_order=false, include_diagonal=true)
+    """
+        generate_indices(matrix_size::Int; symmetry_order=false, include_diagonal=true)
+
+    Generate indices for a matrix of given dimensions. 'generate_indices' is a
+    series of integer arguments corresponding to the lengths in each dimension.
+    """
     return generate_indices((matrix_size,matrix_size); symmetry_order=symmetry_order, include_diagonal=include_diagonal)
 end
 
 
-"""
-    arr_to_vec(some_array::Array)
 
-Takes an array and reshapes it into a vector.
-"""
 function arr_to_vec(some_array::Array)
+    """
+        arr_to_vec(some_array::Array)
+
+    Takes an array and reshapes it into a vector.
+    """
     return collect(reshape(some_array, length(some_array)))
 end
 
@@ -359,14 +369,15 @@ function cartesianInd_to_vec(some_array::CartesianIndices)
     return collect(reshape(some_array, length(some_array)))
 end
 
-"""
-    sort_index_by_values(values_matrix::Matrix, index_vector::Vector)
 
-Sorts the 'index_vector' according to corresponding values in the 'values_matrix'
-and returns a Vector of intigers which is an list of ordering of
-'sorted index_vector'.
-"""
 function sort_index_by_values(values_matrix::T, index_vector) where {T<:VecOrMat}
+    """
+        sort_index_by_values(values_matrix::Matrix, index_vector::Vector)
+
+    Sorts the 'index_vector' according to corresponding values in the 'values_matrix'
+    and returns a Vector of intigers which is an list of ordering of
+    'sorted index_vector'.
+    """
     if !isa(index_vector,Vector)
         throw(TypeError(:sort_index_by_values, "\'index_vector\' must be a vector, otherwise an ordering list can no be created!", Vector, typeof(index_vector)))
     end
@@ -375,14 +386,15 @@ function sort_index_by_values(values_matrix::T, index_vector) where {T<:VecOrMat
                     by=i->(values_matrix[index_vector][i],index_vector[i]))
 end
 
-"""
-    set_values!(input_matrix::Matrix, position::CartesianIndex, target_value::Number; do_symmetry=false)
 
-Assigns 'target_value' to indices at 'input_matrix[position[1], position[2]]'.
-If 'do_symmetry' is set to 'true', then the 'target_value' is also assigned at
-position 'input_matrix[position[2], position[1]]'.
-"""
 function set_values!(input_matrix::Matrix, position::CartesianIndex, target_value::Number; do_symmetry=false)
+    """
+        set_values!(input_matrix::Matrix, position::CartesianIndex, target_value::Number; do_symmetry=false)
+
+    Assigns 'target_value' to indices at 'input_matrix[position[1], position[2]]'.
+    If 'do_symmetry' is set to 'true', then the 'target_value' is also assigned at
+    position 'input_matrix[position[2], position[1]]'.
+    """
     input_matrix[position[1], position[2]] = target_value
     if do_symmetry
          input_matrix[position[2], position[1]] = target_value

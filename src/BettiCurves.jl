@@ -6,13 +6,13 @@ using PlotThemes
 using PlotUtils
 
 # ====
-"""
-    get_bettis(results_eirene::Dict, max_dim::Integer; min_dim::Int=1)
-
-Uses betticurve function to generate Betti curves up to `max_dim` diemsion from
-the `results_eirene` dictionary.
-"""
 function get_bettis(results_eirene::Dict, max_dim::Integer; min_dim::Int=1)
+	"""
+	    get_bettis(results_eirene::Dict, max_dim::Integer; min_dim::Int=1)
+
+	Uses betticurve function to generate Betti curves up to `max_dim` diemsion from
+	the `results_eirene` dictionary.
+	"""
     bettis = Matrix{Float64}[]
     for d = min_dim:max_dim
         result = betticurve(results_eirene, dim=d)
@@ -25,15 +25,16 @@ function get_bettis(results_eirene::Dict, max_dim::Integer; min_dim::Int=1)
 end
 
 # ====
-"""
-	normalise_bettis(bettis::Vector)
-    normalise_bettis(bettis::Array)
-
-Normalise the number of steps for Betti curves. 'bettis' can be either vector of
-arrays (each array contain Betti curve of different dimension) or an array
-containing Betti curve of a single dimension.
-"""
 function normalise_bettis(bettis::Vector)
+	"""
+		normalise_bettis(bettis::Vector)
+	    normalise_bettis(bettis::Array)
+
+	Normalise the number of steps for Betti curves. 'bettis' can be either vector of
+	arrays (each array contain Betti curve of different dimension) or an array
+	containing Betti curve of a single dimension.
+	"""
+
 	@debug "Vector version"
     norm_bettis = copy(bettis)
     @debug "norm_bettis size :" size(norm_bettis)[1][1]
@@ -62,14 +63,16 @@ function normalise_bettis(bettis::Array)
 end
 
 # ===
-"""
-	get_vectorized_bettis(results_eirene::Dict, max_dim::Integer; min_dim::Int=1)
-
-Takes the eirene result and computes Betti curves for dimensions in range
-'mindim:maxdim'. Every Betti curve is stored in successive column of the
-resulting array.
-"""
 function get_vectorized_bettis(results_eirene::Dict, max_dim::Integer; min_dim::Int=1)
+	"""
+		get_vectorized_bettis(results_eirene::Dict, max_dim::Integer; min_dim::Int=1)
+
+	Takes the eirene result and computes Betti curves for dimensions in range
+	'mindim:maxdim'. Every Betti curve is stored in successive column of the
+	resulting array.
+	TODO: this should return a matrix, where first col are indices and rest are B values (1st col is missing now)
+	"""
+
     all_bettis = get_bettis(results_eirene, max_dim, min_dim=min_dim)
     bettis_vector = hcat([all_bettis[k][:,2] for k=min_dim:max_dim]...)
 
@@ -124,6 +127,8 @@ Some of the possible 'kwargs' are (for more, see plots documentation):
     - legend:Bool
     - size::Tuple{T, T} where {T::Number}
     - lw::Integer or linewidth:Integer
+TODO: min_dim is not included in all_dims variable
+TODO: add change of x label based on x values- so it is either edge density for 0:1 range values or Filtration step otherwise
 """
 function plot_bettis(bettis::Vector; min_dim::Integer=1, betti_labels::Bool=true, default_labels::Bool=true, kwargs...)#; plot_size = (width=1200, height=800),
     max_dim = size(bettis,1)
