@@ -13,16 +13,16 @@ using DelimitedFiles
     include("PlottingWrappers.jl")
 	include("PointsSubstitution.jl")
 
-"""
-	function expand_matrix(input_matrix, expansion_size, last_components;do_plot=false)
-
-Takes 'input_matrix' (an ordering matrix used for creating cliques) and and adds
-2×'expansion_size' number of rows. 'last_components' are the values in original
-matrix that are added last to the clique.
-
-Results may be be plotted by setting 'do_plot=true'.
-"""
 function expand_matrix(input_matrix, expansion_size, last_components;do_plot=false)
+	"""
+		function expand_matrix(input_matrix, expansion_size, last_components;do_plot=false)
+
+	Takes 'input_matrix' (an ordering matrix used for creating cliques) and and adds
+	2×'expansion_size' number of rows. 'last_components' are the values in original
+	matrix that are added last to the clique.
+
+	Results may be be plotted by setting 'do_plot=true'.
+	"""
 	new_comp = last_components
 	matrix_size = size(input_matrix,1)
 	for mat_sizes = matrix_size:2:(matrix_size+2expansion_size)
@@ -38,14 +38,14 @@ function expand_matrix(input_matrix, expansion_size, last_components;do_plot=fal
 end
 
 # Shuffle matrix entries
-"""
-	function shuffle_matrix(input_matrix, shuffles; do_plot=false)
-
-Takes symmetric 'input_matrix' and randomly swaps rows 'shuffles' many times.
-
-Results may be plotted by setting 'do_plot=true'.
-"""
 function shuffle_matrix(input_matrix, shuffles; do_plot=false)
+	"""
+		function shuffle_matrix(input_matrix, shuffles; do_plot=false)
+
+	Takes symmetric 'input_matrix' and randomly swaps rows 'shuffles' many times.
+
+	Results may be plotted by setting 'do_plot=true'.
+	"""
 	matrix_size = size(input_matrix,1)
 	rows = randcycle(matrix_size)
 	shuffled_ord_mat = copy(input_matrix)
@@ -67,15 +67,15 @@ end
 
 
 
-"""
-	function organize_shuff_matrix(input_matrix; do_plots=false)
-
-Reorganizes 'input_matrix' so that values highest values in a row are positioned
-next to the diagonal.
-
-Results may be plotted by setting 'do_plot=true'.
-"""
 function organize_shuff_matrix(input_matrix; do_plots=false)
+	"""
+		function organize_shuff_matrix(input_matrix; do_plots=false)
+
+	Reorganizes 'input_matrix' so that values highest values in a row are positioned
+	next to the diagonal.
+
+	Results may be plotted by setting 'do_plot=true'.
+	"""
 	unscrambled_matrix = copy(input_matrix)
 	matrix_size = size(input_matrix,1)
 	for k = matrix_size:-2:2
@@ -94,18 +94,18 @@ function organize_shuff_matrix(input_matrix; do_plots=false)
 end
 
 
-"""
-		function order_max_vals_near_diagonal(input_matrix; do_plots=false, direction=:descending)
-
-Orders values in 'input_matrix' so that values next to diagonal are descending
-(by default).
-
-TODO- not working-  Optionally, ascending order can be used by setting 'direction' to
-':ascending'.
-
-Results may be plotted by setting 'do_plot=true'.
-"""
 function order_max_vals_near_diagonal(input_matrix; do_plots=false, direction=:descending)
+	"""
+			function order_max_vals_near_diagonal(input_matrix; do_plots=false, direction=:descending)
+
+	Orders values in 'input_matrix' so that values next to diagonal are descending
+	(by default).
+
+	TODO- not working-  Optionally, ascending order can be used by setting 'direction' to
+	':ascending'.
+
+	Results may be plotted by setting 'do_plot=true'.
+	"""
 	# Find max values next to the diagonal
 	matrix_size = size(input_matrix,1)
 
@@ -152,12 +152,12 @@ function order_max_vals_near_diagonal(input_matrix; do_plots=false, direction=:d
 end
 
 
-"""
-	function fine_tune_matrix(input_matrix; do_plots=false)
-
-Check if velues next to the maximal values are organized in descending order.
-"""
 function fine_tune_matrix(input_matrix; do_plots=false)#, direction=:descending)
+	"""
+		function fine_tune_matrix(input_matrix; do_plots=false)
+
+	Check if velues next to the maximal values are organized in descending order.
+	"""
 	# Find max values next to the diagonal
 	matrix_size = size(input_matrix,1)
 	fine_tune_matrix = copy(input_matrix)
@@ -551,18 +551,18 @@ function pool_matrix(square_matrix::Array; method="max_pooling")
 	return out_matrix
 end
 
-"""
-    add_random_patch(input_matrix; patch_size=1, total_patches=1, locations)
-
-Takes a matrix and replaces some values with random values. Returns a new matrix
-with replaced values and indicies where replacement took place.
-
-Values can be
-replaced by setting 'patch_size' to values bigger than 1. If the input matrix
-is symmetric, then output matrix will be symmetric as well (values from above
-diagnoal will be copied over values from below diagonal).
-"""
 function add_random_patch(input_matrix::Matrix; patch_size=1, total_patches=1, locations=CartesianIndex(0))
+	"""
+		add_random_patch(input_matrix; patch_size=1, total_patches=1, locations)
+
+	Takes a matrix and replaces some values with random values. Returns a new matrix
+	with replaced values and indicies where replacement took place.
+
+	Values can be
+	replaced by setting 'patch_size' to values bigger than 1. If the input matrix
+	is symmetric, then output matrix will be symmetric as well (values from above
+	diagnoal will be copied over values from below diagonal).
+	"""
 	total_rows, total_cols = size(input_matrix)
 	max_row = total_rows-patch_size+1
 	max_col = total_cols-patch_size+1
