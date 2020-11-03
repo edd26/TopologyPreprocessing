@@ -66,6 +66,11 @@ end
 # ===
 # TODO: untested
 function vectorize_bettis(betti_curves::Matrix{Float64})
+    """
+        vectorize_bettis(betti_curves::Matrix{Float64})
+
+    Reshapes the 'betti_curves' from Matrix{Float64} into
+    """
     first_betti = 1
     last_betti = size(betti_curves,1)
     return hcat([all_bettis[k][:, 2] for k = first_betti:last_betti]...)
@@ -844,51 +849,61 @@ function upsample_vector(input_vector; upsample_factor::Int = 8)
 
     return y_upsampled
 end
+
+
 # =========--=======-========-==========-=======-
 # From bettis areas
 # Area under Betti curve functions
-function get_area_under_betti_curve(betti_curves::Matrix{Float64})
+function get_area_under_betti_curve(betti_curves::Matrix{Float64};do_normalised::Bool=false)
     """
         get_area_under_betti_curve(C, min_dim, max_dim)
 
     Computes the area under Betti curves stored in 'betti_curves', where each row is
     a Betti curve and each column is a value.
     """
-    bettis_vector = hcat([all_bettis[k][:,2] for k=min_dim:max_dim]...)
+    bettis_vector = vectorize_bettis(betti_curves)
     # @info sum(bettis_vector, dims=1)
+    bettis_area = sum(bettis_vector, dims=1)
 
-
-    total_steps = size(bettis_vector,1)
-
-    bettis_area = sum(bettis_vector, dims=1) ./ total_steps
+    if do_normalised
+        total_steps = size(bettis_vector,1)
+        bettis_area ./= total_steps
+    end
     # @info bettis_area
     return bettis_area
 end
 
-function get_area_under_betti_curve(C, min_dim, max_dim)
+# function get_area_under_betti_curve(C, min_dim, max_dim)
+#     """
+#         get_area_under_betti_curve(C, min_dim, max_dim)
+#
+#     Computes the Betti curves and returns their area under curve.
+#     """
+#     all_bettis = get_bettis(C,max_dim, min_dim=min_dim)
+#     bettis_vector = hcat([all_bettis[k][:,2] for k=min_dim:max_dim]...)
+#     # @info sum(bettis_vector, dims=1)
+#
+#
+#     total_steps = size(bettis_vector,1)
+#
+#     bettis_area = sum(bettis_vector, dims=1) ./ total_steps
+#     # @info bettis_area
+#     return bettis_area
+# end
+
+function get_dataset_bettis_areas(dataset; min_dim::Integer=1, max_dim::Integer=3, return_matrix::Bool=true)
     """
-        get_area_under_betti_curve(C, min_dim, max_dim)
+        get_dataset_bettis_areas(dataset; min_dim::Integer=1, max_dim::Integer=3, return_matrix::Bool=true)
 
-    Computes the Betti curves and returns their area under curve.
+    Computes topology of every matrix in dataset, computes Betti curves for dimensions
+    min_dim up to max_dim and returns vector (or matrix) of areas under Betti curves.
     """
-    all_bettis = get_bettis(C,max_dim, min_dim=min_dim)
-    bettis_vector = hcat([all_bettis[k][:,2] for k=min_dim:max_dim]...)
-    # @info sum(bettis_vector, dims=1)
-
-
-    total_steps = size(bettis_vector,1)
-
-    bettis_area = sum(bettis_vector, dims=1) ./ total_steps
-    # @info bettis_area
-    return bettis_area
-end
-
-function get_all_bettis_areas(dataset; min_dim=1, max_dim=3, return_matrix=true)
     areas_vector = Array[]
     for data = dataset
-        @info "Im here!"
+        @info "Computing topology."
         C = eirene(data, maxdim=max_dim,)
-        push!(areas_vector, get_area_under_betti_curve(C, min_dim, max_dim))
+        matrix_bettis = get_bettis(C,max_dim, min_dim=min_dim)
+        push!(areas_vector, get_area_under_betti_curve(matrix_bettis))
     end
     if return_matrix
         return vcat([areas_vector[k] for k=1:10]...)
@@ -897,7 +912,12 @@ function get_all_bettis_areas(dataset; min_dim=1, max_dim=3, return_matrix=true)
     end
 end
 
-function get_area_boxes(areas_matrix, min_dim, max_dim)
+function get_area_boxes(areas_matrix, min_dim::Integer, max_dim::Integer)
+    """
+        get_area_boxes(areas_matrix, min_dim::Integer, max_dim::Integer)
+
+    Plots the boxplot of area under betti curves.
+    """
     bplot = StatsPlots.boxplot()
 
     data_colors = get_bettis_color_palete()
