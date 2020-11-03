@@ -80,39 +80,38 @@ function get_vectorized_bettis(results_eirene::Dict, max_dim::Integer; min_dim::
     return bettis_vector
 end
 
-# TODO add depreciated for this function:
-function vectorize_bettis(eirene_results::Dict, maxdim::Integer, mindim::Integer)
-    number_of_steps = length(betticurve(eirene_results, dim = 0)[:, 1])
-    number_of_bettis = maxdim - mindim + 1
-
-    result = zeros(number_of_steps, number_of_bettis)
-    try
-        iter = 1
-        for d = mindim:maxdim
-            bett_res = betticurve(eirene_results, dim = d)[:, 2]
-            if size(bett_res, 1) == 0
-                @warn "Computed betti curve had 0 elements, creating vector with zeros"
-                bett_res = zeros(size(result, 1))
-            end
-            result[:, iter] = bett_res
-            iter += 1
-        end
-        @debug size(result)
-        return result
-    catch err
-        if isa(err, DimensionMismatch)
-            @error "Dimension mismatch error"
-            for d = mindim:maxdim
-                @error size(betticurve(c, dim = d))
-            end
-            @error hcat([betticurve(c, dim = d)[:, 2] for d = mindim:maxdim]...)
-            throw(err)
-        else
-            @error "Unknown error occurred"
-            throw(err)
-        end
-    end
-end
+@deprecate vectorize_bettis(eirene_results::Dict, maxdim::Integer, mindim::Integer) get_vectorized_bettis(results_eirene::Dict, max_dim::Integer; min_dim::Int = 1)
+#     number_of_steps = length(betticurve(eirene_results, dim = 0)[:, 1])
+#     number_of_bettis = maxdim - mindim + 1
+#
+#     result = zeros(number_of_steps, number_of_bettis)
+#     try
+#         iter = 1
+#         for d = mindim:maxdim
+#             bett_res = betticurve(eirene_results, dim = d)[:, 2]
+#             if size(bett_res, 1) == 0
+#                 @warn "Computed betti curve had 0 elements, creating vector with zeros"
+#                 bett_res = zeros(size(result, 1))
+#             end
+#             result[:, iter] = bett_res
+#             iter += 1
+#         end
+#         @debug size(result)
+#         return result
+#     catch err
+#         if isa(err, DimensionMismatch)
+#             @error "Dimension mismatch error"
+#             for d = mindim:maxdim
+#                 @error size(betticurve(c, dim = d))
+#             end
+#             @error hcat([betticurve(c, dim = d)[:, 2] for d = mindim:maxdim]...)
+#             throw(err)
+#         else
+#             @error "Unknown error occurred"
+#             throw(err)
+#         end
+#     end
+# end
 
 # ==
 function plot_bettis(bettis::Vector;
@@ -128,11 +127,12 @@ function plot_bettis(bettis::Vector;
 
     'kwargs' are plot parameters
 
-    Some of the possible 'kwargs' are (for more, see plots documentation):
+    Some of the possible 'kwargs' are:
     	- title::String
     	- legend:Bool
     	- size::Tuple{T, T} where {T::Number}
     	- lw::Integer or linewidth:Integer
+    (for more, see plots documentation):
     TODO: min_dim is not included in all_dims variable
     TODO: add change of x label based on x values- so it is either edge density for 0:1 range values or Filtration step otherwise
     """
@@ -786,116 +786,100 @@ end
 
 
 # ===============================================
-function get_bettis_from_image2(img_name;
-                                file_path = "",
-                                plot_heatmaps = true,
-                                save_heatmaps = false,
-                                plot_betti_figrues = true)
-    file_n = split(img_name, ".")[1]
-    img1_gray = Gray.(load(file_path * img_name))
-    img_size = size(img1_gray)
+@deprecate get_bettis_from_image2(img_name;file_path = "",plot_heatmaps = true, save_heatmaps = false, plot_betti_figrues = true) function get_bettis_from_image(img_name, plot_params; file_path = "", plot_heatmaps = true, save_heatmaps = false, plot_betti_figrues = true)
+#     file_n = split(img_name, ".")[1]
+#     img1_gray = Gray.(load(file_path * img_name))
+#     img_size = size(img1_gray)
+#
+#     C_ij = Float64.(img1_gray)
+#
+#     if !issymmetric(C_ij)
+#         img1_gray = symmetrize_image(img1_gray)
+#         C_ij = Float64.(img1_gray)
+#     end
+#     img_size = size(C_ij, 1)
+#     # C_ij =-C_ij
+#     # C_ij .+= 1
+#
+#
+#     # ==============================================================================
+#     # =============================== Ordered matrix ===============================
+#     if size(C_ij, 1) > 80
+#         @warn "Running Eirene for big matrix: " img_size
+#         @warn "Eirene may have trobules with big matrices/images."
+#     end
+#
+#     ordered_matrix = get_ordered_matrix(C_ij; assign_same_values = false)
+#
+#
+#     # ==============================================================================
+#     # ============================ Persistance homology ============================
+#     C = eirene(ordered_matrix, maxdim = 3, model = "vr")
+#
+#
+#     # ==============================================================================
+#     # ================================ Plot results ================================
+#
+#     if plot_heatmaps
+#
+#         full_ordered_matrix = get_ordered_matrix(C_ij; assign_same_values = false)
+#         heat_map2 = plot_square_heatmap(
+#             full_ordered_matrix,
+#             10,
+#             img_size;
+#             plt_title = "Order matrix of $(file_n)",
+#         )
+#
+#         if save_heatmaps
+#             heatm_details = "_heatmap_$(file_n)"
+#             savefig(heat_map2, heatmaps_path * "ordering" * heatm_details)
+#         end
+#     end
+#
+#     if plot_betti_figrues
+#         plot_title = "Betti curves of $(file_n), size=$(img_size) "
+#         figure_name = "betti_$(file_n)_n$(img_size)"
+#         ref = plot_and_save_bettis2(
+#             C,
+#             plot_title,
+#             figure_path,
+#             ;
+#             file_name = figure_name,
+#             plot_params = plot_params,
+#             do_save = false,
+#             extend_title = false,
+#             do_normalise = false,
+#             max_dim = 3,
+#             legend_on = true,
+#             min_dim = 1,
+#         )
+#     end
+#     display(img1_gray)
+#     display(heat_map2)
+#     display(ref)
+# end
 
-    C_ij = Float64.(img1_gray)
-
-    if !issymmetric(C_ij)
-        img1_gray = symmetrize_image(img1_gray)
-        C_ij = Float64.(img1_gray)
-    end
-    img_size = size(C_ij, 1)
-    # C_ij =-C_ij
-    # C_ij .+= 1
-
-
-    # ==============================================================================
-    # =============================== Ordered matrix ===============================
-    if size(C_ij, 1) > 80
-        @warn "Running Eirene for big matrix: " img_size
-        @warn "Eirene may have trobules with big matrices/images."
-    end
-
-    ordered_matrix = get_ordered_matrix(C_ij; assign_same_values = false)
-
-
-    # ==============================================================================
-    # ============================ Persistance homology ============================
-    C = eirene(ordered_matrix, maxdim = 3, model = "vr")
-
-
-    # ==============================================================================
-    # ================================ Plot results ================================
-
-    if plot_heatmaps
-
-        full_ordered_matrix = get_ordered_matrix(C_ij; assign_same_values = false)
-        heat_map2 = plot_square_heatmap(
-            full_ordered_matrix,
-            10,
-            img_size;
-            plt_title = "Order matrix of $(file_n)",
-        )
-
-        if save_heatmaps
-            heatm_details = "_heatmap_$(file_n)"
-            savefig(heat_map2, heatmaps_path * "ordering" * heatm_details)
-        end
-    end
-
-    if plot_betti_figrues
-        plot_title = "Betti curves of $(file_n), size=$(img_size) "
-        figure_name = "betti_$(file_n)_n$(img_size)"
-        ref = plot_and_save_bettis2(
-            C,
-            plot_title,
-            figure_path,
-            ;
-            file_name = figure_name,
-            plot_params = plot_params,
-            do_save = false,
-            extend_title = false,
-            do_normalise = false,
-            max_dim = 3,
-            legend_on = true,
-            min_dim = 1,
-        )
-    end
-    display(img1_gray)
-    display(heat_map2)
-    display(ref)
-end
-
-function plot_and_save_bettis2(eirene_results,
-                                plot_title::String,
-                                results_path::String;
-                                file_name = "",
-                                extension = ".png",
-                                data_size::String = "",
-                                do_save = true,
-                                extend_title = true,
-                                do_normalise = true,
-                                min_dim = 0,
-                                max_dim = 3,
-                                legend_on = true)
-
-    bettis = get_bettis(eirene_results, max_dim, min_dim = min_dim)
-    norm_bettis = normalise_bettis(bettis)
-    plot_ref = plot_bettis2(bettis, plot_title, legend_on = legend_on, min_dim = min_dim)
-
-    if do_save
-        if extend_title && isempty(file_name)
-            file_name = "betti_c_" * plot_title * data_size * extension
-        elseif isempty(file_name)
-            file_name = plot_title * extension
-        elseif isempty(findall(x -> x == extension[2:end], split(file_name, ".")))
-            #check for the extension in file name
-            file_name *= extension
-        end
-
-        savefig(plot_ref, results_path * file_name)
-        @info "Saved file as " results_path * file_name
-
-    end
-    return plot_ref
-end
+@deprecate function plot_and_save_bettis2(eirene_results, plot_title::String, results_path::String; file_name = "", extension = ".png", data_size::String = "", do_save = true, extend_title = true, do_normalise = true, min_dim = 0, max_dim = 3, legend_on = true) function plot_and_save_bettis(bettis, plot_title::String, results_path::String; file_name = "", extension = ".png", do_save = true, do_normalise = true, min_dim = 0, max_dim = 3, legend_on = true, kwargs...)
+#     bettis = get_bettis(eirene_results, max_dim, min_dim = min_dim)
+#     norm_bettis = normalise_bettis(bettis)
+#     plot_ref = plot_bettis2(bettis, plot_title, legend_on = legend_on, min_dim = min_dim)
+#
+#     if do_save
+#         if extend_title && isempty(file_name)
+#             file_name = "betti_c_" * plot_title * data_size * extension
+#         elseif isempty(file_name)
+#             file_name = plot_title * extension
+#         elseif isempty(findall(x -> x == extension[2:end], split(file_name, ".")))
+#             #check for the extension in file name
+#             file_name *= extension
+#         end
+#
+#         savefig(plot_ref, results_path * file_name)
+#         @info "Saved file as " results_path * file_name
+#
+#     end
+#     return plot_ref
+# end
 
 
 function get_and_plot_bettis(
