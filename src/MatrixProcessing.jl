@@ -4,7 +4,7 @@ using StatsBase
 
 function shift_to_non_negative(matrix::Array)
     """
-        shift_to_non_negative(matrix::Matrix)
+        shift_to_non_negative(matrix::Array)
 
     Returns a matrix in which values are non-negative. This is done by finding the
     minimal value in the input matrix and adding its absolute value to the matrix
@@ -23,7 +23,7 @@ end
 
 function normalize_to_01(matrix::Array; use_factor=false, norm_factor=256)
     """
-        normalize_to_01(matrix, norm_factor=256)
+        normalize_to_01(matrix::Array; use_factor=false, norm_factor=256)
 
     Returns a matrix which values are in range [0, 1]. If 'use_factor' is set to
     'true' then values are normalized to 'norm_factor' (by default set to 256).
@@ -56,9 +56,9 @@ end
 
 
 # function symmetrize_image(image)
-function diagonal_symmetrize(image::Matrix; below_over_upper=false)
+function diagonal_symmetrize(image::Matrix; below_over_upper::Bool=false)
     """
-        function diagonal_symmetrize(image::Matrix; below_over_upper=false)
+        function diagonal_symmetrize(image::Matrix; below_over_upper::Bool=false)
 
     Takes an 'image' in the form of a matrix and return a copy which is symmetric
     with respect to diagonal- values above diagonal are copied over values below the
@@ -114,13 +114,16 @@ end
 function get_ordered_matrix(in_matrix::Matrix;
                                 assign_same_values::Bool=false,
                                 force_symmetry::Bool=false,
-                                small_dist_grouping=false,
-                                min_dist=1e-16,
-                                total_dist_groups=0)
+                                small_dist_grouping::Bool=false,
+                                min_dist::Number=1e-16,
+                                total_dist_groups::Int=0)
     """
-        get_ordered_matrix(input_matrix; assign_same_values=false, force_symmetry=false,
-                                small_dist_grouping=false,
-                                min_dist=eps())
+        get_ordered_matrix(in_matrix::Matrix;
+                                        assign_same_values::Bool=false,
+                                        force_symmetry::Bool=false,
+                                        small_dist_grouping::Bool=false,
+                                        min_dist::Number=1e-16,
+                                        total_dist_groups::Int=0)
 
     Takes a @input_matrix and returns ordered form of this matrix.
     The ordered form is a matrix which elements represent ordering from smallest to
@@ -283,7 +286,7 @@ end
 # groups, otherwise error is thrown.
 function group_distances(input_matrix::Array, total_dist_groups::Int)
     """
-        function group_distances!(input_matrix, total_dist_groups)
+        function group_distances(input_matrix::Array, total_dist_groups::Int)
 
     Takes a matrix and rearranges values into 'total_dist_groups' number of groups.
     Every group is assigned with number value from range '<0,1>'.
@@ -315,9 +318,9 @@ end
 
 
 
-function generate_indices(matrix_size::Tuple; symmetry_order=false, include_diagonal=true)
+function generate_indices(matrix_size::Tuple; symmetry_order::Bool=false, include_diagonal::Bool=true)
     """
-        generate_indices(matrix_size::Tuple; symmetry_order=false, include_diagonal=true)
+        generate_indices(matrix_size::Tuple; symmetry_order::Bool=false, include_diagonal::Bool=true)
 
     Return all the possible indices of the matrix of size 'matrix_size'.
     'matrix_size' may be a tuple or a series of integer arguments corresponding to
@@ -344,9 +347,9 @@ function generate_indices(matrix_size::Tuple; symmetry_order=false, include_diag
 end
 
 
-function generate_indices(matrix_size::Int; symmetry_order=false, include_diagonal=true)
+function generate_indices(matrix_size::Int; symmetry_order::Bool=false, include_diagonal::Bool=true)
     """
-        generate_indices(matrix_size::Int; symmetry_order=false, include_diagonal=true)
+        generate_indices(matrix_size::Int; symmetry_order::Bool=false, include_diagonal::Bool=true)
 
     Generate indices for a matrix of given dimensions. 'generate_indices' is a
     series of integer arguments corresponding to the lengths in each dimension.
@@ -372,7 +375,7 @@ end
 
 function sort_index_by_values(values_matrix::T, index_vector) where {T<:VecOrMat}
     """
-        sort_index_by_values(values_matrix::Matrix, index_vector::Vector)
+        sort_index_by_values(values_matrix::T, index_vector) where {T<:VecOrMat}
 
     Sorts the 'index_vector' according to corresponding values in the 'values_matrix'
     and returns a Vector of intigers which is an list of ordering of
@@ -387,7 +390,7 @@ function sort_index_by_values(values_matrix::T, index_vector) where {T<:VecOrMat
 end
 
 
-function set_values!(input_matrix::Matrix, position::CartesianIndex, target_value::Number; do_symmetry=false)
+function set_values!(input_matrix::Matrix, position::CartesianIndex, target_value::Number; do_symmetry::Bool=false)
     """
         set_values!(input_matrix::Matrix, position::CartesianIndex, target_value::Number; do_symmetry=false)
 
@@ -444,6 +447,7 @@ function reduce_arrs_to_min_len(arrs::Array)
     are of the same length. Length in the output is the shortest vector length from
     the input- values above this size are discarded.
     """
+    @debug "Argument specific"
     new_arr = copy(arrs)
 
     simulation = size(new_arr,1)
