@@ -9,7 +9,7 @@
 using Eirene
 	using Random
 
-	include("MatrixProcessing.jl")
+	#include("MatrixProcessing.jl")
 	include("MatrixToolbox.jl")
 	# include("BettiCurves.jl")
 	# include("PlottingWrappers.jl")
