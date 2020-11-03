@@ -436,14 +436,14 @@ end
 
 
 
-"""
-    reduce_arrs_to_min_len(arrs)
-
-Takes vector of vectors of different length and returns array of arrays which
-are of the same length. Length in the output is the shortest vector length from
-the input- values above this size are discarded.
-"""
 function reduce_arrs_to_min_len(arrs::Array)
+    """
+        reduce_arrs_to_min_len(arrs)
+
+    Takes vector of vectors of different length and returns array of arrays which
+    are of the same length. Length in the output is the shortest vector length from
+    the input- values above this size are discarded.
+    """
     new_arr = copy(arrs)
 
     simulation = size(new_arr,1)
@@ -467,14 +467,14 @@ function reduce_arrs_to_min_len(arrs::Array)
 end
 
 
-"""
-    increase_arrs_to_max_len(arrs)
-
-Takes vector of vectors of different length and returns array of arrays which
-are of the same length. Length in the output is the longest vector length from
-the input- values above this size are discarded.
-"""
 function increase_arrs_to_max_len(arrs)
+    """
+        increase_arrs_to_max_len(arrs)
+
+    Takes vector of vectors of different length and returns array of arrays which
+    are of the same length. Length in the output is the longest vector length from
+    the input- values above this size are discarded.
+    """
     new_arr = copy(arrs)
 
     simulation = size(new_arr,1)
