@@ -4,6 +4,7 @@ using Eirene
 using Plots
 using PlotThemes
 using PlotUtils
+using Dierckx
 
 # ====
 function get_bettis(results_eirene::Dict, max_dim::Integer; min_dim::Int=1)
@@ -114,23 +115,23 @@ function vectorize_bettis(eirene_results::Dict, maxdim::Integer, mindim::Integer
 end
 
 # ==
-"""
-    plot_bettis(bettis; min_dim::Integer=1, betti_labels::Bool=true, default_labels::Bool=true kwargs...)
-
-Creates a plot for set of betti numbers stored in `bettis` and return the
-handler to the plot.
-
-'kwargs' are plot parameters
-
-Some of the possible 'kwargs' are (for more, see plots documentation):
-    - title::String
-    - legend:Bool
-    - size::Tuple{T, T} where {T::Number}
-    - lw::Integer or linewidth:Integer
-TODO: min_dim is not included in all_dims variable
-TODO: add change of x label based on x values- so it is either edge density for 0:1 range values or Filtration step otherwise
-"""
 function plot_bettis(bettis::Vector; min_dim::Integer=1, betti_labels::Bool=true, default_labels::Bool=true, kwargs...)#; plot_size = (width=1200, height=800),
+	"""
+		plot_bettis(bettis; min_dim::Integer=1, betti_labels::Bool=true, default_labels::Bool=true kwargs...)
+
+	Creates a plot for set of betti numbers stored in `bettis` and return the
+	handler to the plot.
+
+	'kwargs' are plot parameters
+
+	Some of the possible 'kwargs' are (for more, see plots documentation):
+		- title::String
+		- legend:Bool
+		- size::Tuple{T, T} where {T::Number}
+		- lw::Integer or linewidth:Integer
+	TODO: min_dim is not included in all_dims variable
+	TODO: add change of x label based on x values- so it is either edge density for 0:1 range values or Filtration step otherwise
+	"""
     max_dim = size(bettis,1)
 	all_dims = 1:max_dim
 
@@ -179,24 +180,24 @@ function plot_bettis(bettis::Vector; min_dim::Integer=1, betti_labels::Bool=true
     return plot_ref
 end
 
-"""
-    printready_plot_bettis(kwargs)
-
-Creates a plot using 'plot_bettis' with arguments which were tested to be very
-good for using them in prints. Used arguments are:
-
-"""
 function printready_plot_bettis(kwargs)
+	"""
+		printready_plot_bettis(kwargs)
+
+	Creates a plot using 'plot_bettis' with arguments which were tested to be very
+	good for using them in prints. Used arguments are:
+
+	"""
     return nothing
 end
 
 
-"""
-    function get_bettis_color_palete()
-
-Generates vector with colours used for Betti plots.
-"""
 function get_bettis_color_palete(;min_dim=1, use_set::Integer=1)
+	"""
+		function get_bettis_color_palete()
+
+	Generates vector with colours used for Betti plots.
+	"""
     # TODO what does the number in the function below is used for?
 
     if use_set == 1
@@ -261,17 +262,17 @@ end
 # ====
 
 # ====
-"""
-	plot_bettis_collection(bettis_collection, bett_num; step=1, show_plt=true, R=0., G=0.4, B=1.0)
-
-PLots collection of Betti curves of rank 'bett-num'. Every successive plot has
-lower opacity than predecessor.  'step' defines step between collection elements
-that are ploted. By default, plot is displayed after carteation. This can be
-disabled by setting 'show_plt' to false.
-
-Color of the plot can be set with 'R', 'G', 'B' parameters.
-"""
 function plot_bettis_collection(bettis_collection, bett_num, max_rank; step=1, show_plt=true, R=0., G=0.4, B=1.0)
+	"""
+		plot_bettis_collection(bettis_collection, bett_num; step=1, show_plt=true, R=0., G=0.4, B=1.0)
+
+	PLots collection of Betti curves of rank 'bett-num'. Every successive plot has
+	lower opacity than predecessor.  'step' defines step between collection elements
+	that are ploted. By default, plot is displayed after carteation. This can be
+	disabled by setting 'show_plt' to false.
+
+	Color of the plot can be set with 'R', 'G', 'B' parameters.
+	"""
 	step>0 || error("Steps should be natural number!")
 	bettis_total = size(bettis_collection,1)
 	colors_set = zeros(Float64, bettis_total,4)
@@ -320,26 +321,25 @@ function get_max_betti_from_collection(bettis_collection;dim=1)
 end
 
 
-"""
-	plot_and_save_bettis(eirene_results, plot_title::String,
-								results_path::String; extension = ".png",
-								data_size::String="", do_save=true,
-								extend_title=true, do_normalise=true, max_dim=3,
-								legend_on=true)
-
-Plot Betti curves from 0 up to `max_dim` using `eirene_results` from Eirene library and
-returns handler for figure. Optionally, if `do_save` is set, saves the figure
-or if `do_normalise` is set, sets the steps range to be normalised to the
-horizontal axis maximal value.
-"""
 function plot_and_save_bettis(bettis, plot_title::String,
 								results_path::String; file_name="",
 								extension = ".png",
 								do_save=true,
 								do_normalise=true, min_dim=0,
 								max_dim=3, legend_on=true, kwargs...)
+	"""
+		plot_and_save_bettis(eirene_results, plot_title::String,
+									results_path::String; extension = ".png",
+									data_size::String="", do_save=true,
+									extend_title=true, do_normalise=true, max_dim=3,
+									legend_on=true)
 
-    bettis = get_bettis(eirene_results, max_dim);
+	Plot Betti curves from 0 up to `max_dim` using `eirene_results` from Eirene library and
+	returns handler for figure. Optionally, if `do_save` is set, saves the figure
+	or if `do_normalise` is set, sets the steps range to be normalised to the
+	horizontal axis maximal value.
+	"""
+		bettis = get_bettis(eirene_results, max_dim);
 	if do_normalise
     	bettis = normalise_bettis(bettis);
 	end
@@ -467,16 +467,16 @@ end
 # end
 
 
-"""
-	function get_bettis_from_image(img_name)
-
-Computes Betti curves for the image file indicated by @img_name. If the image is
-	not symmetric, then it is the elements below diagonal are copied over the
-	elmenents above the diagonal.
-"""
 function get_bettis_from_image(img_name, plot_params; file_path="",
 									plot_heatmaps = true, save_heatmaps=false,
 								plot_betti_figrues = true)
+	"""
+		function get_bettis_from_image(img_name)
+
+	Computes Betti curves for the image file indicated by @img_name. If the image is
+		not symmetric, then it is the elements below diagonal are copied over the
+		elmenents above the diagonal.
+	"""
   file_n = split(img_name, ".")[1]
   img1_gray = Gray.(load(file_path*img_name))
   img_size = size(img1_gray)
@@ -535,24 +535,7 @@ function get_bettis_from_image(img_name, plot_params; file_path="",
   display(ref)
 end
 
-"""
-multiscale_matrix_testing(sample_space_dims = 3,
-                                    maxsim=5,
-                                    min_B_dim = 1,
-                                    max_B_dim = 3,
-                                    size_start = 10,
-                                    size_step = 5,
-                                    size_stop = 80; do_random=true)
 
-Function for testing the average number of cycles from geometric and random
-    matrices.
-
-It is possible to save intermidiate results- for that, @control_saving must be
-set true.
-
-Performance of computation of Betti curves can be monitored, if the
-@perform_eavl is set too true. Bydefault, it is set to false.
-"""
 function multiscale_matrix_testing(sample_space_dims = 3,
                                     maxsim=5,
                                     min_B_dim = 1,
@@ -562,7 +545,24 @@ function multiscale_matrix_testing(sample_space_dims = 3,
                                     size_stop = 50;
 										do_random=true, control_saving=false,
 										perform_eavl=false)
-    num_of_bettis = length(collect(min_B_dim:max_B_dim))
+	"""
+	multiscale_matrix_testing(sample_space_dims = 3,
+										maxsim=5,
+										min_B_dim = 1,
+										max_B_dim = 3,
+										size_start = 10,
+										size_step = 5,
+										size_stop = 80; do_random=true)
+
+	Function for testing the average number of cycles from geometric and random
+		matrices.
+
+	It is possible to save intermidiate results- for that, @control_saving must be
+	set true.
+
+	Performance of computation of Betti curves can be monitored, if the
+	@perform_eavl is set too true. Bydefault, it is set to false.
+	"""   num_of_bettis = length(collect(min_B_dim:max_B_dim))
 
     if length(sample_space_dims) > 1
         @warn "Can not do random processing for multiple dimensions"
@@ -813,13 +813,13 @@ function get_and_plot_bettis(eirene_results;max_dim=3, min_dim=1, plot_title="",
 end
 
 
-"""
-	lower_ordmat_resolution(ordered_matrix::Array, total_bins::Int)
-
-Takes ordered matrix 'input_matrix' and reduces the resolution of values in the
-matrix into 'total_bins' bins.
-"""
 function lower_ordmat_resolution(ordered_matrix::Array, total_bins::Int)
+	"""
+		lower_ordmat_resolution(ordered_matrix::Array, total_bins::Int)
+
+	Takes ordered matrix 'input_matrix' and reduces the resolution of values in the
+	matrix into 'total_bins' bins.
+	"""
 	new_ordered_matrix = zeros(size(ordered_matrix))
 	max_val = findmax(ordered_matrix)[1]
 	min_val = findmin(ordered_matrix)[1]
@@ -840,18 +840,18 @@ function lower_ordmat_resolution(ordered_matrix::Array, total_bins::Int)
 end
 
 
-"""
-	average_bettis(bettis_matrix; up_factor=8)
-
-Takes the average values of betti curves stored in 'bettis_matrix'.
-
-'bettis_matrix' consist of different simulations(first index of the matrix),
-different ranks (third index of the matrix). Second index of the matrices
-(saples) may vary accross many simulations and for this reason, all betti curves
-are upsampled by a factor of 'upsample_factor' and then the average for every
-dimension is computed.
-"""
 function average_bettis(bettis_matrix::Matrix; up_factor=8)
+	"""
+		average_bettis(bettis_matrix; up_factor=8)
+
+	Takes the average values of betti curves stored in 'bettis_matrix'.
+
+	'bettis_matrix' consist of different simulations(first index of the matrix),
+	different ranks (third index of the matrix). Second index of the matrices
+	(saples) may vary accross many simulations and for this reason, all betti curves
+	are upsampled by a factor of 'upsample_factor' and then the average for every
+	dimension is computed.
+	"""
 
 	bettis_matrix_backup = copy(bettis_matrix)
 
@@ -909,16 +909,17 @@ function upsample_vector2(input_vector, total_upsamples)
 end
 
 
-using Dierckx
-"""
-	upsample_vector(input_vector; upsample_factor::Int=8)
 
-Takes an 'input_vector' and returns a vector which has 'upsample_factor' many
-times more samples. New samples are interpolated with 'spl' function from
-'Dierckx' package.
 
-"""
 function upsample_vector(input_vector; upsample_factor::Int=8)
+	"""
+		upsample_vector(input_vector; upsample_factor::Int=8)
+
+	Takes an 'input_vector' and returns a vector which has 'upsample_factor' many
+	times more samples. New samples are interpolated with 'spl' function from
+	'Dierckx' package.
+
+	"""
 	total_orig_samples = size(input_vector,1)-1
 	total_samples = upsample_factor*total_orig_samples+1
 
