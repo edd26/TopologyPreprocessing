@@ -562,7 +562,8 @@ function multiscale_matrix_testing(sample_space_dims = 3,
 
 	Performance of computation of Betti curves can be monitored, if the
 	@perform_eavl is set too true. Bydefault, it is set to false.
-	"""   num_of_bettis = length(collect(min_B_dim:max_B_dim))
+	"""
+    num_of_bettis = length(collect(min_B_dim:max_B_dim))
 
     if length(sample_space_dims) > 1
         @warn "Can not do random processing for multiple dimensions"
