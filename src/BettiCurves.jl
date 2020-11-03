@@ -80,38 +80,7 @@ function get_vectorized_bettis(results_eirene::Dict, max_dim::Integer; min_dim::
     return bettis_vector
 end
 
-@deprecate vectorize_bettis(eirene_results::Dict, maxdim::Integer, mindim::Integer) get_vectorized_bettis(results_eirene::Dict, max_dim::Integer; min_dim::Int = 1)
-#     number_of_steps = length(betticurve(eirene_results, dim = 0)[:, 1])
-#     number_of_bettis = maxdim - mindim + 1
-#
-#     result = zeros(number_of_steps, number_of_bettis)
-#     try
-#         iter = 1
-#         for d = mindim:maxdim
-#             bett_res = betticurve(eirene_results, dim = d)[:, 2]
-#             if size(bett_res, 1) == 0
-#                 @warn "Computed betti curve had 0 elements, creating vector with zeros"
-#                 bett_res = zeros(size(result, 1))
-#             end
-#             result[:, iter] = bett_res
-#             iter += 1
-#         end
-#         @debug size(result)
-#         return result
-#     catch err
-#         if isa(err, DimensionMismatch)
-#             @error "Dimension mismatch error"
-#             for d = mindim:maxdim
-#                 @error size(betticurve(c, dim = d))
-#             end
-#             @error hcat([betticurve(c, dim = d)[:, 2] for d = mindim:maxdim]...)
-#             throw(err)
-#         else
-#             @error "Unknown error occurred"
-#             throw(err)
-#         end
-#     end
-# end
+@deprecate vectorize_bettis(eirene_results::Dict, maxdim::Integer, mindim::Integer) get_vectorized_bettis(results_eirene, max_dim; min_dim=1)
 
 # ==
 function plot_bettis(bettis::Vector;
@@ -250,10 +219,8 @@ end
 # ==============================
 #  ======= Untested code =======
 
-
 # using Measures
 # using Plots.PlotMeasures
-# include("MatrixProcessing.jl")
 
 #
 # # Source: https://github.com/JuliaPlots/Plots.jl/issues/897
@@ -265,8 +232,6 @@ end
 #     default(size=(800*upscale,600*upscale)) #Plot canvas size
 #     default(dpi=500) #Only for PyPlot - presently broken
 # end
-
-
 
 
 # ====
@@ -445,65 +410,6 @@ function bettis_eirene(matr,
     end
     return betts
 end
-
-
-# """
-# 	get_avg_bettis_from_JLD(data_sets; range=-1, maxsim=-1, steps=-1,
-# 													subset_size=-1, maxdim=3)
-#
-# Takes the 'data_sets' (vector of dictionaries from loading data with JLD) and
-# computes average betti curves with their std's.
-#
-# """
-# function get_avg_bettis_from_JLD(data_sets; range=-1,
-#                                 maxsim=-1, steps=-1, subset_size=-1, maxdim=3)
-# # TODO change name- it does not use JLD file
-#     avg_betti = Array[]
-#     std_betti = Array[]
-#
-#     if maxsim == -1
-#         maxsim=size(data_sets[1]["dist"], 1)
-#     end
-#
-#     if range == -1 || range > size(data_sets,1)
-#         range = 1:size(data_sets,1)
-#     else
-#         range = 1:range
-#     end
-#
-#     for k = range
-#         @debug "== Next k" k
-#         matrix_set = data_sets[k]["dist"]
-#         bettis_set = Array[]
-#         # steps = 2600;
-#
-#         new_bettis= []
-#         for m=1:maxsim
-#
-#             if subset_size == -1
-#                 subset_range=1:size(matrix_set[1],1)
-#             else
-#                 subset_range=1:subset_size
-#             end
-#
-#             @debug "=== Next m" m
-#             ordered_matrix = get_ordered_matrix(matrix_set[m][subset_range,subset_range];
-# 													assing_same_values=false)
-#             new_bettis = bettis_eirene(ordered_matrix, maxdim)
-#             push!(bettis_set, new_bettis)
-#         end
-#
-#         # Set size to be the same for every betti curve
-#         new_bettis_set = reduce_arrs_to_min_len(bettis_set)
-#
-#         # Compute average betti curve
-#         push!(avg_betti, average_bettis(new_bettis_set))
-#         push!(std_betti, std_bettis(new_bettis_set))
-#     end
-#
-#     return avg_betti, std_betti
-# end
-
 
 function get_bettis_from_image(img_name,
                                 plot_params;
@@ -786,109 +692,15 @@ end
 
 
 # ===============================================
-@deprecate get_bettis_from_image2(img_name;file_path = "",plot_heatmaps = true, save_heatmaps = false, plot_betti_figrues = true) function get_bettis_from_image(img_name, plot_params; file_path = "", plot_heatmaps = true, save_heatmaps = false, plot_betti_figrues = true)
-#     file_n = split(img_name, ".")[1]
-#     img1_gray = Gray.(load(file_path * img_name))
-#     img_size = size(img1_gray)
-#
-#     C_ij = Float64.(img1_gray)
-#
-#     if !issymmetric(C_ij)
-#         img1_gray = symmetrize_image(img1_gray)
-#         C_ij = Float64.(img1_gray)
-#     end
-#     img_size = size(C_ij, 1)
-#     # C_ij =-C_ij
-#     # C_ij .+= 1
-#
-#
-#     # ==============================================================================
-#     # =============================== Ordered matrix ===============================
-#     if size(C_ij, 1) > 80
-#         @warn "Running Eirene for big matrix: " img_size
-#         @warn "Eirene may have trobules with big matrices/images."
-#     end
-#
-#     ordered_matrix = get_ordered_matrix(C_ij; assign_same_values = false)
-#
-#
-#     # ==============================================================================
-#     # ============================ Persistance homology ============================
-#     C = eirene(ordered_matrix, maxdim = 3, model = "vr")
-#
-#
-#     # ==============================================================================
-#     # ================================ Plot results ================================
-#
-#     if plot_heatmaps
-#
-#         full_ordered_matrix = get_ordered_matrix(C_ij; assign_same_values = false)
-#         heat_map2 = plot_square_heatmap(
-#             full_ordered_matrix,
-#             10,
-#             img_size;
-#             plt_title = "Order matrix of $(file_n)",
-#         )
-#
-#         if save_heatmaps
-#             heatm_details = "_heatmap_$(file_n)"
-#             savefig(heat_map2, heatmaps_path * "ordering" * heatm_details)
-#         end
-#     end
-#
-#     if plot_betti_figrues
-#         plot_title = "Betti curves of $(file_n), size=$(img_size) "
-#         figure_name = "betti_$(file_n)_n$(img_size)"
-#         ref = plot_and_save_bettis2(
-#             C,
-#             plot_title,
-#             figure_path,
-#             ;
-#             file_name = figure_name,
-#             plot_params = plot_params,
-#             do_save = false,
-#             extend_title = false,
-#             do_normalise = false,
-#             max_dim = 3,
-#             legend_on = true,
-#             min_dim = 1,
-#         )
-#     end
-#     display(img1_gray)
-#     display(heat_map2)
-#     display(ref)
-# end
+@deprecate get_bettis_from_image2(img_name;file_path = "",plot_heatmaps = true, save_heatmaps = false, plot_betti_figrues = true) get_bettis_from_image(img_name, plot_params; file_path = "", plot_heatmaps = true, save_heatmaps = false, plot_betti_figrues = true)
 
-@deprecate function plot_and_save_bettis2(eirene_results, plot_title::String, results_path::String; file_name = "", extension = ".png", data_size::String = "", do_save = true, extend_title = true, do_normalise = true, min_dim = 0, max_dim = 3, legend_on = true) function plot_and_save_bettis(bettis, plot_title::String, results_path::String; file_name = "", extension = ".png", do_save = true, do_normalise = true, min_dim = 0, max_dim = 3, legend_on = true, kwargs...)
-#     bettis = get_bettis(eirene_results, max_dim, min_dim = min_dim)
-#     norm_bettis = normalise_bettis(bettis)
-#     plot_ref = plot_bettis2(bettis, plot_title, legend_on = legend_on, min_dim = min_dim)
-#
-#     if do_save
-#         if extend_title && isempty(file_name)
-#             file_name = "betti_c_" * plot_title * data_size * extension
-#         elseif isempty(file_name)
-#             file_name = plot_title * extension
-#         elseif isempty(findall(x -> x == extension[2:end], split(file_name, ".")))
-#             #check for the extension in file name
-#             file_name *= extension
-#         end
-#
-#         savefig(plot_ref, results_path * file_name)
-#         @info "Saved file as " results_path * file_name
-#
-#     end
-#     return plot_ref
-# end
+@deprecate plot_and_save_bettis2(eirene_results, plot_title::String, results_path::String; file_name = "", extension = ".png", data_size::String = "", do_save = true, extend_title = true, do_normalise = true, min_dim = 0, max_dim = 3, legend_on = true) plot_and_save_bettis(bettis, plot_title::String, results_path::String; file_name = "", extension = ".png", do_save = true, do_normalise = true, min_dim = 0, max_dim = 3, legend_on = true, kwargs...)
 
-
-function get_and_plot_bettis(
-    eirene_results;
-    max_dim = 3,
-    min_dim = 1,
-    plot_title = "",
-    legend_on = false,
-)
+function get_and_plot_bettis(eirene_results;
+                                max_dim = 3,
+                                min_dim = 1,
+                                plot_title = "",
+                                legend_on = false)
     bettis = get_bettis(eirene_results, max_dim)
     norm_bettis = normalise_bettis(bettis)
     plot_ref =
@@ -1028,201 +840,201 @@ end
 # Code from Points substitution:
 
 # Compute series of betti curves
-function get_bettis_collection(ordered_matrices_collection; max_B_dim=3)
-    bettis_collection = Array[]
-
-    for matrix = ordered_matrices_collection
-		@debug "Computing Bettis..."
-		eirene_geom = eirene(matrix,maxdim=max_B_dim,model="vr")
-
-		bettis = reshape_bettis(get_bettis(eirene_geom, max_B_dim))
-		push!(bettis_collection, bettis)
-    end
-
-    return bettis_collection
-end
-
-# Plot series of betti curves with their heatmaps
-function reshape_bettis(bettis)
-	bettis_count = size(bettis,1)
-	output_betti = zeros(size(bettis[1],1), bettis_count)
-
-	for betti = 1:bettis_count
-		output_betti[:,betti] = bettis[betti][:,2]
-	end
-	return output_betti
-end
-
-function get_ord_mat_collection(matrix_collection)
-	mat_size = size(matrix_collection[1],1)
-	ordered_mat_coll = [zeros(Int, mat_size,mat_size) for k=1:length(matrix_collection)]
-
-	size(matrix_collection)
-	for matrix = 1:length(matrix_collection)
-		ordered_mat_coll[matrix] = Int.(get_ordered_matrix(matrix_collection[matrix]))
-	end
-	return ordered_mat_coll
-end
-
-
-
-
-
-function print_hmap_with_bettis(ordered_matrices_collection, bettis_collection,
-														plot_data::PlottingData)
-	num_plots = size(ordered_matrices_collection,1)
-	sources = 1:(plot_data.src_pts_number)
-	targets = 1:(plot_data.trgt_pts_number)
-	plot_set = Any[]
-
-    max_betti = get_max_betti_from_collection(bettis_collection;dim=1)
-
-	index = 1
-	for src = 1:size(sources,1), trgt = 1:size(targets,1)
-        # index = src * trgt
-        ordered_geom_gr = ordered_matrices_collection[index]
-        bettis = bettis_collection[index]
-        title_hmap = "trgt:$(targets[trgt])_src:$(sources[src])_r:$(rank(ordered_geom_gr))"
-        title_bettis = "gr_trg=$(targets[trgt])_src=$(sources[src])_steps=$(size(bettis,1))"
-        push!(plot_set, make_hm_and_betti_plot(ordered_geom_gr, bettis, title_hmap, title_bettis, max_betti))
-		index +=1
-	end
-
-	return plot_set
-end
-
-function make_hm_and_betti_plot(ordered_geom_gr, bettis, title_hmap, title_bettis, max_betti)
-    # @debug "src" src
-    # @debug "trgt" trgt
-    hmap_plot = plot_square_heatmap(ordered_geom_gr, 10,size(ordered_geom_gr,1);plt_title = title_hmap)
-    plot!(yflip = true,)
-
-    bettis_plot_ref = plot(title=title_bettis);
-    max_dim = size(bettis,2)
-    for p = 1:max_dim
-        x_vals = collect(1:size(bettis[:,1],1))./size(bettis[:,1])
-
-        plot!(x_vals, bettis[:,p], label="\\beta_"*string(p));
-        plot!(legend=true, )
-    end
-
-    plot!(ylim=(0,max_betti))
-	plot!(xlim=(0,1))
-    ylabel!("Number of cycles")
-    xlabel!("Steps")
-
-    final_plot = plot(hmap_plot, bettis_plot_ref, layout = 2,
-						top_margin=2mm,
-						left_margin=0mm,
-						bottom_margin=2mm,
-						size=(600,300))
-    display(final_plot)
-    return final_plot
-end
-
-# TODO BUG: substitution does not work- all the plots are the same
-function main_generation1()
-    mat_size = 6
-    dim = 80
-    src_pts_number = 1
-    trgt_pts_number = 2
-    trgt_steps = 0
-
-    src_points, trgt_points =
-    	get_replacing_points(mat_size, src_pts_number, trgt_pts_number)
-
-    matrix_collection =
-    	get_matrix_collection(mat_size, dim, src_points, trgt_points; trgt_step=trgt_steps)
-
-    ordered_matrices_collection = get_ord_mat_collection(matrix_collection)
-
-    bettis_collection = get_bettis_collection(ordered_matrices_collection)
-
-
-    plot_data = PlottingData(mat_size, dim, src_pts_number, trgt_pts_number, src_points, trgt_points, trgt_steps)
-    # plot_data = PlottingData2(mat_size , dim, )
-
-    plotting_data = print_hmap_with_bettis(ordered_matrices_collection,
-													bettis_collection, plot_data)
-end
-
-
-function get_geom_matrix(mat_size, dim)
-	# TODO change the matrix collection shape to be a matrix, not a vector
-    point_cloud = generate_random_point_cloud(mat_size, dim)
-    matrix_collection = generate_geometric_matrix(point_cloud)
-    # matrix_collection = get_ordered_matrix(matrix_collection; assing_same_values=true)
-
-    return matrix_collection
-end
-
-function get_rand_matrix(mat_size, dim)
-    matrix_collection = generate_random_matrix(mat_size)
-    matrix_collection = get_ordered_matrix(matrix_collection; assing_same_values=true)
-
-    return matrix_collection
-end
-
-# TODO Analyse zero point behaviour
-function get_dist_mat_collection(dist_matrix, src_points, trgt_points, trgt_steps; do_ordering=false)
-    dist_matrix_backup = copy(dist_matrix)
-    mat_size = size(dist_matrix,1)
-    src_points_num = size(src_points,1)
-    trgt_points_num = size(trgt_points,1)
-    # ordered_mat_coll = [zeros(Int, mat_size,mat_size) for k=1:(src_points_num*trgt_points_num)]
-    ordered_mat_coll = Array[]
-
-	swapping_iterator = 0
-
-    for srcs = 1:src_points_num
-        # replacement_row = get_row(dist_matrix, src_points[srcs])
-
-        for target = 1:trgt_points_num
-            @debug "src:" src_points[srcs]
-            @debug "trgt:" trgt_points[target, srcs]
-            replacement_row = get_row(dist_matrix_backup, src_points[srcs])
-            # dist_matrix_backup .=
-			set_row!(dist_matrix_backup, trgt_points[target, srcs], replacement_row)
-            # ordered_mat_coll[srcs * target] = copy(dist_matrix_backup)
-			if do_ordering
-				swap_rows!(dist_matrix_backup, trgt_points[target, srcs], mat_size-swapping_iterator)
-				swapping_iterator +=1
-			end
-            push!(ordered_mat_coll, copy(dist_matrix_backup))
-        end
-    end
-
-    return ordered_mat_coll
-end
-
-function get_ordered_set(distance_matrices_collection)
-	result = copy(distance_matrices_collection)
-
-	for matrix = 1:size(distance_matrices_collection,1)
-		result[matrix] = get_ordered_matrix(distance_matrices_collection[matrix];assing_same_values=true )
-	end
-	return result
-end
-
-function matrix_analysis(test_data::PlottingData;generation_function=get_geom_matrix)
-	mat_size = test_data.mat_size
-	dim = test_data.dim
-	src_pts_number = test_data.src_pts_number
-	trgt_pts_number = test_data.trgt_pts_number
-	trgt_steps = 0
-
-	src_points, trgt_points = get_replacing_points(mat_size, src_pts_number, trgt_pts_number)
-	distance_matrix = generation_function(mat_size, dim)
-
-	distance_matrices_collection = get_dist_mat_collection(distance_matrix, src_points, trgt_points, trgt_steps)
-	ordered_matrices_collection = get_ordered_set(distance_matrices_collection)
-	bettis_collection = get_bettis_collection(ordered_matrices_collection)
-
-	plot_data = PlottingData(mat_size, dim, src_pts_number, trgt_pts_number, src_points, trgt_points, trgt_steps)
-
-	plots_set = print_hmap_with_bettis(ordered_matrices_collection,
-												bettis_collection, plot_data)
-
-
-	return distance_matrices_collection, ordered_matrices_collection, bettis_collection, plot_data, plots_set
-end
+# function get_bettis_collection(ordered_matrices_collection; max_B_dim=3)
+#     bettis_collection = Array[]
+#
+#     for matrix = ordered_matrices_collection
+# 		@debug "Computing Bettis..."
+# 		eirene_geom = eirene(matrix,maxdim=max_B_dim,model="vr")
+#
+# 		bettis = reshape_bettis(get_bettis(eirene_geom, max_B_dim))
+# 		push!(bettis_collection, bettis)
+#     end
+#
+#     return bettis_collection
+# end
+#
+# # Plot series of betti curves with their heatmaps
+# function reshape_bettis(bettis)
+# 	bettis_count = size(bettis,1)
+# 	output_betti = zeros(size(bettis[1],1), bettis_count)
+#
+# 	for betti = 1:bettis_count
+# 		output_betti[:,betti] = bettis[betti][:,2]
+# 	end
+# 	return output_betti
+# end
+#
+# function get_ord_mat_collection(matrix_collection)
+# 	mat_size = size(matrix_collection[1],1)
+# 	ordered_mat_coll = [zeros(Int, mat_size,mat_size) for k=1:length(matrix_collection)]
+#
+# 	size(matrix_collection)
+# 	for matrix = 1:length(matrix_collection)
+# 		ordered_mat_coll[matrix] = Int.(get_ordered_matrix(matrix_collection[matrix]))
+# 	end
+# 	return ordered_mat_coll
+# end
+#
+#
+#
+#
+#
+# function print_hmap_with_bettis(ordered_matrices_collection, bettis_collection,
+# 														plot_data::PlottingData)
+# 	num_plots = size(ordered_matrices_collection,1)
+# 	sources = 1:(plot_data.src_pts_number)
+# 	targets = 1:(plot_data.trgt_pts_number)
+# 	plot_set = Any[]
+#
+#     max_betti = get_max_betti_from_collection(bettis_collection;dim=1)
+#
+# 	index = 1
+# 	for src = 1:size(sources,1), trgt = 1:size(targets,1)
+#         # index = src * trgt
+#         ordered_geom_gr = ordered_matrices_collection[index]
+#         bettis = bettis_collection[index]
+#         title_hmap = "trgt:$(targets[trgt])_src:$(sources[src])_r:$(rank(ordered_geom_gr))"
+#         title_bettis = "gr_trg=$(targets[trgt])_src=$(sources[src])_steps=$(size(bettis,1))"
+#         push!(plot_set, make_hm_and_betti_plot(ordered_geom_gr, bettis, title_hmap, title_bettis, max_betti))
+# 		index +=1
+# 	end
+#
+# 	return plot_set
+# end
+#
+# function make_hm_and_betti_plot(ordered_geom_gr, bettis, title_hmap, title_bettis, max_betti)
+#     # @debug "src" src
+#     # @debug "trgt" trgt
+#     hmap_plot = plot_square_heatmap(ordered_geom_gr, 10,size(ordered_geom_gr,1);plt_title = title_hmap)
+#     plot!(yflip = true,)
+#
+#     bettis_plot_ref = plot(title=title_bettis);
+#     max_dim = size(bettis,2)
+#     for p = 1:max_dim
+#         x_vals = collect(1:size(bettis[:,1],1))./size(bettis[:,1])
+#
+#         plot!(x_vals, bettis[:,p], label="\\beta_"*string(p));
+#         plot!(legend=true, )
+#     end
+#
+#     plot!(ylim=(0,max_betti))
+# 	plot!(xlim=(0,1))
+#     ylabel!("Number of cycles")
+#     xlabel!("Steps")
+#
+#     final_plot = plot(hmap_plot, bettis_plot_ref, layout = 2,
+# 						top_margin=2mm,
+# 						left_margin=0mm,
+# 						bottom_margin=2mm,
+# 						size=(600,300))
+#     display(final_plot)
+#     return final_plot
+# end
+#
+# # TODO BUG: substitution does not work- all the plots are the same
+# function main_generation1()
+#     mat_size = 6
+#     dim = 80
+#     src_pts_number = 1
+#     trgt_pts_number = 2
+#     trgt_steps = 0
+#
+#     src_points, trgt_points =
+#     	get_replacing_points(mat_size, src_pts_number, trgt_pts_number)
+#
+#     matrix_collection =
+#     	get_matrix_collection(mat_size, dim, src_points, trgt_points; trgt_step=trgt_steps)
+#
+#     ordered_matrices_collection = get_ord_mat_collection(matrix_collection)
+#
+#     bettis_collection = get_bettis_collection(ordered_matrices_collection)
+#
+#
+#     plot_data = PlottingData(mat_size, dim, src_pts_number, trgt_pts_number, src_points, trgt_points, trgt_steps)
+#     # plot_data = PlottingData2(mat_size , dim, )
+#
+#     plotting_data = print_hmap_with_bettis(ordered_matrices_collection,
+# 													bettis_collection, plot_data)
+# end
+#
+#
+# function get_geom_matrix(mat_size, dim)
+# 	# TODO change the matrix collection shape to be a matrix, not a vector
+#     point_cloud = generate_random_point_cloud(mat_size, dim)
+#     matrix_collection = generate_geometric_matrix(point_cloud)
+#     # matrix_collection = get_ordered_matrix(matrix_collection; assing_same_values=true)
+#
+#     return matrix_collection
+# end
+#
+# function get_rand_matrix(mat_size, dim)
+#     matrix_collection = generate_random_matrix(mat_size)
+#     matrix_collection = get_ordered_matrix(matrix_collection; assing_same_values=true)
+#
+#     return matrix_collection
+# end
+#
+# # TODO Analyse zero point behaviour
+# function get_dist_mat_collection(dist_matrix, src_points, trgt_points, trgt_steps; do_ordering=false)
+#     dist_matrix_backup = copy(dist_matrix)
+#     mat_size = size(dist_matrix,1)
+#     src_points_num = size(src_points,1)
+#     trgt_points_num = size(trgt_points,1)
+#     # ordered_mat_coll = [zeros(Int, mat_size,mat_size) for k=1:(src_points_num*trgt_points_num)]
+#     ordered_mat_coll = Array[]
+#
+# 	swapping_iterator = 0
+#
+#     for srcs = 1:src_points_num
+#         # replacement_row = get_row(dist_matrix, src_points[srcs])
+#
+#         for target = 1:trgt_points_num
+#             @debug "src:" src_points[srcs]
+#             @debug "trgt:" trgt_points[target, srcs]
+#             replacement_row = get_row(dist_matrix_backup, src_points[srcs])
+#             # dist_matrix_backup .=
+# 			set_row!(dist_matrix_backup, trgt_points[target, srcs], replacement_row)
+#             # ordered_mat_coll[srcs * target] = copy(dist_matrix_backup)
+# 			if do_ordering
+# 				swap_rows!(dist_matrix_backup, trgt_points[target, srcs], mat_size-swapping_iterator)
+# 				swapping_iterator +=1
+# 			end
+#             push!(ordered_mat_coll, copy(dist_matrix_backup))
+#         end
+#     end
+#
+#     return ordered_mat_coll
+# end
+#
+# function get_ordered_set(distance_matrices_collection)
+# 	result = copy(distance_matrices_collection)
+#
+# 	for matrix = 1:size(distance_matrices_collection,1)
+# 		result[matrix] = get_ordered_matrix(distance_matrices_collection[matrix];assing_same_values=true )
+# 	end
+# 	return result
+# end
+#
+# function matrix_analysis(test_data::PlottingData;generation_function=get_geom_matrix)
+# 	mat_size = test_data.mat_size
+# 	dim = test_data.dim
+# 	src_pts_number = test_data.src_pts_number
+# 	trgt_pts_number = test_data.trgt_pts_number
+# 	trgt_steps = 0
+#
+# 	src_points, trgt_points = get_replacing_points(mat_size, src_pts_number, trgt_pts_number)
+# 	distance_matrix = generation_function(mat_size, dim)
+#
+# 	distance_matrices_collection = get_dist_mat_collection(distance_matrix, src_points, trgt_points, trgt_steps)
+# 	ordered_matrices_collection = get_ordered_set(distance_matrices_collection)
+# 	bettis_collection = get_bettis_collection(ordered_matrices_collection)
+#
+# 	plot_data = PlottingData(mat_size, dim, src_pts_number, trgt_pts_number, src_points, trgt_points, trgt_steps)
+#
+# 	plots_set = print_hmap_with_bettis(ordered_matrices_collection,
+# 												bettis_collection, plot_data)
+#
+#
+# 	return distance_matrices_collection, ordered_matrices_collection, bettis_collection, plot_data, plots_set
+# end
