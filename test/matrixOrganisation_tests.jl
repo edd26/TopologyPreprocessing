@@ -100,6 +100,7 @@ using Test
 end
 
 @testset "MatrixOrganization.jl -> add_random_patch" begin
+	# TODO set seed for add_random_path
 	in_vector = [1, 2, 3, 4, 3, 2, 1]
 
 	sqr_matrix0 = [ 1 2 3;
@@ -226,6 +227,7 @@ end
 		@test ind[:,1] == locations1
 		@test size(ind) == (size(locations1)[1]*p_size^2,2)
 		@test sqr_matrix1[indices] == out_m[indices]
+		# The number of
 		@test sum(sqr_matrix1[locations1] .!= out_m[locations1]) == length(locations1)
 		@test sum(sqr_matrix1[locations1] .== out_m[locations1]) == 0
 
