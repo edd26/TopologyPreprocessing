@@ -1021,3 +1021,208 @@ function upsample_vector(input_vector; upsample_factor::Int = 8)
 
     return y_upsampled
 end
+
+
+
+# =========--=======-========-==========-=======-
+# Code from Points substitution:
+
+# Compute series of betti curves
+function get_bettis_collection(ordered_matrices_collection; max_B_dim=3)
+    bettis_collection = Array[]
+
+    for matrix = ordered_matrices_collection
+		@debug "Computing Bettis..."
+		eirene_geom = eirene(matrix,maxdim=max_B_dim,model="vr")
+
+		bettis = reshape_bettis(get_bettis(eirene_geom, max_B_dim))
+		push!(bettis_collection, bettis)
+    end
+
+    return bettis_collection
+end
+
+# Plot series of betti curves with their heatmaps
+function reshape_bettis(bettis)
+	bettis_count = size(bettis,1)
+	output_betti = zeros(size(bettis[1],1), bettis_count)
+
+	for betti = 1:bettis_count
+		output_betti[:,betti] = bettis[betti][:,2]
+	end
+	return output_betti
+end
+
+function get_ord_mat_collection(matrix_collection)
+	mat_size = size(matrix_collection[1],1)
+	ordered_mat_coll = [zeros(Int, mat_size,mat_size) for k=1:length(matrix_collection)]
+
+	size(matrix_collection)
+	for matrix = 1:length(matrix_collection)
+		ordered_mat_coll[matrix] = Int.(get_ordered_matrix(matrix_collection[matrix]))
+	end
+	return ordered_mat_coll
+end
+
+
+
+
+
+function print_hmap_with_bettis(ordered_matrices_collection, bettis_collection,
+														plot_data::PlottingData)
+	num_plots = size(ordered_matrices_collection,1)
+	sources = 1:(plot_data.src_pts_number)
+	targets = 1:(plot_data.trgt_pts_number)
+	plot_set = Any[]
+
+    max_betti = get_max_betti_from_collection(bettis_collection;dim=1)
+
+	index = 1
+	for src = 1:size(sources,1), trgt = 1:size(targets,1)
+        # index = src * trgt
+        ordered_geom_gr = ordered_matrices_collection[index]
+        bettis = bettis_collection[index]
+        title_hmap = "trgt:$(targets[trgt])_src:$(sources[src])_r:$(rank(ordered_geom_gr))"
+        title_bettis = "gr_trg=$(targets[trgt])_src=$(sources[src])_steps=$(size(bettis,1))"
+        push!(plot_set, make_hm_and_betti_plot(ordered_geom_gr, bettis, title_hmap, title_bettis, max_betti))
+		index +=1
+	end
+
+	return plot_set
+end
+
+function make_hm_and_betti_plot(ordered_geom_gr, bettis, title_hmap, title_bettis, max_betti)
+    # @debug "src" src
+    # @debug "trgt" trgt
+    hmap_plot = plot_square_heatmap(ordered_geom_gr, 10,size(ordered_geom_gr,1);plt_title = title_hmap)
+    plot!(yflip = true,)
+
+    bettis_plot_ref = plot(title=title_bettis);
+    max_dim = size(bettis,2)
+    for p = 1:max_dim
+        x_vals = collect(1:size(bettis[:,1],1))./size(bettis[:,1])
+
+        plot!(x_vals, bettis[:,p], label="\\beta_"*string(p));
+        plot!(legend=true, )
+    end
+
+    plot!(ylim=(0,max_betti))
+	plot!(xlim=(0,1))
+    ylabel!("Number of cycles")
+    xlabel!("Steps")
+
+    final_plot = plot(hmap_plot, bettis_plot_ref, layout = 2,
+						top_margin=2mm,
+						left_margin=0mm,
+						bottom_margin=2mm,
+						size=(600,300))
+    display(final_plot)
+    return final_plot
+end
+
+# TODO BUG: substitution does not work- all the plots are the same
+function main_generation1()
+    mat_size = 6
+    dim = 80
+    src_pts_number = 1
+    trgt_pts_number = 2
+    trgt_steps = 0
+
+    src_points, trgt_points =
+    	get_replacing_points(mat_size, src_pts_number, trgt_pts_number)
+
+    matrix_collection =
+    	get_matrix_collection(mat_size, dim, src_points, trgt_points; trgt_step=trgt_steps)
+
+    ordered_matrices_collection = get_ord_mat_collection(matrix_collection)
+
+    bettis_collection = get_bettis_collection(ordered_matrices_collection)
+
+
+    plot_data = PlottingData(mat_size, dim, src_pts_number, trgt_pts_number, src_points, trgt_points, trgt_steps)
+    # plot_data = PlottingData2(mat_size , dim, )
+
+    plotting_data = print_hmap_with_bettis(ordered_matrices_collection,
+													bettis_collection, plot_data)
+end
+
+
+function get_geom_matrix(mat_size, dim)
+	# TODO change the matrix collection shape to be a matrix, not a vector
+    point_cloud = generate_random_point_cloud(mat_size, dim)
+    matrix_collection = generate_geometric_matrix(point_cloud)
+    # matrix_collection = get_ordered_matrix(matrix_collection; assing_same_values=true)
+
+    return matrix_collection
+end
+
+function get_rand_matrix(mat_size, dim)
+    matrix_collection = generate_random_matrix(mat_size)
+    matrix_collection = get_ordered_matrix(matrix_collection; assing_same_values=true)
+
+    return matrix_collection
+end
+
+# TODO Analyse zero point behaviour
+function get_dist_mat_collection(dist_matrix, src_points, trgt_points, trgt_steps; do_ordering=false)
+    dist_matrix_backup = copy(dist_matrix)
+    mat_size = size(dist_matrix,1)
+    src_points_num = size(src_points,1)
+    trgt_points_num = size(trgt_points,1)
+    # ordered_mat_coll = [zeros(Int, mat_size,mat_size) for k=1:(src_points_num*trgt_points_num)]
+    ordered_mat_coll = Array[]
+
+	swapping_iterator = 0
+
+    for srcs = 1:src_points_num
+        # replacement_row = get_row(dist_matrix, src_points[srcs])
+
+        for target = 1:trgt_points_num
+            @debug "src:" src_points[srcs]
+            @debug "trgt:" trgt_points[target, srcs]
+            replacement_row = get_row(dist_matrix_backup, src_points[srcs])
+            # dist_matrix_backup .=
+			set_row!(dist_matrix_backup, trgt_points[target, srcs], replacement_row)
+            # ordered_mat_coll[srcs * target] = copy(dist_matrix_backup)
+			if do_ordering
+				swap_rows!(dist_matrix_backup, trgt_points[target, srcs], mat_size-swapping_iterator)
+				swapping_iterator +=1
+			end
+            push!(ordered_mat_coll, copy(dist_matrix_backup))
+        end
+    end
+
+    return ordered_mat_coll
+end
+
+function get_ordered_set(distance_matrices_collection)
+	result = copy(distance_matrices_collection)
+
+	for matrix = 1:size(distance_matrices_collection,1)
+		result[matrix] = get_ordered_matrix(distance_matrices_collection[matrix];assing_same_values=true )
+	end
+	return result
+end
+
+function matrix_analysis(test_data::PlottingData;generation_function=get_geom_matrix)
+	mat_size = test_data.mat_size
+	dim = test_data.dim
+	src_pts_number = test_data.src_pts_number
+	trgt_pts_number = test_data.trgt_pts_number
+	trgt_steps = 0
+
+	src_points, trgt_points = get_replacing_points(mat_size, src_pts_number, trgt_pts_number)
+	distance_matrix = generation_function(mat_size, dim)
+
+	distance_matrices_collection = get_dist_mat_collection(distance_matrix, src_points, trgt_points, trgt_steps)
+	ordered_matrices_collection = get_ordered_set(distance_matrices_collection)
+	bettis_collection = get_bettis_collection(ordered_matrices_collection)
+
+	plot_data = PlottingData(mat_size, dim, src_pts_number, trgt_pts_number, src_points, trgt_points, trgt_steps)
+
+	plots_set = print_hmap_with_bettis(ordered_matrices_collection,
+												bettis_collection, plot_data)
+
+
+	return distance_matrices_collection, ordered_matrices_collection, bettis_collection, plot_data, plots_set
+end
