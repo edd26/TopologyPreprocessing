@@ -21,7 +21,7 @@ end
 
 
 
-function normalize_to_01(matrix::Array; use_factor=false, norm_factor=256)
+function normalize_to_01(matrix::Array; use_factor = false, norm_factor = 256)
     """
         normalize_to_01(matrix::Array; use_factor=false, norm_factor=256)
 
@@ -46,9 +46,9 @@ function normalize_to_01(matrix::Array; use_factor=false, norm_factor=256)
         if max_val > norm_factor
             @warn "Maximal values exceed \'norm_factor\'."
         end
-        normalized_matrix = normalized_matrix./norm_factor
+        normalized_matrix = normalized_matrix ./ norm_factor
     else
-        normalized_matrix = normalized_matrix./max_val
+        normalized_matrix = normalized_matrix ./ max_val
     end
 
     return normalized_matrix
@@ -56,7 +56,7 @@ end
 
 
 # function symmetrize_image(image)
-function diagonal_symmetrize(image::Matrix; below_over_upper::Bool=false)
+function diagonal_symmetrize(image::Matrix; below_over_upper::Bool = false)
     """
         function diagonal_symmetrize(image::Matrix; below_over_upper::Bool=false)
 
@@ -69,7 +69,7 @@ function diagonal_symmetrize(image::Matrix; below_over_upper::Bool=false)
     is number of columns.
     """
     w, h = size(image)
-    mat_size = findmin([w,h])[1]
+    mat_size = findmin([w, h])[1]
 
     img = copy(image[1:mat_size, 1:mat_size])
 
@@ -77,30 +77,30 @@ function diagonal_symmetrize(image::Matrix; below_over_upper::Bool=false)
     matrix_indices = CartesianIndices((1:mat_size, 1:mat_size))
     # Filter out indices below diagonal
     if below_over_upper
-      matrix_indices = findall(x->x[1]>x[2], matrix_indices)
+        matrix_indices = findall(x -> x[1] > x[2], matrix_indices)
     else
-        matrix_indices = findall(x->x[2]>x[1], matrix_indices)
+        matrix_indices = findall(x -> x[2] > x[1], matrix_indices)
     end
 
 
     # how many elements are above diagonal
-    repetition_number = Int(ceil((mat_size * (mat_size-1))/2))
+    repetition_number = Int(ceil((mat_size * (mat_size - 1)) / 2))
 
     # Substitute elements
-    for k=1:repetition_number
-      # n_pos = matrix_indices[k]
-      mat_ind = matrix_indices[k]
-      # ordered_matrix[mat_ind] = k
-      img[mat_ind[2], mat_ind[1]] = img[mat_ind]
+    for k = 1:repetition_number
+        # n_pos = matrix_indices[k]
+        mat_ind = matrix_indices[k]
+        # ordered_matrix[mat_ind] = k
+        img[mat_ind[2], mat_ind[1]] = img[mat_ind]
     end
 
     try
-      checksquare(img)
+        checksquare(img)
     catch err
-      if isa(err, DimensionMismatch)
-          @error "Resulting matrix is not a square matrix"
-          throw(err)
-      end
+        if isa(err, DimensionMismatch)
+            @error "Resulting matrix is not a square matrix"
+            throw(err)
+        end
     end
     # issymmetric(Float64.(img))
     return img
@@ -112,11 +112,11 @@ end
 
 
 function get_ordered_matrix(in_matrix::Matrix;
-                                assign_same_values::Bool=false,
-                                force_symmetry::Bool=false,
-                                small_dist_grouping::Bool=false,
-                                min_dist::Number=1e-16,
-                                total_dist_groups::Int=0)
+                            assign_same_values::Bool = false,
+                            force_symmetry::Bool = false,
+                            small_dist_grouping::Bool = false,
+                            min_dist::Number = 1e-16,
+                            total_dist_groups::Int = 0)
     """
         get_ordered_matrix(in_matrix::Matrix;
                                         assign_same_values::Bool=false,
@@ -186,10 +186,11 @@ function get_ordered_matrix(in_matrix::Matrix;
 
     # how many elements are above diagonal
     if issymmetric(in_matrix) || force_symmetry
-        matrix_indices = generate_indices(mat_size, symmetry_order=true, include_diagonal=false)
+        matrix_indices =
+            generate_indices(mat_size, symmetry_order = true, include_diagonal = false)
         do_symmetry = true
     else
-        matrix_indices = generate_indices(mat_size, symmetry_order=false)
+        matrix_indices = generate_indices(mat_size, symmetry_order = false)
         do_symmetry = false
     end
     total_elements = length(matrix_indices)
@@ -206,7 +207,7 @@ function get_ordered_matrix(in_matrix::Matrix;
         next_sorted_pos = index_sorting[k]
         mat_ind = matrix_indices[next_sorted_pos]
 
-        if assign_same_values && k!=1
+        if assign_same_values && k != 1
             prev_sorted_pos = index_sorting[k-1]
             prev_mat_ind = matrix_indices[prev_sorted_pos]
 
@@ -215,11 +216,11 @@ function get_ordered_matrix(in_matrix::Matrix;
             cond3 = abs(in_matrix[prev_mat_ind] - in_matrix[mat_ind]) < min_dist
 
             if cond1 || (cond2 && cond3)
-                ordering_number-=1
+                ordering_number -= 1
             end
         end
-        set_values!(ord_mat, mat_ind, ordering_number; do_symmetry=do_symmetry)
-        ordering_number+=1
+        set_values!(ord_mat, mat_ind, ordering_number; do_symmetry = do_symmetry)
+        ordering_number += 1
         # else
         #     set_values!(ord_mat, mat_ind, ordering_number; do_symmetry=do_symmetry)
         #     ordering_number+=1
@@ -231,7 +232,7 @@ end
 
 
 # TODO this one has to be specified for 3 dim matrix
-function get_ordered_matrix(input_array::Array{Any, 3}; do_slices = true, dims = 0)
+function get_ordered_matrix(input_array::Array{Any,3}; do_slices = true, dims = 0)
     arr_size = size(input_array)
     out_arr = zeros(Int, arr_size)
 
@@ -239,19 +240,19 @@ function get_ordered_matrix(input_array::Array{Any, 3}; do_slices = true, dims =
         # param check
         if dims > length(arr_size)
             throw(DomainError("Given dimension is greater than total size of array."))
-        elseif dims>0
+        elseif dims > 0
             throw(DomainError("Given dimension must be positive value."))
-        elseif dims<=3
+        elseif dims <= 3
             throw(DomainError("Given dimension must be lower than 3."))
         end
 
-        for dim in 1:arr_size[dims]
+        for dim = 1:arr_size[dims]
             if dims == 1
-                out_arr[dim,:,:] = get_ordered_matrix(input_array[dim,:,:])
+                out_arr[dim, :, :] = get_ordered_matrix(input_array[dim, :, :])
             elseif dims == 2
-                out_arr[:,dim,:] = get_ordered_matrix(input_array[:,dim,:])
+                out_arr[:, dim, :] = get_ordered_matrix(input_array[:, dim, :])
             elseif dims == 3
-                out_arr[:,:,dim] = get_ordered_matrix(input_array[:,:,dim])
+                out_arr[:, :, dim] = get_ordered_matrix(input_array[:, :, dim])
             end
         end
     else
@@ -268,8 +269,10 @@ function get_ordered_matrix(input_array::Array)
     all_ind_collected = collect(reshape(generate_indices(arr_size), (length(input_array))))
 
     # Sort indices vector according to inpu array
-    index_sorting = sort!([1:total_elements;],
-                        by=i->(input_array[all_ind_collected][i],all_ind_collected[i]))
+    index_sorting = sort!(
+        [1:total_elements;],
+        by = i -> (input_array[all_ind_collected][i], all_ind_collected[i]),
+    )
 
     for k = 1:total_elements
         target = index_sorting[k]
@@ -295,18 +298,18 @@ function group_distances(input_matrix::Array, total_dist_groups::Int)
     normed_matrix = normalize_to_01(input_matrix)
     target_matrix = copy(normed_matrix)
 
-    h,w = size(input_matrix)
+    h, w = size(input_matrix)
 
-    if h*w < total_dist_groups
+    if h * w < total_dist_groups
         throw(DomainError("Total number of groups exceed total number of entries in input matrix"))
     end
 
-    total_borders = total_dist_groups+1
+    total_borders = total_dist_groups + 1
 
-    range_val = collect(range(0, 1, length=total_borders))
+    range_val = collect(range(0, 1, length = total_borders))
 
     for k = 2:total_borders
-        indices = findall(x->x>=range_val[k-1] && x<=range_val[k], normed_matrix)
+        indices = findall(x -> x >= range_val[k-1] && x <= range_val[k], normed_matrix)
         target_matrix[indices] .= range_val[k]
     end
     unique(target_matrix)
@@ -318,7 +321,9 @@ end
 
 
 
-function generate_indices(matrix_size::Tuple; symmetry_order::Bool=false, include_diagonal::Bool=true)
+function generate_indices(matrix_size::Tuple;
+                            symmetry_order::Bool = false,
+                            include_diagonal::Bool = true)
     """
         generate_indices(matrix_size::Tuple; symmetry_order::Bool=false, include_diagonal::Bool=true)
 
@@ -334,27 +339,33 @@ function generate_indices(matrix_size::Tuple; symmetry_order::Bool=false, includ
     matrix_indices = CartesianIndices(matrix_size)
     # Filter out indices below diagonal
     if symmetry_order
-        matrix_indices = findall(x->x[1]<=x[2], matrix_indices)
+        matrix_indices = findall(x -> x[1] <= x[2], matrix_indices)
     else
-        matrix_indices = findall(x->true, matrix_indices)
+        matrix_indices = findall(x -> true, matrix_indices)
     end
 
     if !include_diagonal
-        filter!(x->x[1]!=x[2],matrix_indices)
+        filter!(x -> x[1] != x[2], matrix_indices)
     end
 
     return matrix_indices
 end
 
 
-function generate_indices(matrix_size::Int; symmetry_order::Bool=false, include_diagonal::Bool=true)
+function generate_indices(matrix_size::Int;
+                            symmetry_order::Bool = false,
+                            include_diagonal::Bool = true)
     """
         generate_indices(matrix_size::Int; symmetry_order::Bool=false, include_diagonal::Bool=true)
 
     Generate indices for a matrix of given dimensions. 'generate_indices' is a
     series of integer arguments corresponding to the lengths in each dimension.
     """
-    return generate_indices((matrix_size,matrix_size); symmetry_order=symmetry_order, include_diagonal=include_diagonal)
+    return generate_indices(
+        (matrix_size, matrix_size);
+        symmetry_order = symmetry_order,
+        include_diagonal = include_diagonal,
+    )
 end
 
 
@@ -381,16 +392,26 @@ function sort_index_by_values(values_matrix::T, index_vector) where {T<:VecOrMat
     and returns a Vector of intigers which is an list of ordering of
     'sorted index_vector'.
     """
-    if !isa(index_vector,Vector)
-        throw(TypeError(:sort_index_by_values, "\'index_vector\' must be a vector, otherwise an ordering list can no be created!", Vector, typeof(index_vector)))
+    if !isa(index_vector, Vector)
+        throw(TypeError(
+            :sort_index_by_values,
+            "\'index_vector\' must be a vector, otherwise an ordering list can no be created!",
+            Vector,
+            typeof(index_vector),
+        ))
     end
     total_elements = length(index_vector)
-    return sort!([1:total_elements;],
-                    by=i->(values_matrix[index_vector][i],index_vector[i]))
+    return sort!(
+        [1:total_elements;],
+        by = i -> (values_matrix[index_vector][i], index_vector[i]),
+    )
 end
 
 
-function set_values!(input_matrix::Matrix, position::CartesianIndex, target_value::Number; do_symmetry::Bool=false)
+function set_values!(input_matrix::Matrix,
+                        position::CartesianIndex,
+                        target_value::Number;
+                        do_symmetry::Bool = false)
     """
         set_values!(input_matrix::Matrix, position::CartesianIndex, target_value::Number; do_symmetry=false)
 
@@ -400,7 +421,7 @@ function set_values!(input_matrix::Matrix, position::CartesianIndex, target_valu
     """
     input_matrix[position[1], position[2]] = target_value
     if do_symmetry
-         input_matrix[position[2], position[1]] = target_value
+        input_matrix[position[2], position[1]] = target_value
     end
     return input_matrix
 end
@@ -424,7 +445,7 @@ function get_high_dim_ordered_matrix(input_matrix)
     ordered_matrix_3D = zeros(Int, matrix_size)
 
     for slice = 1:matrix_size[1]
-        ordered_matrix_3D[slice,:,:] = get_ordered_matrix(input_matrix[slice, :, :])
+        ordered_matrix_3D[slice, :, :] = get_ordered_matrix(input_matrix[slice, :, :])
     end
     return ordered_matrix_3D
 end
@@ -450,21 +471,21 @@ function reduce_arrs_to_min_len(arrs::Array)
     @debug "Argument specific"
     new_arr = copy(arrs)
 
-    simulation = size(new_arr,1)
+    simulation = size(new_arr, 1)
     min_size = Inf
-    for m=1:simulation
+    for m = 1:simulation
         @debug "Simulation number" m
-        current_size = size(new_arr[m],1)
+        current_size = size(new_arr[m], 1)
         @debug "Current size: " current_size
-        if convert(Float64,current_size) < min_size
+        if convert(Float64, current_size) < min_size
             min_size = current_size
             @debug "min size changed to: " min_size
         end
     end
     # min_size = Int.(min_size)
     @debug "Concatenating"
-    for m=1:simulation
-        new_arr[m] = new_arr[m][1:min_size,:]
+    for m = 1:simulation
+        new_arr[m] = new_arr[m][1:min_size, :]
     end
     min_size = Inf
     return new_arr
@@ -481,22 +502,22 @@ function increase_arrs_to_max_len(arrs)
     """
     new_arr = copy(arrs)
 
-    simulation = size(new_arr,1)
+    simulation = size(new_arr, 1)
     max_size = 0
-    for m=1:simulation
+    for m = 1:simulation
         @debug "Simulation number" m
-        current_size = size(new_arr[m],1)
+        current_size = size(new_arr[m], 1)
         @debug "Current size: " current_size
-        if convert(Float64,current_size) > max_size
+        if convert(Float64, current_size) > max_size
             max_size = current_size
             @debug "min size changed to: " max_size
         end
     end
     # max_size = Int.(max_size)
     @debug "Concatenating"
-    for m=1:simulation
+    for m = 1:simulation
         correct_len_arr = zeros(Int, max_size, 3)
-        correct_len_arr[1:size(arrs[m],1),:] = new_arr[m][:,:]
+        correct_len_arr[1:size(arrs[m], 1), :] = new_arr[m][:, :]
         new_arr[m] = correct_len_arr
     end
     # min_size = Inf
