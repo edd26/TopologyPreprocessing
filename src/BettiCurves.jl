@@ -64,6 +64,19 @@ function normalise_bettis(bettis::Array)
 end
 
 # ===
+# TODO: untested
+function vectorize_bettis(betti_curves::Matrix{Float64})
+    first_betti = 1
+    last_betti = size(betti_curves,1)
+    return hcat([all_bettis[k][:, 2] for k = first_betti:last_betti]...)
+end
+
+# ===
+
+@deprecate vectorize_bettis(eirene_results::Dict, maxdim::Integer, mindim::Integer) vectorize_bettis(betti_curves::Matrix{Float64})
+
+
+# ===
 function get_vectorized_bettis(results_eirene::Dict, max_dim::Integer; min_dim::Int = 1)
     """
     	get_vectorized_bettis(results_eirene::Dict, max_dim::Integer; min_dim::Int=1)
@@ -75,12 +88,10 @@ function get_vectorized_bettis(results_eirene::Dict, max_dim::Integer; min_dim::
     """
 
     all_bettis = get_bettis(results_eirene, max_dim, min_dim = min_dim)
-    bettis_vector = hcat([all_bettis[k][:, 2] for k = min_dim:max_dim]...)
+    bettis_vector = vectorize_bettis(all_bettis[k])
 
     return bettis_vector
 end
-
-@deprecate vectorize_bettis(eirene_results::Dict, maxdim::Integer, mindim::Integer) get_vectorized_bettis(results_eirene, max_dim; min_dim=1)
 
 # ==
 function plot_bettis(bettis::Vector;
@@ -833,8 +844,70 @@ function upsample_vector(input_vector; upsample_factor::Int = 8)
 
     return y_upsampled
 end
+# =========--=======-========-==========-=======-
+# From bettis areas
+# Area under Betti curve functions
+function get_area_under_betti_curve(betti_curves::Matrix{Float64})
+    """
+        get_area_under_betti_curve(C, min_dim, max_dim)
+
+    Computes the area under Betti curves stored in 'betti_curves', where each row is
+    a Betti curve and each column is a value.
+    """
+    bettis_vector = hcat([all_bettis[k][:,2] for k=min_dim:max_dim]...)
+    # @info sum(bettis_vector, dims=1)
 
 
+    total_steps = size(bettis_vector,1)
+
+    bettis_area = sum(bettis_vector, dims=1) ./ total_steps
+    # @info bettis_area
+    return bettis_area
+end
+
+function get_area_under_betti_curve(C, min_dim, max_dim)
+    """
+        get_area_under_betti_curve(C, min_dim, max_dim)
+
+    Computes the Betti curves and returns their area under curve.
+    """
+    all_bettis = get_bettis(C,max_dim, min_dim=min_dim)
+    bettis_vector = hcat([all_bettis[k][:,2] for k=min_dim:max_dim]...)
+    # @info sum(bettis_vector, dims=1)
+
+
+    total_steps = size(bettis_vector,1)
+
+    bettis_area = sum(bettis_vector, dims=1) ./ total_steps
+    # @info bettis_area
+    return bettis_area
+end
+
+function get_all_bettis_areas(dataset; min_dim=1, max_dim=3, return_matrix=true)
+    areas_vector = Array[]
+    for data = dataset
+        @info "Im here!"
+        C = eirene(data, maxdim=max_dim,)
+        push!(areas_vector, get_area_under_betti_curve(C, min_dim, max_dim))
+    end
+    if return_matrix
+        return vcat([areas_vector[k] for k=1:10]...)
+    else
+        return areas_vector
+    end
+end
+
+function get_area_boxes(areas_matrix, min_dim, max_dim)
+    bplot = StatsPlots.boxplot()
+
+    data_colors = get_bettis_color_palete()
+
+    for (index, value) in enumerate(min_dim:max_dim)
+        StatsPlots.boxplot!(bplot, areas_matrix[:,index], labels="β$(value)", color=data_colors[value])
+    end
+
+    return bplot
+end
 
 # =========--=======-========-==========-=======-
 # Code from Points substitution:
