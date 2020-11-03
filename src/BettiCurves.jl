@@ -65,15 +65,15 @@ end
 
 # ===
 # TODO: untested
-function vectorize_bettis(betti_curves::Matrix{Float64})
+function vectorize_bettis(betti_curves::Array{Array{Float64,2}})
     """
         vectorize_bettis(betti_curves::Matrix{Float64})
 
-    Reshapes the 'betti_curves' from Matrix{Float64} into
+    Reshapes the 'betti_curves' from Array of Arrays into  Matrix{Float64}.
     """
     first_betti = 1
     last_betti = size(betti_curves,1)
-    return hcat([all_bettis[k][:, 2] for k = first_betti:last_betti]...)
+    return hcat([betti_curves[k][:, 2] for k = first_betti:last_betti]...)
 end
 
 # ===
@@ -93,7 +93,7 @@ function get_vectorized_bettis(results_eirene::Dict, max_dim::Integer; min_dim::
     """
 
     all_bettis = get_bettis(results_eirene, max_dim, min_dim = min_dim)
-    bettis_vector = vectorize_bettis(all_bettis[k])
+    bettis_vector = vectorize_bettis(all_bettis)
 
     return bettis_vector
 end
