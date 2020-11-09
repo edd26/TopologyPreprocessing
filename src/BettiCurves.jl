@@ -5,8 +5,9 @@ using Plots
 using PlotThemes
 using PlotUtils
 using Dierckx
+using StatsPlots
 
-# ====
+#%%
 function get_bettis(results_eirene::Dict, max_dim::Integer; min_dim::Int = 1)
     """
         get_bettis(results_eirene::Dict, max_dim::Integer; min_dim::Int=1)
@@ -25,7 +26,8 @@ function get_bettis(results_eirene::Dict, max_dim::Integer; min_dim::Int = 1)
     return bettis
 end
 
-# ====
+
+#%%
 function normalise_bettis(bettis::Vector)
     """
     	normalise_bettis(bettis::Vector)
@@ -52,6 +54,7 @@ function normalise_bettis(bettis::Vector)
 
 end
 
+#%%
 function normalise_bettis(bettis::Array)
     @debug "Array version"
     norm_bettis = copy(bettis)
@@ -65,6 +68,7 @@ end
 
 # ===
 # TODO: untested
+#%%
 function vectorize_bettis(betti_curves::Array{Array{Float64,2}})
     """
         vectorize_bettis(betti_curves::Matrix{Float64})
@@ -82,6 +86,7 @@ end
 
 
 # ===
+#%%
 function get_vectorized_bettis(results_eirene::Dict, max_dim::Integer; min_dim::Int = 1)
     """
     	get_vectorized_bettis(results_eirene::Dict, max_dim::Integer; min_dim::Int=1)
@@ -99,6 +104,7 @@ function get_vectorized_bettis(results_eirene::Dict, max_dim::Integer; min_dim::
 end
 
 # ==
+#%%
 function plot_bettis(bettis::Vector;
                         min_dim::Integer = 1,
                         betti_labels::Bool = true,
@@ -171,6 +177,7 @@ function plot_bettis(bettis::Vector;
     return plot_ref
 end
 
+#%%
 function printready_plot_bettis(kwargs)
     """
     	printready_plot_bettis(kwargs)
@@ -183,6 +190,7 @@ function printready_plot_bettis(kwargs)
 end
 
 
+#%%
 function get_bettis_color_palete(; min_dim = 1, use_set::Integer = 1)
     """
     	function get_bettis_color_palete()
@@ -250,9 +258,10 @@ end
 # end
 
 
-# ====
 
-# ====
+
+
+#%%
 function plot_bettis_collection(bettis_collection,
                                 bett_num,
                                 max_rank;
@@ -308,6 +317,7 @@ function plot_bettis_collection(bettis_collection,
     return plt_reference
 end
 
+#%%
 function get_max_betti_from_collection(bettis_collection; dim = 1)
     max_betti = 0
     for betti in bettis_collection
@@ -321,6 +331,7 @@ function get_max_betti_from_collection(bettis_collection; dim = 1)
 end
 
 
+#%%
 function plot_and_save_bettis(bettis,
                                 plot_title::String,
                                 results_path::String;
@@ -386,6 +397,7 @@ end
 # Function taken from: https://github.com/alexyarosh/hyperbolic
 # """
 # To be deleted
+#%%
 function bettis_eirene(matr,
                         maxdim;
                         mintime = -Inf,
@@ -427,6 +439,7 @@ function bettis_eirene(matr,
     return betts
 end
 
+#%%
 function get_bettis_from_image(img_name,
                                 plot_params;
                                 file_path = "",
@@ -511,6 +524,7 @@ function get_bettis_from_image(img_name,
 end
 
 
+#%%
 function multiscale_matrix_testing(sample_space_dims = 3,
                                     maxsim = 5,
                                     min_B_dim = 1,
@@ -712,6 +726,7 @@ end
 
 @deprecate plot_and_save_bettis2(eirene_results, plot_title::String, results_path::String; file_name = "", extension = ".png", data_size::String = "", do_save = true, extend_title = true, do_normalise = true, min_dim = 0, max_dim = 3, legend_on = true) plot_and_save_bettis(bettis, plot_title::String, results_path::String; file_name = "", extension = ".png", do_save = true, do_normalise = true, min_dim = 0, max_dim = 3, legend_on = true, kwargs...)
 
+#%%
 function get_and_plot_bettis(eirene_results;
                                 max_dim = 3,
                                 min_dim = 1,
@@ -727,6 +742,7 @@ function get_and_plot_bettis(eirene_results;
 end
 
 
+#%%
 function lower_ordmat_resolution(ordered_matrix::Array, total_bins::Int)
     """
     	lower_ordmat_resolution(ordered_matrix::Array, total_bins::Int)
@@ -754,6 +770,7 @@ function lower_ordmat_resolution(ordered_matrix::Array, total_bins::Int)
 end
 
 
+#%%
 function average_bettis(bettis_matrix::Matrix; up_factor = 8)
     """
     	average_bettis(bettis_matrix; up_factor=8)
@@ -806,6 +823,7 @@ function average_bettis(bettis_matrix::Matrix; up_factor = 8)
     return avg_bettis, std_bettis
 end
 
+#%%
 function upsample_vector2(input_vector, total_upsamples)
     total_orig_samples = size(input_vector, 1) - 1
 
@@ -825,6 +843,7 @@ end
 
 
 
+#%%
 function upsample_vector(input_vector; upsample_factor::Int = 8)
     """
     	upsample_vector(input_vector; upsample_factor::Int=8)
@@ -854,7 +873,8 @@ end
 # =========--=======-========-==========-=======-
 # From bettis areas
 # Area under Betti curve functions
-function get_area_under_betti_curve(betti_curves::Matrix{Float64};do_normalised::Bool=false)
+#%%
+function get_area_under_betti_curve(betti_curves::Union{Matrix{Float64}, Array{Array{Float64,2}}};do_normalised::Bool=false)
     """
         get_area_under_betti_curve(C, min_dim, max_dim)
 
@@ -891,6 +911,10 @@ end
 #     return bettis_area
 # end
 
+
+
+
+#%%
 function get_dataset_bettis_areas(dataset; min_dim::Integer=1, max_dim::Integer=3, return_matrix::Bool=true)
     """
         get_dataset_bettis_areas(dataset; min_dim::Integer=1, max_dim::Integer=3, return_matrix::Bool=true)
@@ -912,6 +936,47 @@ function get_dataset_bettis_areas(dataset; min_dim::Integer=1, max_dim::Integer=
     end
 end
 
+struct TopologyData
+    min_dim::Integer
+    max_dim::Integer
+
+    do_normalise::Bool=true
+
+    betti_curves
+    normed_bettis
+    betti_areas::Matrix{Int}
+
+    # Constructor for input data
+    function TopologyData(my_matrix::Matrix, max_dim::Int; min_dim::Int, do_normalise::Bool=true)
+        min_dim = min_dim
+        max_dim = max_dim
+
+        @info "Computing topology for maxdim =" max_dim
+        C = eirene(my_matrix, maxdim=max_dim)
+        betti_curves = get_bettis(C, max_dim, min_dim=min_dim)
+        normed_bettis = normalise_bettis(betti_curves)
+        betti_areas = get_area_under_betti_curve(betti_curves; do_normalised=do_normalise)
+    end
+end
+
+#%%
+function get_dataset_topology(dataset;
+                              min_dim::Integer=1,
+                              max_dim::Integer=3,
+                              get_curves::Bool=true,
+                              get_areas::Bool=true,
+                              get_persistence_diagrams::Bool=true,
+                              do_normalise::Bool=true)
+    topology_set = TopologyData[]
+    for some_matrix in dataset
+        resulting_topology = TopologyData(some_matrix, max_dim, min_dim=min_dim, do_normalise=do_normalise)
+        push!(topology_set, resulting_topology)
+    end
+    return topology_set
+end
+
+
+#%%
 function get_area_boxes(areas_matrix, min_dim::Integer, max_dim::Integer)
     """
         get_area_boxes(areas_matrix, min_dim::Integer, max_dim::Integer)
