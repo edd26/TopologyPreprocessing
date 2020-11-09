@@ -246,4 +246,26 @@ end
           end
       end
     end
+
+    #==
+    checks if get vectorized bettis has same values as get_bettis
+    ==#
+    for min_B_dim = [1,2,3,4,5]
+        eirene_results1 = eirene(sample_distance_matrix1, model="vr", maxdim = max_B_dim)
+        eirene_results2 = eirene(sample_distance_matrix2, model="vr", maxdim = max_B_dim)
+
+        bettis_collection = [get_bettis(eirene_results1, max_B_dim),
+                              get_bettis(eirene_results2, max_B_dim)]
+      vec_bett_collection = [get_vectorized_bettis(eirene_results1, max_B_dim),
+                                get_vectorized_bettis(eirene_results2, max_B_dim)]
+
+          for index = 1:length(bettis_collection)
+              bettis_col = bettis_collection[index]
+              vec_bettis_col = vec_bett_collection[index]
+
+              for k in 1:total_vecs
+                @test vec_bettis_col[:,k] == bettis_col[k][:,2]
+            end
+        end
+    end
 end
