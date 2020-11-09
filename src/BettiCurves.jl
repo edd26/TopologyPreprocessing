@@ -84,7 +84,8 @@ function vectorize_bettis(betti_curves::Vector{Array{Float64,2}})
         Reshapes the 'betti_curves' from type Array{Matrices{Float64,2}} into
         Matrix{Float64}.
 
-        The resulting matrix size is (n, k), where 'n' is :w
+        The resulting matrix size is (n, k), where 'n' is equal to the number of
+        rows in each matrix, 'k' is equal to the number of matrices.
 
     """
     first_betti = 1
