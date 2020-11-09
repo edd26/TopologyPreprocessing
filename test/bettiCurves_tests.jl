@@ -104,7 +104,6 @@ using Eirene
             end
         end
     end
-
 end
 
 
@@ -209,17 +208,42 @@ end
                                   5  6  7  8  0  21 27 24;
                                   9  10 11 12 21 0  22 28;
                                   13 14 15 16 27 22 0  23;
-                                  17 18 19 20 24 28 23 0 ]
-
+                                  17 18 19 20 24 28 23 0 ],
+          sample_distance_matrix2 = [1  1  41 4  5  9  13 17 25 33;
+                                     1  1  2  42 6  10 14 18 26 34;
+                                     41 2  1  3  7  11 15 19 27 35;
+                                     4  42 3  1  8  12 16 20 28 36;
+                                     5  6  7  8  1  21 43 24 29 37;
+                                     9  10 11 12 21 1  22 44 30 38;
+                                     13 14 15 16 43 22 1  23 31 39;
+                                     17 18 19 20 24 44 23 1  32 40;
+                                     25 26 27 28 29 30 31 32 1  45;
+                                     33 34 35 36 37 38 39 40 45 1;],
           max_B_dim = 5,
           min_B_dim = 1
+      #==
+      checks if the size is anyhow changed during proces;
+      checks is the values Array{Matrix} and reshaped matrix are the same
 
-      eirene_results = eirene(sample_distance_matrix1, model="vr", maxdim = max_B_dim)
-      bettis_collection = get_bettis(eirene_results, max_B_dim)
+      ==#
+      for min_B_dim = [1,2,3,4,5]
+          eirene_results1 = eirene(sample_distance_matrix1, model="vr", maxdim = max_B_dim)
+          eirene_results2 = eirene(sample_distance_matrix2, model="vr", maxdim = max_B_dim)
 
-      get_max_betti_from_collection(bettis_collection; dim = 1)
+          bettis_collection = [get_bettis(eirene_results1, max_B_dim),
+                                get_bettis(eirene_results2, max_B_dim)]
 
+            for bettis_col in bettis_collection
+              total_vecs = length(bettis_col)
+              vec_len, vec_width = size(bettis_col[1])
+
+              reshaped_betti = TopologyPreprocessing.vectorize_bettis(bettis_col)
+              @test vec_len .== size(reshaped_betti,1)
+              @test total_vecs .== size(reshaped_betti,2)
+              for k in 1:total_vecs
+                  @test reshaped_betti[:,k] == bettis_col[k][:,2]
+              end
+          end
+      end
     end
-
-
 end
