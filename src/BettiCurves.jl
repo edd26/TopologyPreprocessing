@@ -12,8 +12,17 @@ function get_bettis(results_eirene::Dict, max_dim::Integer; min_dim::Int = 1)
     """
         get_bettis(results_eirene::Dict, max_dim::Integer; min_dim::Int=1)
 
-    Uses betticurve function to generate Betti curves up to `max_dim` diemsion from
-    the `results_eirene` dictionary.
+    Calls Eirene.betticurve for 'dim' in range from `min_dim` up to 'max_dim' and
+    stack the resulting Arrays into a vector.
+
+    The returned value is a Vector of Arrays{Float64,2}. Each array is of size
+    (n,2), where n is the maximal number of steps taken to compute Betti curve of dimensions
+    ranging form `min_dim` to `max_dim`. First column of each array contains numbered steps.
+    Second column are the Betti curve values for corresponding step.
+
+    Arrays in returned vector correspond to Betti curve dimensions form range
+    `min_dim` up to 'max_dim'.
+
     """
     bettis = Matrix{Float64}[]
     for d = min_dim:max_dim
@@ -66,24 +75,25 @@ function normalise_bettis(bettis::Array)
     return norm_bettis
 end
 
-# ===
-# TODO: untested
 #%%
-function vectorize_bettis(betti_curves::Array{Array{Float64,2}})
+# function vectorize_bettis(betti_curves::Array{Matrix{Float64,2}})
+function vectorize_bettis(betti_curves::Vector{Array{Float64,2}})
     """
         vectorize_bettis(betti_curves::Matrix{Float64})
 
-    Reshapes the 'betti_curves' from Array of Arrays into  Matrix{Float64}.
+        Reshapes the 'betti_curves' from type Array{Matrices{Float64,2}} into
+        Matrix{Float64}.
+
+        The resulting matrix size is (n, k), where 'n' is :w
+
     """
     first_betti = 1
     last_betti = size(betti_curves,1)
     return hcat([betti_curves[k][:, 2] for k = first_betti:last_betti]...)
 end
 
-# ===
-
-@deprecate vectorize_bettis(eirene_results::Dict, maxdim::Integer, mindim::Integer) vectorize_bettis(betti_curves::Matrix{Float64})
-
+#%%
+@deprecate vectorize_bettis(eirene_results::Dict, maxdim::Integer, mindim::Integer) vectorize_bettis(betti_curves)
 
 # ===
 #%%
