@@ -198,3 +198,28 @@ end
 
     end
 end
+
+
+@testset "BettiCurves.jl -> area under betti curves" begin
+
+    let sample_distance_matrix1 = [0  1  25 4  5  9  13 17;
+                                  1  0  2  26 6  10 14 18;
+                                  25 2  0  3  7  11 15 19;
+                                  4  26 3  0  8  12 16 20;
+                                  5  6  7  8  0  21 27 24;
+                                  9  10 11 12 21 0  22 28;
+                                  13 14 15 16 27 22 0  23;
+                                  17 18 19 20 24 28 23 0 ]
+
+          max_B_dim = 5,
+          min_B_dim = 1
+
+      eirene_results = eirene(sample_distance_matrix1, model="vr", maxdim = max_B_dim)
+      bettis_collection = get_bettis(eirene_results, max_B_dim)
+
+      get_max_betti_from_collection(bettis_collection; dim = 1)
+
+    end
+
+
+end
