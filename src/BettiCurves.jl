@@ -936,28 +936,28 @@ function get_dataset_bettis_areas(dataset; min_dim::Integer=1, max_dim::Integer=
     end
 end
 
-struct TopologyData
-    min_dim::Integer
-    max_dim::Integer
-
-    do_normalise::Bool=true
-
-    betti_curves
-    normed_bettis
-    betti_areas::Matrix{Int}
-
-    # Constructor for input data
-    function TopologyData(my_matrix::Matrix, max_dim::Int; min_dim::Int, do_normalise::Bool=true)
-        min_dim = min_dim
-        max_dim = max_dim
-
-        @info "Computing topology for maxdim =" max_dim
-        C = eirene(my_matrix, maxdim=max_dim)
-        betti_curves = get_bettis(C, max_dim, min_dim=min_dim)
-        normed_bettis = normalise_bettis(betti_curves)
-        betti_areas = get_area_under_betti_curve(betti_curves; do_normalised=do_normalise)
-    end
-end
+# struct TopologyData
+#     min_dim::Integer
+#     max_dim::Integer
+#
+#     do_normalise::Bool=true
+#
+#     betti_curves
+#     normed_bettis
+#     betti_areas::Matrix{Int}
+#
+#     # Constructor for input data
+#     function TopologyData(my_matrix::Matrix, max_dim::Int; min_dim::Int, do_normalise::Bool=true)
+#         min_dim = min_dim
+#         max_dim = max_dim
+#
+#         @info "Computing topology for maxdim =" max_dim
+#         C = eirene(my_matrix, maxdim=max_dim)
+#         betti_curves = get_bettis(C, max_dim, min_dim=min_dim)
+#         normed_bettis = normalise_bettis(betti_curves)
+#         betti_areas = get_area_under_betti_curve(betti_curves; do_normalised=do_normalise)
+#     end
+# end
 
 #%%
 function get_dataset_topology(dataset;
