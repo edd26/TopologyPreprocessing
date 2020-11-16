@@ -2,6 +2,7 @@ using TopologyPreprocessing
 using Test
 using Eirene
 
+#%%
 @testset "BettiCurves.jl" begin
     sample_distance_matrix1 = [0  1  25 4  5  9  13 17;
                                   1  0  2  26 6  10 14 18;
