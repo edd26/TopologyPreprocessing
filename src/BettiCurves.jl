@@ -409,7 +409,7 @@ end
 # """
 #%%
 
-@deprecate bettis_eirene(matr, maxdim; mintime = -Inf, maxtime = Inf, numofsteps = Inf, mindim = 1) get_bettis(results_eirene::Dict, max_dim::Integer; min_dim::Int = 1)
+@deprecate bettis_eirene(matr, maxdim; mintime = -Inf, maxtime = Inf, numofsteps = Inf, mindim = 1) get_bettis(results_eirene, max_dim; min_dim = 1)
 
 #%%
 function get_bettis_from_image(img_name,
@@ -655,7 +655,12 @@ function get_area_under_betti_curve(betti_curves::Union{Matrix{Float64}, Array{A
     Computes the area under Betti curves stored in 'betti_curves', where each row is
     a Betti curve and each column is a value.
     """
-    bettis_vector = vectorize_bettis(betti_curves)
+    #TODO check this part
+    if size(betti_curves,2) < 2
+        bettis_vector = vectorize_bettis(betti_curves)
+    else
+        bettis_vector = betti_curves
+    end
     # @info sum(bettis_vector, dims=1)
     bettis_area = sum(bettis_vector, dims=1)
 
@@ -766,6 +771,20 @@ function get_area_boxes(areas_matrix, min_dim::Integer, max_dim::Integer)
     end
 
     return bplot
+end
+
+function get_bettis_collection_from_matrices(ordered_matrices_collection; max_dim::Int=3, min_dim::Int=1)
+    bettis_collection = Array[]
+
+    for matrix = ordered_matrices_collection
+		@debug "Computing Bettis..."
+		eirene_geom = eirene(matrix,maxdim=max_B_dim,model="vr")
+
+		bettis = reshape_bettis(get_bettis(eirene_geom, max_B_dim))
+		push!(bettis_collection, bettis)
+    end
+
+    return bettis_collection
 end
 
 # =========--=======-========-==========-=======-
@@ -1165,4 +1184,3 @@ function multiscale_matrix_testing(sample_space_dims = 3,
         return geom_mat_results
     end
 end
-
