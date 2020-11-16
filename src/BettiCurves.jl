@@ -34,7 +34,7 @@ function get_bettis(results_eirene::Dict, max_dim::Integer; min_dim::Int = 1)
     end
     return bettis
 end
-
+# TODO add get_bettis_from_matrix, to wrap C= eirene...; get bettis
 
 #%%
 function normalise_bettis(bettis::Vector)
@@ -206,7 +206,7 @@ function get_bettis_color_palete(; min_dim = 1, use_set::Integer = 1)
     """
     	function get_bettis_color_palete()
 
-    Generates vector with colours used for Betti plots.
+    Generates vector with colours used for Betti plots. Designed for Betti plots consistency.
     """
     # TODO what does the number in the function below is used for?
 
@@ -407,48 +407,9 @@ end
 #
 # Function taken from: https://github.com/alexyarosh/hyperbolic
 # """
-# To be deleted
 #%%
-function bettis_eirene(matr,
-                        maxdim;
-                        mintime = -Inf,
-                        maxtime = Inf,
-                        numofsteps = Inf,
-                        mindim = 1)
-    c = eirene( matr,
-                minrad = mintime,
-                maxrad = maxtime,
-                numrad = numofsteps,
-                maxdim = maxdim,)
 
-    int_length = maxtime - mintime
-    step_length = int_length / numofsteps
-
-    if (mintime == -Inf) || (maxtime == Inf) || (numofsteps == Inf)
-        @debug "Inf mintime, maxtime or number of steps."
-        # return [betticurve(c, dim=maxdim) for d=1:maxdim]
-        result = vectorize_bettis(c, maxdim, mindim)
-        return result
-    end
-
-    betts = zeros(numofsteps, maxdim)
-    # For every dimension compute betti curve
-    for dim = 1:maxdim
-        bet = betticurve(c, dim = dim)
-
-        #for every element in betti curve return betti value if index is positive
-        for i = 1:size(bet, 1)
-            b = bet[i, :]
-            ind = Int(ceil((b[1] - mintime) / step_length))
-            if ind > 0
-                betts[ind, dim] = b[2]
-            else
-                betts[1, dim] = b[2]
-            end
-        end
-    end
-    return betts
-end
+@deprecate bettis_eirene(matr, maxdim; mintime = -Inf, maxtime = Inf, numofsteps = Inf, mindim = 1) get_bettis(results_eirene::Dict, max_dim::Integer; min_dim::Int = 1)
 
 #%%
 function get_bettis_from_image(img_name,
@@ -533,204 +494,6 @@ function get_bettis_from_image(img_name,
     display(heat_map2)
     display(ref)
 end
-
-
-#%%
-function multiscale_matrix_testing(sample_space_dims = 3,
-                                    maxsim = 5,
-                                    min_B_dim = 1,
-                                    max_B_dim = 3,
-                                    size_start = 10,
-                                    size_step = 5,
-                                    size_stop = 50;
-                                    do_random = true,
-                                    control_saving = false,
-                                    perform_eavl = false)
-    """
-    multiscale_matrix_testing(sample_space_dims = 3,
-    									maxsim=5,
-    									min_B_dim = 1,
-    									max_B_dim = 3,
-    									size_start = 10,
-    									size_step = 5,
-    									size_stop = 80; do_random=true)
-
-    Function for testing the average number of cycles from geometric and random
-    	matrices.
-
-    It is possible to save intermidiate results- for that, @control_saving must be
-    set true.
-
-    Performance of computation of Betti curves can be monitored, if the
-    @perform_eavl is set too true. Bydefault, it is set to false.
-    """
-    num_of_bettis = length(collect(min_B_dim:max_B_dim))
-
-    if length(sample_space_dims) > 1
-        @warn "Can not do random processing for multiple dimensions"
-        do_random = false
-    end
-
-    geom_mat_results = Any[]
-    if do_random
-        rand_mat_results = Any[]
-        result_list = [geom_mat_results, rand_mat_results]
-    else
-        result_list = [geom_mat_results]
-    end
-
-    for sample_space_dim in sample_space_dims
-        if !do_random
-            @info "Sampling space size: " sample_space_dim
-        end
-
-        repetitions = size_start:size_step:size_stop
-        for space_samples in repetitions
-            @info "Generating data for: " space_samples
-            # ==========================================
-            # ============= Generate data ==============
-            # ===
-            # Generate random matrix
-            if do_random
-                symm_mat_rand = [generate_random_matrix(space_samples) for i = 1:maxsim]
-                ordered_mat_rand = [
-                    get_ordered_matrix(symm_mat_rand[i]; assing_same_values = false)
-                    for i = 1:maxsim
-                ]
-            end
-
-            # ===
-            # Generate geometric matrix
-            pts_rand = [
-                generate_random_point_cloud(sample_space_dim, space_samples)
-                for i = 1:maxsim
-            ]
-            symm_mat_geom = [generate_geometric_matrix(pts_rand[i]') for i = 1:maxsim]
-            ordered_mat_geom = [
-                get_ordered_matrix(symm_mat_geom[i]; assign_same_values = false)
-                for i = 1:maxsim
-            ]
-
-            # ======================================================================
-            # ========================= Do the Betti analysis ======================
-            if do_random
-                set = [ordered_mat_geom, ordered_mat_rand]
-            else
-                set = [ordered_mat_geom]
-            end
-            for matrix_set in set
-                @debug("Betti analysis!")
-                # ===
-                # Generate bettis
-                many_bettis = Array[]
-                if perform_eavl
-                    many_timings = Float64[]
-                    many_bytes = Float64[]
-                    many_gctime = Float64[]
-                    many_memallocs = Base.GC_Diff[]
-                end
-
-                for i = 1:maxsim
-                    if i % 10 == 0
-                        @info "Computing Bettis for: " i
-                    end
-
-                    if perform_eavl
-                        results, timing, bytes, gctime, memallocs = @timed bettis_eirene(
-                            matrix_set[i],
-                            max_B_dim,
-                            mindim = min_B_dim,
-                        )
-                        push!(many_bettis, results)
-                        push!(many_timings, timing)
-                        push!(many_bytes, bytes)
-                        push!(many_gctime, gctime)
-                        push!(many_memallocs, memallocs)
-                    else
-                        push!(
-                            many_bettis,
-                            bettis_eirene(matrix_set[i], max_B_dim, mindim = min_B_dim),
-                        )
-                    end
-                end
-
-                # ===
-                # Get maximal number of cycles from each Betti from simulations
-                max_cycles = zeros(maxsim, max_B_dim)
-                for i = 1:maxsim, betti_dim = 1:max_B_dim
-                    @debug("\tFindmax in bettis")
-                    max_cycles[i, betti_dim] = findmax(many_bettis[i][:, betti_dim])[1]
-                end
-
-                # ===
-                # Get the statistics
-                avg_cycles = zeros(1, length(min_B_dim:max_B_dim))
-                std_cycles = zeros(1, length(min_B_dim:max_B_dim))
-                k = 1
-                for betti_dim = min_B_dim:max_B_dim
-                    avg_cycles[k] = mean(max_cycles[:, betti_dim])
-                    std_cycles[k] = std(max_cycles[:, betti_dim])
-                    k += 1
-                end
-
-                # ===
-                # Put results into dictionary
-                betti_statistics = Dict()
-                if matrix_set == ordered_mat_geom
-                    @debug("Saving ordered")
-                    betti_statistics["matrix_type"] = "ordered"
-                    betti_statistics["space_dim"] = sample_space_dim
-                    result_list = geom_mat_results
-                else
-                    @debug("Saving radom")
-                    betti_statistics["matrix_type"] = "random"
-                    result_list = rand_mat_results
-                end
-                betti_statistics["space_samples"] = space_samples
-                betti_statistics["simualtions"] = maxsim
-                betti_statistics["min_betti_dim"] = min_B_dim
-                betti_statistics["max_betti_dim"] = max_B_dim
-                betti_statistics["avg_cycles"] = avg_cycles
-                betti_statistics["std_cycles"] = std_cycles
-
-                if perform_eavl
-                    betti_statistics["many_timings"] = many_timings
-                    betti_statistics["many_bytes"] = many_bytes
-                    betti_statistics["many_gctime"] = many_gctime
-                    betti_statistics["many_memallocs"] = many_memallocs
-                end
-                push!(result_list, betti_statistics)
-            end # matrix type loop
-            @debug("===============")
-            if control_saving
-                if do_random
-                    save(
-                        "multiscale_matrix_testing_$(space_samples)_$(sample_space_dim).jld",
-                        "rand_mat_results",
-                        rand_mat_results,
-                        "geom_mat_results",
-                        geom_mat_results,
-                    )
-                else
-                    save(
-                        "multiscale_matrix_testing_dimension_$(space_samples)_$(sample_space_dim).jld",
-                        "geom_mat_results",
-                        geom_mat_results,
-                    )
-                end
-            end
-        end # matrix_size_loop
-    end # sampled space dimension
-
-    if do_random
-        return geom_mat_results, rand_mat_results
-    else
-        return geom_mat_results
-    end
-end
-
-
-
 
 # ===============================================
 @deprecate get_bettis_from_image2(img_name;file_path = "",plot_heatmaps = true, save_heatmaps = false, plot_betti_figrues = true) get_bettis_from_image(img_name, plot_params; file_path = "", plot_heatmaps = true, save_heatmaps = false, plot_betti_figrues = true)
@@ -887,7 +650,7 @@ end
 #%%
 function get_area_under_betti_curve(betti_curves::Union{Matrix{Float64}, Array{Array{Float64,2}}};do_normalised::Bool=false)
     """
-        get_area_under_betti_curve(C, min_dim, max_dim)
+        get_area_under_betti_curve(betti_curves, min_dim, max_dim)
 
     Computes the area under Betti curves stored in 'betti_curves', where each row is
     a Betti curve and each column is a value.
@@ -1207,3 +970,199 @@ end
 #
 # 	return distance_matrices_collection, ordered_matrices_collection, bettis_collection, plot_data, plots_set
 # end
+
+#%%
+# This does not belong here
+function multiscale_matrix_testing(sample_space_dims = 3,
+                                    maxsim = 5,
+                                    min_B_dim = 1,
+                                    max_B_dim = 3,
+                                    size_start = 10,
+                                    size_step = 5,
+                                    size_stop = 50;
+                                    do_random = true,
+                                    control_saving = false,
+                                    perform_eavl = false)
+    """
+    multiscale_matrix_testing(sample_space_dims = 3,
+    									maxsim=5,
+    									min_B_dim = 1,
+    									max_B_dim = 3,
+    									size_start = 10,
+    									size_step = 5,
+    									size_stop = 80; do_random=true)
+
+    Function for testing the average number of cycles from geometric and random
+    	matrices.
+
+    It is possible to save intermidiate results- for that, @control_saving must be
+    set true.
+
+    Performance of computation of Betti curves can be monitored, if the
+    @perform_eavl is set too true. Bydefault, it is set to false.
+    """
+    num_of_bettis = length(collect(min_B_dim:max_B_dim))
+
+    if length(sample_space_dims) > 1
+        @warn "Can not do random processing for multiple dimensions"
+        do_random = false
+    end
+
+    geom_mat_results = Any[]
+    if do_random
+        rand_mat_results = Any[]
+        result_list = [geom_mat_results, rand_mat_results]
+    else
+        result_list = [geom_mat_results]
+    end
+
+    for sample_space_dim in sample_space_dims
+        if !do_random
+            @info "Sampling space size: " sample_space_dim
+        end
+
+        repetitions = size_start:size_step:size_stop
+        for space_samples in repetitions
+            @info "Generating data for: " space_samples
+            # ==========================================
+            # ============= Generate data ==============
+            # ===
+            # Generate random matrix
+            if do_random
+                symm_mat_rand = [generate_random_matrix(space_samples) for i = 1:maxsim]
+                ordered_mat_rand = [
+                    get_ordered_matrix(symm_mat_rand[i]; assing_same_values = false)
+                    for i = 1:maxsim
+                ]
+            end
+
+            # ===
+            # Generate geometric matrix
+            pts_rand = [
+                generate_random_point_cloud(sample_space_dim, space_samples)
+                for i = 1:maxsim
+            ]
+            symm_mat_geom = [generate_geometric_matrix(pts_rand[i]') for i = 1:maxsim]
+            ordered_mat_geom = [
+                get_ordered_matrix(symm_mat_geom[i]; assign_same_values = false)
+                for i = 1:maxsim
+            ]
+
+            # ======================================================================
+            # ========================= Do the Betti analysis ======================
+            if do_random
+                set = [ordered_mat_geom, ordered_mat_rand]
+            else
+                set = [ordered_mat_geom]
+            end
+            for matrix_set in set
+                @debug("Betti analysis!")
+                # ===
+                # Generate bettis
+                many_bettis = Array[]
+                if perform_eavl
+                    many_timings = Float64[]
+                    many_bytes = Float64[]
+                    many_gctime = Float64[]
+                    many_memallocs = Base.GC_Diff[]
+                end
+
+                for i = 1:maxsim
+                    if i % 10 == 0
+                        @info "Computing Bettis for: " i
+                    end
+
+                    if perform_eavl
+                        results, timing, bytes, gctime, memallocs = @timed bettis_eirene(
+                            matrix_set[i],
+                            max_B_dim,
+                            mindim = min_B_dim,
+                        )
+                        push!(many_bettis, results)
+                        push!(many_timings, timing)
+                        push!(many_bytes, bytes)
+                        push!(many_gctime, gctime)
+                        push!(many_memallocs, memallocs)
+                    else
+                        push!(
+                            many_bettis,
+                            bettis_eirene(matrix_set[i], max_B_dim, mindim = min_B_dim),
+                        )
+                    end
+                end
+
+                # ===
+                # Get maximal number of cycles from each Betti from simulations
+                max_cycles = zeros(maxsim, max_B_dim)
+                for i = 1:maxsim, betti_dim = 1:max_B_dim
+                    @debug("\tFindmax in bettis")
+                    max_cycles[i, betti_dim] = findmax(many_bettis[i][:, betti_dim])[1]
+                end
+
+                # ===
+                # Get the statistics
+                avg_cycles = zeros(1, length(min_B_dim:max_B_dim))
+                std_cycles = zeros(1, length(min_B_dim:max_B_dim))
+                k = 1
+                for betti_dim = min_B_dim:max_B_dim
+                    avg_cycles[k] = mean(max_cycles[:, betti_dim])
+                    std_cycles[k] = std(max_cycles[:, betti_dim])
+                    k += 1
+                end
+
+                # ===
+                # Put results into dictionary
+                betti_statistics = Dict()
+                if matrix_set == ordered_mat_geom
+                    @debug("Saving ordered")
+                    betti_statistics["matrix_type"] = "ordered"
+                    betti_statistics["space_dim"] = sample_space_dim
+                    result_list = geom_mat_results
+                else
+                    @debug("Saving radom")
+                    betti_statistics["matrix_type"] = "random"
+                    result_list = rand_mat_results
+                end
+                betti_statistics["space_samples"] = space_samples
+                betti_statistics["simualtions"] = maxsim
+                betti_statistics["min_betti_dim"] = min_B_dim
+                betti_statistics["max_betti_dim"] = max_B_dim
+                betti_statistics["avg_cycles"] = avg_cycles
+                betti_statistics["std_cycles"] = std_cycles
+
+                if perform_eavl
+                    betti_statistics["many_timings"] = many_timings
+                    betti_statistics["many_bytes"] = many_bytes
+                    betti_statistics["many_gctime"] = many_gctime
+                    betti_statistics["many_memallocs"] = many_memallocs
+                end
+                push!(result_list, betti_statistics)
+            end # matrix type loop
+            @debug("===============")
+            if control_saving
+                if do_random
+                    save(
+                        "multiscale_matrix_testing_$(space_samples)_$(sample_space_dim).jld",
+                        "rand_mat_results",
+                        rand_mat_results,
+                        "geom_mat_results",
+                        geom_mat_results,
+                    )
+                else
+                    save(
+                        "multiscale_matrix_testing_dimension_$(space_samples)_$(sample_space_dim).jld",
+                        "geom_mat_results",
+                        geom_mat_results,
+                    )
+                end
+            end
+        end # matrix_size_loop
+    end # sampled space dimension
+
+    if do_random
+        return geom_mat_results, rand_mat_results
+    else
+        return geom_mat_results
+    end
+end
+
