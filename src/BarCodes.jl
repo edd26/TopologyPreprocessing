@@ -186,12 +186,12 @@ end
 
 function get_birth_death_ratio(barcodes)
     # birth_death_raio_π = [[all_barcodes_geom[k][m,2]/all_barcodes_geom[k][m,1] for m= 1:size(all_barcodes_geom[k],1)] for k in 1:max_dim]
-    birth_death_ratio_π = [all_barcodes_geom[k][:,2]./all_barcodes_geom[k][:,1] for k in 1:max_dim]
+    birth_death_ratio_π = [barcodes[k][:,2]./barcodes[k][:,1] for k in 1:max_dim]
     return birth_death_ratio_π
 end
 
 function get_barcode_lifetime(barcodes)
-    lifetime = [all_barcodes_geom[k][:,2].-all_barcodes_geom[k][:,1] for k in 1:max_dim]
+    lifetime = [barcodes[k][:,2].-barcodes[k][:,1] for k in 1:max_dim]
     return lifetime
 end
 
