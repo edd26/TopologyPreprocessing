@@ -155,9 +155,10 @@ function plot_bettis(bettis::Vector;
         lw = 2
     end
 
-    colors_set = get_bettis_color_palete()
+    colors_set = get_bettis_color_palete(min_dim=min_dim)
     plot_ref = plot(; kwargs...)
-    for p = min_dim:(max_dim)
+    # for p = min_dim:(max_dim) #TODO ths can not be starting from min_dim, because it may be 0
+    for p = 1:(max_dim) #TODO ths can not be starting from min_dim, because it may be 0
         args = (lc = colors_set[p], linewidth = lw)
         if betti_labels
             args = (args..., label = "β$(all_dims[p])")
