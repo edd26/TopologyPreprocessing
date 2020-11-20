@@ -15,7 +15,7 @@ using Eirene
 
 function get_barcodes(results_eirene::Dict, max_dim::Integer; min_dim::Int = 1)
     """
-        get_bettis(results_eirene::Dict, max_dim::Integer; min_dim::Int=1)
+        get_barcodes(results_eirene::Dict, max_dim::Integer; min_dim::Int=1)
 
     Calls Eirene.barcode for 'dim' in range from `min_dim` up to 'max_dim' and
     stack the resulting Arrays into a vector.
@@ -182,15 +182,13 @@ function get_bettis_color_palete(; min_dim = 1, use_set::Integer = 1)
     return colors_set
 end
 
-
-
-function get_birth_death_ratio(barcodes)
+function get_birth_death_ratio(barcodes; max_dim::Integer=3)
     # birth_death_raio_π = [[all_barcodes_geom[k][m,2]/all_barcodes_geom[k][m,1] for m= 1:size(all_barcodes_geom[k],1)] for k in 1:max_dim]
     birth_death_ratio_π = [barcodes[k][:,2]./barcodes[k][:,1] for k in 1:max_dim]
     return birth_death_ratio_π
 end
 
-function get_barcode_lifetime(barcodes)
+function get_barcode_lifetime(barcodes; max_dim::Integer=3)
     lifetime = [barcodes[k][:,2].-barcodes[k][:,1] for k in 1:max_dim]
     return lifetime
 end
@@ -202,8 +200,12 @@ function get_barcode_max_lifetime(lifetimes)
 
     Returns the maximal life times of barcode for all dimensions.
     """
+    total_lifetimes = length(lifetimes)
+    all_max_lifetimes = zeros(total_lifetimes, 1)
 
-    all_max_lifetimes = findmax(lifetimes, dims=1)
+    for k in 1:total_lifetimes
+        all_max_lifetimes[k] = findmax(lifetimes[k])[1]
+    end
 
     return all_max_lifetimes
 end
@@ -245,4 +247,21 @@ function boxplot_lifetime(barcode_lifetime, min_dim::Integer, max_dim::Integer)
     end
 
     return bplot
+end
+
+#%%
+function get_barcode_max_db_ratios(db_ratos)
+    """
+        get_barcode_max_db_ratios(lifetimes, min_dim, max_dim)
+
+    Returns the maximal life times of barcode for all dimensions.
+    """
+    total_db = length(db_ratos)
+    all_max_db = zeros(total_db, 1)
+
+    for k in 1:total_db
+        all_max_db[k] = findmax(db_ratos[k])[1]
+    end
+
+    return all_max_db
 end
