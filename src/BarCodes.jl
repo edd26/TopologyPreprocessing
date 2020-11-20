@@ -132,7 +132,7 @@ function plot_barcodes(barcodes::Vector;
 end
 
 
-
+# TODO This has to be imported from other file
 function get_bettis_color_palete(; min_dim = 1, use_set::Integer = 1)
     """
     	function get_bettis_color_palete()
@@ -193,6 +193,19 @@ end
 function get_barcode_lifetime(barcodes)
     lifetime = [barcodes[k][:,2].-barcodes[k][:,1] for k in 1:max_dim]
     return lifetime
+end
+
+#%%
+function get_barcode_max_lifetime(lifetimes)
+    """
+        get_barcode_max_lifetime(lifetimes, min_dim, max_dim)
+
+    Returns the maximal life times of barcode for all dimensions.
+    """
+
+    all_max_lifetimes = findmax(lifetimes, dims=1)
+
+    return all_max_lifetimes
 end
 
 
