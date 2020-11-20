@@ -330,6 +330,20 @@ function plot_bettis_collection(bettis_collection,
 end
 
 #%%
+function get_max_bettis(bettis)
+    """
+        get_max_bettis(bettis)
+
+    Returns the maximal bettis of Betti curves for all dimensions.
+    """
+
+    all_max_bettis = findmax(bettis, dims=1)[1]
+
+    return all_max_bettis
+end
+
+# TODO change name
+# TODO check what for dim is used, change to min dim
 function get_max_betti_from_collection(bettis_collection; dim = 1)
     max_betti = 0
     for betti in bettis_collection
