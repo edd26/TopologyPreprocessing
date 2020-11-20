@@ -38,13 +38,14 @@ module TopologyPreprocessing
             get_vectorized_bettis,
             plot_bettis
 
-export get_barcodes,
-        plot_barcodes,
-        get_birth_death_ratio,
-        get_barcode_lifetime,
-        get_barcode_max_lifetime,
-        boxplot_birth_death,
-        boxplot_lifetime,
+        export get_barcodes,
+                plot_barcodes,
+                get_birth_death_ratio,
+                get_barcode_lifetime,
+                get_barcode_max_lifetime,
+                boxplot_birth_death,
+                boxplot_lifetime,
+                get_barcode_max_db_ratios
 
     include("MatrixProcessing.jl")
     include("MatrixOrganization.jl")
