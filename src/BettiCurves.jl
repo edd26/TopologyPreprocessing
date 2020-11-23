@@ -272,7 +272,7 @@ function plot_bettis(bettis::Array;
 
     return plot_ref
 end
-
+#  ======= Untested code
 # TODO add default kwargs paring function -> parse_kwargs()
 
 function plot_all_bettis(bettis_collection;
@@ -296,6 +296,7 @@ function plot_all_bettis(bettis_collection;
     	- lw::Integer or linewidth:Integer
     (for more, see plots documentation):
     TODO: try to add labels to this
+    TODO: compare functionality to plot_bettis_collection
     """
 
     lw_pos = findfirst(x -> x == :lw || x == :linewidth, keys(kwargs))
@@ -369,6 +370,83 @@ function find_max_betti(bettis_collection::Array)
     end
     return max_y_val
 end
+#%%
+
+function plot_all_bd_diagram(barcodes_collection;
+                                min_dim::Integer = 1,
+                                betti_labels::Bool = true,
+                                default_labels::Bool = true,
+                                normalised=true,
+                                kwargs...)#; plot_size = (width=1200, height=800),
+    """
+    	plot_all_bd_diagram(barcodes_collection; min_dim::Integer=1, betti_labels::Bool=true, default_labels::Bool=true kwargs...)
+
+    Creates a birth/death diagram.
+
+    'kwargs' are plot parameters
+
+    Some of the possible 'kwargs' are:
+    	- title::String
+    	- legend:Bool
+    	- size::Tuple{T, T} where {T::Number}
+    	- lw::Integer or linewidth:Integer
+    (for more, see plots documentation):
+    TODO:
+    """
+    # arg parsing
+    lw_pos = findfirst(x -> x == :lw || x == :linewidth, keys(kwargs))
+    if !isnothing(lw_pos)
+        lw = kwargs[lw_pos]
+    else
+        lw = 2
+    end
+
+    colors_set = get_bettis_color_palete(min_dim=min_dim)
+    max_y_val = find_max_betti(bettis_collection)
+
+    plot_ref = plot(; kwargs...)
+    for b = 1:4
+        args = (lc = colors_set[b], linewidth = lw, alpha=0.12,label=false, ylims=(0,max_y_val))
+        for bettis = bettis_collection
+            betti_vals = bettis[:,b]
+
+            total_steps = size(bettis, 1)
+            x_vals = range(0, stop=1, length=total_steps)
+
+            plot!(x_vals, betti_vals; args...)
+        end
+        # my_label = "β$(b)"
+        # betti_vals = results_d["bettis_collection"][:hc][end]
+        # x_vals = range(0, stop=1, length=size(betti_vals, 1))
+        # plot!(x_vals, betti_vals; lc = colors_set[b], linewidth = 1, alpha=0.1,label=my_label, ylims=(0,max_y_val))
+    end
+    plot!(legend=true)
+
+    legend_pos = findfirst(x -> x == :legend, keys(kwargs))
+    if !isnothing(legend_pos)
+        plot!(legend = kwargs[legend_pos])
+    else
+        plot!(legend = betti_labels)
+    end
+
+    x_pos = findfirst(x -> x == :xlabel, keys(kwargs))
+    y_pos = findfirst(x -> x == :ylabel, keys(kwargs))
+    if !isnothing(x_pos)
+        xlabel!(kwargs[x_pos])
+    elseif default_labels
+        xlabel!("Edge density")
+    end
+    if !isnothing(y_pos)
+        ylabel!(kwargs[y_pos])
+    elseif default_labels
+        ylabel!("Number of cycles")
+    end
+
+    return plot_ref
+end
+
+
+#  ======= Untested code == end
 #%%
 function printready_plot_bettis(kwargs)
     """
