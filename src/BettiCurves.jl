@@ -398,16 +398,17 @@ function get_bettis_color_palete(; min_dim = 1, use_set::Integer = 1)
         else
             colors_set = []
         end
+        max_RGB = 256
         colors_set = vcat(
             colors_set,
             [
-                RGB(255 / 256, 206 / 256, 0 / 256),
-                RGB(248 / 256, 23 / 256, 0 / 256),
-                RGB(97 / 256, 169 / 256, 255 / 256),
-                RGB(163 / 256, 0 / 256, 185 / 256),
-                RGB(33 / 256, 96 / 256, 45 / 256),
-                RGB(4 / 256, 0 / 256, 199 / 256),
-                RGB(135 / 256, 88 / 256, 0 / 256),
+                RGB(255 / max_RGB, 206 / max_RGB, 0 / max_RGB),
+                RGB(248 / max_RGB, 23 / max_RGB, 0 / max_RGB),
+                RGB(97 / max_RGB, 169 / max_RGB, 255 / max_RGB),
+                RGB(163 / max_RGB, 0 / max_RGB, 185 / max_RGB),
+                RGB(33 / max_RGB, 96 / max_RGB, 45 / max_RGB),
+                RGB(4 / max_RGB, 0 / max_RGB, 199 / max_RGB),
+                RGB(135 / max_RGB, 88 / max_RGB, 0 / max_RGB),
             ],
             cur_colors,
         )
