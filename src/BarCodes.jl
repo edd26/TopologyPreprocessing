@@ -308,3 +308,145 @@ function get_normalised_barcodes_collection(barcodes_collection, bettis_collecti
     end
     return normed_collection
 end
+
+
+function plot_bd_diagram(barcodes; min_dim::Integer=1, kwargs...)
+    """
+    	plot_bd_diagram(barcodes;
+                            min_dim::Integer=1,
+                            kwargs...)
+
+    Creates a birth/death diagram from `barcodes` and returns the handlers to
+    the plots.
+
+    'kwargs' are plot parameters
+
+    Some of the possible 'kwargs' are:
+    	- title::String
+    	- legend:Bool
+    	- size::Tuple{T, T} where {T::Number}
+    	- lw::Integer or linewidth:Integer
+    (for more, see plots documentation):
+    """
+    max_dim = size(barcodes, 1)
+    all_dims = 1:max_dim
+
+    if min_dim > max_dim
+        throw(DomainError(
+            min_dim,
+            "\'min_dim\' must be greater that maximal dimension in \'bettis\'",
+        ))
+    end
+
+    lw_pos = findfirst(x -> x == :lw || x == :linewidth, keys(kwargs))
+    if !isnothing(lw_pos)
+        lw = kwargs[lw_pos]
+    else
+        lw = 2
+    end
+
+    colors_set = TopologyPreprocessing.get_bettis_color_palete(min_dim=min_dim)
+    plot_ref = plot(;xlims=(0,1), ylims=(0,1), kwargs...)
+
+    for p = 1:(max_dim) #TODO ths can not be starting from min_dim, because it may be 0
+        vec = barcodes[p]
+        args = (lc = colors_set[p], linewidth = lw, kwargs...)
+        plot!(vec[:, 1], vec[:, 2], seriestype = :scatter; args...)
+    end
+
+    return plot_ref
+end
+
+function plot_all_bd_diagrams(barcodes_collection;
+                                min_dim::Integer = 1,
+                                betti_labels::Bool = true,
+                                default_labels::Bool = true,
+                                all_legend=false,
+                                my_alpha=0.12,
+                                aspect_ratio=1,
+                                base_w=600,
+                                base_h=600,
+                                kwargs...)
+    """
+    	plot_all_bd_diagrams(barcodes_collection;
+                            min_dim::Integer=1,
+                            betti_labels::Bool=true,
+                            default_labels::Bool=true,
+                            all_legend=false,
+                            my_alpha=0.12,
+                            aspect_ratio=1,
+                            kwargs...)
+
+    Creates a set of birth/death diagrams from `barcodes_collection`
+         and returns a dictionary with the handlers to the plots.
+
+    'kwargs' are plot parameters
+
+    Some of the possible 'kwargs' are:
+    	- title::String
+    	- legend:Bool
+    	- size::Tuple{T, T} where {T::Number}
+    	- lw::Integer or linewidth:Integer
+    (for more, see plots documentation):
+    """
+    total_dims = size(barcodes_collection[1],1)
+
+    lw_pos = findfirst(x -> x == :lw || x == :linewidth, keys(kwargs))
+    if !isnothing(lw_pos)
+        lw = kwargs[lw_pos]
+    else
+        lw = 2
+    end
+
+    title_pos = findfirst(x -> x == :title, keys(kwargs))
+    if !isnothing(title_pos)
+        my_title = kwargs[title_pos]
+    else
+        my_title = "Birth death diagram"
+    end
+
+    colors_set = TopologyPreprocessing.get_bettis_color_palete(min_dim=min_dim)
+    plot_dict = Dict()
+
+    for b = 1:total_dims
+        args = (lc = colors_set[b],
+                linewidth = lw,
+                label=false,
+                aspect_ratio=aspect_ratio,
+                size = (base_w,base_h),
+                kwargs...)
+        plot_dict["β$(b)"] = scatter(;xlims=(0,1), ylims=(0,1), dpi=300, args...)
+        for bars = barcodes_collection
+            barcode = bars[b]
+
+            scatter!(barcode[:, 1], barcode[:, 2],
+                    markeralpha=my_alpha,
+                    markercolor = colors_set[b],
+                    dpi=300)
+        end
+        plot!(legend=all_legend)
+        plot!(title=(my_title*", β$(b)"))
+
+        # legend_pos = findfirst(x -> x == :legend, keys(kwargs))
+        # if !isnothing(legend_pos)
+        #     plot!(legend = kwargs[legend_pos])
+        # else
+        #     plot!(legend = betti_labels)
+        # end
+
+        x_pos = findfirst(x -> x == :xlabel, keys(kwargs))
+        y_pos = findfirst(x -> x == :ylabel, keys(kwargs))
+        if !isnothing(x_pos)
+            xlabel!(kwargs[x_pos])
+        elseif default_labels
+            xlabel!("Birth")
+        end
+        if !isnothing(y_pos)
+            ylabel!(kwargs[y_pos])
+        elseif default_labels
+            ylabel!("Death")
+        end
+    end
+
+    return plot_dict
+end
