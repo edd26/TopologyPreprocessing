@@ -298,6 +298,7 @@ function plot_all_bettis(bettis_collection;
     TODO: try to add labels to this
     TODO: compare functionality to plot_bettis_collection
     """
+    total_dims = size(barcodes_collection[1],1)
 
     lw_pos = findfirst(x -> x == :lw || x == :linewidth, keys(kwargs))
     if !isnothing(lw_pos)
@@ -310,7 +311,7 @@ function plot_all_bettis(bettis_collection;
     max_y_val = find_max_betti(bettis_collection)
 
     plot_ref = plot(; kwargs...)
-    for b = 1:4
+    for b = 1:total_dims
         args = (lc = colors_set[b], linewidth = lw, alpha=0.12,label=false, ylims=(0,max_y_val))
         for bettis = bettis_collection
             betti_vals = bettis[:,b]
