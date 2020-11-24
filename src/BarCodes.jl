@@ -356,7 +356,7 @@ function plot_bd_diagram(barcodes; min_dim::Integer=1, kwargs...)
 
     return plot_ref
 end
-
+#%%
 function plot_all_bd_diagrams(barcodes_collection;
                                 min_dim::Integer = 1,
                                 betti_labels::Bool = true,
