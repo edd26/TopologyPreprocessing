@@ -265,3 +265,46 @@ function get_barcode_max_db_ratios(db_ratos)
 
     return all_max_db
 end
+
+
+function get_normalised_barcodes(barcodes::Vector, betti_numbers::Array)
+    """
+        get_normalised_barcodes(barcodes::Vector, betti_numbers::Array)
+
+    Returns the barcodes which values are within [0,1] range.
+    1. get corresponding bettis
+    2. get max number of steps
+    3. divide all values by total number of steps.
+
+   """
+    if typeof(betti_numbers) == Vector
+        total_steps = size(betti_numbers[1],1)
+    else
+        total_steps = size(betti_numbers,1)
+    end
+
+    return barcodes ./ total_steps
+end
+
+
+function get_normalised_barcodes_collection(barcodes_collection, bettis_collection)
+    """
+        get_normalised_barcodes_collection(barcodes_collection, bettis_collection)
+
+    Applies get_normalised_barcodes to the collection of barcodes and corresponding
+    betti curves.
+    """
+    if size(barcodes_collection,1) != size(bettis_collection,1)
+        throw(BoundsError(barcodes_collection, bettis_collection,
+            "Both collections must have same number of elements",
+        ))
+    else
+        total_collections  = size(barcodes_collection,1)
+    end
+    normed_collection = deepcopy(barcodes_collection)
+
+    for k = 1:total_collections
+        normed_collection[k]=get_normalised_barcodes(barcodes_collection[k], bettis_collection[k])
+    end
+    return normed_collection
+end
