@@ -1,4 +1,6 @@
 using Plots
+using Measures
+
 include("TopologyStructures.jl")
 
 """
@@ -35,7 +37,41 @@ function plot_square_heatmap(matrix, tick_step, tick_end;
 end
 
 
+#%%
+function row_plot(bd_plots::Dict;base_h = 800, base_w = 800,
+					top_margin= 10mm,
+					left_margin=[10mm 10mm],
+					bottom_margin= 10mm,
+					 kwargs...)
+	"""
+		row_plot(bd_plots::Dict;base_h = 600, base_w = 600, kwargs...)
 
+	Plots all the plots from the input dictionary 'bd_plots' in 'layout=(1,n)',
+	where 'n' is total number of plots.
+
+	By default, the plots dimensions are: the height='base_h'; the
+	width= n * base_w.
+	"""
+	total_dims = length(bd_plots)
+	all_keys = keys(bd_plots)
+	all_plts = tuple()
+	for k = 1:total_dims
+		all_plts = (all_plts..., bd_plots["β$(k)"])
+	end
+
+	nice_plot = plot(all_plts...,
+						layout=(1,total_dims),
+						size=(total_dims*base_w,base_h),
+						# left_margin=left_margin,
+						# top_margin=top_margin,
+						# bottom_margin=bottom_margin,
+		                thickness_scaling=2,
+						margin=2mm,
+						kwargs...)
+	return nice_plot
+end
+
+#%%
 """
     plotimg(matrix_to_plot)
 
@@ -75,7 +111,7 @@ function plotimg(matrix_to_plot, cut_off=false)
 end
 
 
-
+#%%
 """
    plot_image_analysis(plots_set; description::NamedTuple, original_img, kwargs...)
 
@@ -147,7 +183,6 @@ end
 
 Takes a collection of matrix computed for topological analysis and creates set
 	of their heatmaps and related Betti curves.
-
 
 """
 function get_all_plots_from_set(orig_matrix::TopologyMatrixSet; name_prefix="")
