@@ -350,7 +350,13 @@ function plot_bd_diagram(barcodes; min_dim::Integer=1, kwargs...)
 
     for p = 1:(max_dim) #TODO ths can not be starting from min_dim, because it may be 0
         vec = barcodes[p]
-        args = (lc = colors_set[p], linewidth = lw, kwargs...)
+        args = (lc = colors_set[p],
+                linewidth = lw,
+                label="β$(p)",
+                aspect_ratio=1,
+                size = (600,600),
+                legend = :bottomright,
+                kwargs...)
         plot!(vec[:, 1], vec[:, 2], seriestype = :scatter; args...)
     end
 
