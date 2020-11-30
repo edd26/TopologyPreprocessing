@@ -1,6 +1,9 @@
 # Module taken from:  https://github.com/alexyarosh/hyperbolic
 
-using Plots, Eirene, Ripserer, Statistics
+using Plots
+using Eirene
+using Ripserer
+using Statistics
 
 # compute the persistent betti numbers of the Vietoris-Rips complex given by the distance matrix `matr`
 # if mintime, maxtime and numofsteps are specified -- returns a `numofsteps x maxdim` array
