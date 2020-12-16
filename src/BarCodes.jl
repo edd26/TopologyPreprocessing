@@ -146,7 +146,7 @@ function get_bettis_color_palete(; min_dim = 1, use_set::Integer = 1)
         if min_dim == 0
             colors_set = [RGB(87 / 256, 158 / 256, 0 / 256)]
         else
-            colors_set = []
+            colors_set = RGB[]
         end
         colors_set = vcat(
             colors_set,
@@ -310,14 +310,20 @@ function get_normalised_barcodes_collection(barcodes_collection, bettis_collecti
 end
 
 
-function plot_bd_diagram(barcodes; min_dim::Integer=1, kwargs...)
+function plot_bd_diagram(barcodes; dims=1:length(barcodes), use_js::Bool=false, kwargs...)
     """
     	plot_bd_diagram(barcodes;
-                            min_dim::Integer=1,
+                            dims::Range,
+                            use_js::Bool=false,
                             kwargs...)
 
     Creates a birth/death diagram from `barcodes` and returns the handlers to
     the plots.
+
+    By default, dims is set to range '1:length(barcodes)', which plots all of
+    the diagrams. If set to an integer, plots only 1 dimension.
+
+    If 'use_js' is set to true, plotly backend is used for plotting.
 
     'kwargs' are plot parameters
 
@@ -329,12 +335,13 @@ function plot_bd_diagram(barcodes; min_dim::Integer=1, kwargs...)
     (for more, see plots documentation):
     """
     max_dim = size(barcodes, 1)
-    all_dims = 1:max_dim
+    min_dim = findmin(dims)[1]
+    all_dims = min_dim:max_dim
 
-    if min_dim > max_dim
+    if findmax(dims)[1] > max_dim
         throw(DomainError(
             min_dim,
-            "\'min_dim\' must be greater that maximal dimension in \'bettis\'",
+            "\'dims\' must be less than maximal dimension in \'bettis\'",
         ))
     end
 
@@ -345,12 +352,20 @@ function plot_bd_diagram(barcodes; min_dim::Integer=1, kwargs...)
         lw = 2
     end
 
-    colors_set = TopologyPreprocessing.get_bettis_color_palete(min_dim=min_dim)
+    colors_set = TopologyPreprocessing.get_bettis_color_palete(min_dim=1)
+
+    if use_js
+        plotly()
+    else
+        gr()
+    end
+
     plot_ref = plot(;xlims=(0,1), ylims=(0,1), kwargs...)
 
-    for p = 1:(max_dim) #TODO ths can not be starting from min_dim, because it may be 0
+    for p in dims
+        colors_set[p]
         vec = barcodes[p]
-        args = (lc = colors_set[p],
+        args = (color = colors_set[p],
                 linewidth = lw,
                 label="β$(p)",
                 aspect_ratio=1,
@@ -362,6 +377,7 @@ function plot_bd_diagram(barcodes; min_dim::Integer=1, kwargs...)
 
     return plot_ref
 end
+
 #%%
 function plot_all_bd_diagrams(barcodes_collection;
                                 min_dim::Integer = 1,
