@@ -263,6 +263,7 @@ function order_max_vals_near_diagonal2(input_matrix; do_final_plot=false, do_all
 	# Find max values next to the diagonal
 	matrix_size = size(input_matrix,1)
 	reordered_matrix = copy(input_matrix)
+	reorganized_plt_ref = []
 
 	# for every row in matrix
 	for k = 1:2:matrix_size-1
@@ -304,6 +305,64 @@ function order_max_vals_near_diagonal2(input_matrix; do_final_plot=false, do_all
 	return reordered_matrix, reorganized_plt_ref
 end
 
+
+function get_key_for_value(d::Dict, target_value)
+    """
+
+    Returns key of the dictionary which corresponds to the given target value.
+    """
+
+    for (key, value) in d
+        if value == target_value
+            return key
+        end
+    end
+end
+
+function order_max_vals_near_diagonal3(input_matrix, ordering; direction=:descending)
+    # Find max values next to the diagonal
+    matrix_size = size(input_matrix,1)
+    reordered_matrix = deepcopy(input_matrix)
+    new_ordering = Dict()
+
+    # for every row in matrix
+    for m = 1:2:matrix_size-1
+        # global reordered_matrix
+
+        max_val, max_ind = findmax(reordered_matrix[m:end, m:end])
+        # Take the smaller coordinate
+        first_target = max_ind[1]+m-1
+        reordered_matrix = swap_rows(reordered_matrix, m, first_target)
+
+        # check for duplicates
+        val, second_target = findmax(reordered_matrix[m,m:end])
+        second_target = second_target+m-1
+        if first_target == second_target
+            @debug "are same"
+            second_target -= 1
+        end
+
+        reordered_matrix = swap_rows(reordered_matrix, m+1, second_target)
+
+        # find key which initially had region = first_target
+        region1 = get_key_for_value(ordering, first_target)
+        region2 = get_key_for_value(ordering, second_target)
+
+        if region1 in keys(new_ordering)
+            @warn "repeated"
+        end
+        if region2 in keys(new_ordering)
+            @warn "repeated2"
+        end
+
+        new_ordering[region1] = m
+        new_ordering[region2] = m +1
+        println("Replaced $(region1) fom $(ordering[region1]) to $(m)")
+        println("Replaced $(region2) fom $(ordering[region2]) to $(m+1)")
+    end
+
+    return reordered_matrix, new_ordering
+end
 
 ##
 """
