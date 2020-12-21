@@ -310,7 +310,8 @@ function get_normalised_barcodes_collection(barcodes_collection, bettis_collecti
 end
 
 
-function plot_bd_diagram(barcodes; dims=1:length(barcodes), use_js::Bool=false, kwargs...)
+function plot_bd_diagram(barcodes; dims=1:length(barcodes), use_js::Bool=false,
+                                                class_sizes=[], kwargs...)
     """
     	plot_bd_diagram(barcodes;
                             dims::Range,
@@ -363,17 +364,31 @@ function plot_bd_diagram(barcodes; dims=1:length(barcodes), use_js::Bool=false, 
     plot_ref = plot(;xlims=(0,1), ylims=(0,1), kwargs...)
 
     for p in dims
-        colors_set[p]
-        vec = barcodes[p]
+        # colors_set[p]
+        my_vec = barcodes[p]
+
+        if class_sizes == []
+            labels = ["class: $(k)" for k in 1:size(my_vec,1)]
+        else
+            labels = ["class/size $(k)/$(class_sizes[k])" for k in 1:size(my_vec,1)]
+        end
+
         args = (color = colors_set[p],
                 linewidth = lw,
                 label="β$(p)",
                 aspect_ratio=1,
                 size = (600,600),
                 legend = :bottomright,
+                hover = labels,
                 kwargs...)
-        plot!(vec[:, 1], vec[:, 2], seriestype = :scatter; args...)
+        plot!(my_vec[:, 1], my_vec[:, 2], seriestype = :scatter; args...)
     end
+
+    # Add diagonal
+    max_x = findmax(barcodes[dims][:,1])[1]
+    max_y = findmax(barcodes[dims][:,2])[1]
+
+    plot!([0, max_y], [0, max_y])
 
     return plot_ref
 end
