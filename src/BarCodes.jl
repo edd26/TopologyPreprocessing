@@ -267,7 +267,7 @@ function get_barcode_max_db_ratios(db_ratos)
 end
 
 
-function get_normalised_barcodes(barcodes::Vector, betti_numbers::Array)
+function get_normalised_barcodes(barcodes, betti_numbers::Array)
     """
         get_normalised_barcodes(barcodes::Vector, betti_numbers::Array)
 
@@ -311,7 +311,9 @@ end
 
 
 function plot_bd_diagram(barcodes; dims=1:length(barcodes), use_js::Bool=false,
-                                                class_sizes=[], kwargs...)
+                                                class_sizes=[],
+                                                class_labels=[],
+                                                kwargs...)
     """
     	plot_bd_diagram(barcodes;
                             dims::Range,
@@ -367,7 +369,9 @@ function plot_bd_diagram(barcodes; dims=1:length(barcodes), use_js::Bool=false,
         # colors_set[p]
         my_vec = barcodes[p]
 
-        if class_sizes == []
+        if class_labels != [] && class_sizes != []
+            labels = ["class/size $(class_labels[k])/$(class_sizes[class_labels[k]])" for k in 1:size(class_labels,1)]
+        elseif  class_sizes == []
             labels = ["class: $(k)" for k in 1:size(my_vec,1)]
         else
             labels = ["class/size $(k)/$(class_sizes[k])" for k in 1:size(my_vec,1)]
@@ -381,6 +385,12 @@ function plot_bd_diagram(barcodes; dims=1:length(barcodes), use_js::Bool=false,
                 legend = :bottomright,
                 hover = labels,
                 kwargs...)
+        if class_labels != [] class_sizes != []
+            for x = class_labels
+                plot!(my_vec[Int(x), 1], my_vec[Int(x), 2], seriestype = :scatter; args...)
+            end
+        end
+
         plot!(my_vec[:, 1], my_vec[:, 2], seriestype = :scatter; args...)
     end
 
