@@ -34,7 +34,6 @@ StatsPlots = "f3b207a7-027a-5e70-b257-86293d7955fd"
 VideoIO = "d6d074c3-1acf-5d4c-9a43-ef38773959a2"
 
 [compat]
-julia = "1"
 Colors = "0.12"
 Combinatorics = "1.0"
 CoordinateTransformations = "0.6"
@@ -58,6 +57,7 @@ Ripserer = "0.16"
 StatsBase = "0.33"
 StatsPlots = "0.14"
 VideoIO = "0.8"
+julia = "1"
 
 [extras]
 SafeTestsets = "1bc83da4-3b8d-516f-aca4-4fe02f6d838f"
