@@ -134,7 +134,7 @@ end
         eirene_results = eirene(sample_distance_matrix1, model="vr", maxdim = max_B_dim)
         all_bettis = get_bettis(eirene_results, max_B_dim)
 
-        p = plot_bettis(all_bettis)
+        p = plot_bettis(all_bettis);
         @test length(p.series_list) == max_B_dim-(min_B_dim-1)
         @test p.attr[:plot_title] == ""
 
@@ -147,10 +147,10 @@ end
         end
 
 
-        for dim = min_B_dim:max_B_dim
-            p = plot_bettis(all_bettis, min_dim = dim)
-            @test length(p.series_list) == max_B_dim-(dim-1)
-        end
+        # for dim = min_B_dim:max_B_dim
+        #     p = plot_bettis(all_bettis, min_dim = dim);
+        #     @test length(p.series_list) == max_B_dim-(dim-1)
+        # end
 
 
         let p1 = plot_bettis(all_bettis, betti_labels=false)
@@ -220,52 +220,62 @@ end
                                      17 18 19 20 24 44 23 1  32 40;
                                      25 26 27 28 29 30 31 32 1  45;
                                      33 34 35 36 37 38 39 40 45 1;],
-          max_B_dim = 5,
-          min_B_dim = 1
-      #==
-      checks if the size is anyhow changed during proces;
-      checks is the values Array{Matrix} and reshaped matrix are the same
+            max_B_dim = 5,
+            min_B_dim = 1
+    #==
+    checks if the size is anyhow changed during proces;
+    checks is the values Array{Matrix} and reshaped matrix are the same
 
-      ==#
-      for min_B_dim = [1,2,3,4,5]
-          eirene_results1 = eirene(sample_distance_matrix1, model="vr", maxdim = max_B_dim)
-          eirene_results2 = eirene(sample_distance_matrix2, model="vr", maxdim = max_B_dim)
+    ==#
+        for min_B_dim in [1, 2, 3, 4, 5]
+            eirene_results1 =
+                eirene(sample_distance_matrix1, model = "vr", maxdim = max_B_dim)
+            eirene_results2 =
+                eirene(sample_distance_matrix2, model = "vr", maxdim = max_B_dim)
 
-          bettis_collection = [get_bettis(eirene_results1, max_B_dim),
-                                get_bettis(eirene_results2, max_B_dim)]
+            bettis_collection = [
+                get_bettis(eirene_results1, max_B_dim),
+                get_bettis(eirene_results2, max_B_dim),
+            ]
 
             for bettis_col in bettis_collection
-              total_vecs = length(bettis_col)
-              vec_len, vec_width = size(bettis_col[1])
+                total_vecs = length(bettis_col)
+                vec_len, vec_width = size(bettis_col[1])
 
-              reshaped_betti = TopologyPreprocessing.vectorize_bettis(bettis_col)
-              @test vec_len .== size(reshaped_betti,1)
-              @test total_vecs .== size(reshaped_betti,2)
-              for k in 1:total_vecs
-                  @test reshaped_betti[:,k] == bettis_col[k][:,2]
-              end
-          end
-      end
-    end
+                reshaped_betti = TopologyPreprocessing.vectorize_bettis(bettis_col)
+                @test vec_len .== size(reshaped_betti, 1)
+                @test total_vecs .== size(reshaped_betti, 2)
+                for k = 1:total_vecs
+                    @test reshaped_betti[:, k] == bettis_col[k][:, 2]
+                end
+            end
+        end
+        #==
+        checks if get vectorized bettis has same values as get_bettis
+        ==#
+        for min_B_dim in [1, 2, 3, 4, 5]
+            eirene_results1 =
+                eirene(sample_distance_matrix1, model = "vr", maxdim = max_B_dim)
+            eirene_results2 =
+                eirene(sample_distance_matrix2, model = "vr", maxdim = max_B_dim)
 
-    #==
-    checks if get vectorized bettis has same values as get_bettis
-    ==#
-    for min_B_dim = [1,2,3,4,5]
-        eirene_results1 = eirene(sample_distance_matrix1, model="vr", maxdim = max_B_dim)
-        eirene_results2 = eirene(sample_distance_matrix2, model="vr", maxdim = max_B_dim)
+            bettis_collection = [
+                get_bettis(eirene_results1, max_B_dim),
+                get_bettis(eirene_results2, max_B_dim),
+            ]
+            vec_bett_collection = [
+                get_vectorized_bettis(eirene_results1, max_B_dim),
+                get_vectorized_bettis(eirene_results2, max_B_dim),
+            ]
 
-        bettis_collection = [get_bettis(eirene_results1, max_B_dim),
-                              get_bettis(eirene_results2, max_B_dim)]
-      vec_bett_collection = [get_vectorized_bettis(eirene_results1, max_B_dim),
-                                get_vectorized_bettis(eirene_results2, max_B_dim)]
+            for index = 1:length(bettis_collection)
+                bettis_col = bettis_collection[index]
+                vec_bettis_col = vec_bett_collection[index]
 
-          for index = 1:length(bettis_collection)
-              bettis_col = bettis_collection[index]
-              vec_bettis_col = vec_bett_collection[index]
-
-              for k in 1:total_vecs
-                @test vec_bettis_col[:,k] == bettis_col[k][:,2]
+                total_vecs = length(bettis_col)
+                for k = 1:total_vecs
+                    @test vec_bettis_col[:, k] == bettis_col[k][:, 2]
+                end
             end
         end
     end
