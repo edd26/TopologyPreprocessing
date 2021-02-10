@@ -133,54 +133,54 @@ end
 
 
 # TODO This has to be imported from other file
-function get_bettis_color_palete(; min_dim = 1, use_set::Integer = 1)
-    """
-    	function get_bettis_color_palete()
-
-    Generates vector with colours used for Betti plots. Designed for Betti plots consistency.
-    """
-    # TODO what does the number in the function below is used for?
-
-    if use_set == 1
-        cur_colors = [Gray(bw) for bw = 0.0:0.025:0.5]
-        if min_dim == 0
-            colors_set = [RGB(87 / 256, 158 / 256, 0 / 256)]
-        else
-            colors_set = RGB[]
-        end
-        colors_set = vcat(
-            colors_set,
-            [
-                RGB(255 / 256, 206 / 256, 0 / 256),
-                RGB(248 / 256, 23 / 256, 0 / 256),
-                RGB(97 / 256, 169 / 256, 255 / 256),
-                RGB(163 / 256, 0 / 256, 185 / 256),
-                RGB(33 / 256, 96 / 256, 45 / 256),
-                RGB(4 / 256, 0 / 256, 199 / 256),
-                RGB(135 / 256, 88 / 256, 0 / 256),
-            ],
-            cur_colors,
-        )
-    else
-        use_set == 2
-        cur_colors = get_color_palette(:auto, 1)
-        cur_colors3 = get_color_palette(:lightrainbow, 1)
-        cur_colors2 = get_color_palette(:cyclic1, 1)
-        if min_dim == 0
-            # colors_set =  [cur_colors[3], cur_colors[5], [:red], cur_colors[1]] #cur_colors[7],
-            colors_set = [cur_colors3[3], cur_colors[5], cur_colors3[end], cur_colors[1]] #cur_colors[7],
-        else
-            colors_set = [cur_colors[5], cur_colors3[end], cur_colors[1]] #cur_colors[7],
-            # colors_set =  [cur_colors[5], [:red], cur_colors[1], cur_colors[14]]
-        end
-        # for c =  [collect(11:25);]
-        #     push!(colors_set, cur_colors2[c])
-        # end
-        colors_set = vcat(colors_set, [cur_colors2[c] for c in [collect(11:25);]])
-    end
-
-    return colors_set
-end
+# function get_bettis_color_palete(; min_dim = 1, use_set::Integer = 1)
+#     """
+#     	function get_bettis_color_palete()
+#
+#     Generates vector with colours used for Betti plots. Designed for Betti plots consistency.
+#     """
+#     # TODO what does the number in the function below is used for?
+#
+#     if use_set == 1
+#         cur_colors = [Gray(bw) for bw = 0.0:0.025:0.5]
+#         if min_dim == 0
+#             colors_set = [RGB(87 / 256, 158 / 256, 0 / 256)]
+#         else
+#             colors_set = RGB[]
+#         end
+#         colors_set = vcat(
+#             colors_set,
+#             [
+#                 RGB(255 / 256, 206 / 256, 0 / 256),
+#                 RGB(248 / 256, 23 / 256, 0 / 256),
+#                 RGB(97 / 256, 169 / 256, 255 / 256),
+#                 RGB(163 / 256, 0 / 256, 185 / 256),
+#                 RGB(33 / 256, 96 / 256, 45 / 256),
+#                 RGB(4 / 256, 0 / 256, 199 / 256),
+#                 RGB(135 / 256, 88 / 256, 0 / 256),
+#             ],
+#             cur_colors,
+#         )
+#     else
+#         use_set == 2
+#         cur_colors = get_color_palette(:auto, 1)
+#         cur_colors3 = get_color_palette(:lightrainbow, 1)
+#         cur_colors2 = get_color_palette(:cyclic1, 1)
+#         if min_dim == 0
+#             # colors_set =  [cur_colors[3], cur_colors[5], [:red], cur_colors[1]] #cur_colors[7],
+#             colors_set = [cur_colors3[3], cur_colors[5], cur_colors3[end], cur_colors[1]] #cur_colors[7],
+#         else
+#             colors_set = [cur_colors[5], cur_colors3[end], cur_colors[1]] #cur_colors[7],
+#             # colors_set =  [cur_colors[5], [:red], cur_colors[1], cur_colors[14]]
+#         end
+#         # for c =  [collect(11:25);]
+#         #     push!(colors_set, cur_colors2[c])
+#         # end
+#         colors_set = vcat(colors_set, [cur_colors2[c] for c in [collect(11:25);]])
+#     end
+#
+#     return colors_set
+# end
 
 function get_birth_death_ratio(barcodes; max_dim::Integer=3)
     # birth_death_raio_π = [[all_barcodes_geom[k][m,2]/all_barcodes_geom[k][m,1] for m= 1:size(all_barcodes_geom[k],1)] for k in 1:max_dim]
