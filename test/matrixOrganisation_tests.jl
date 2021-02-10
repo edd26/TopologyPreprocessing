@@ -101,6 +101,7 @@ end
 
 @testset "MatrixOrganization.jl -> add_random_patch" begin
 	# TODO set seed for add_random_path
+	# TODO Seed has to be set for this test
 	in_vector = [1, 2, 3, 4, 3, 2, 1]
 
 	sqr_matrix0 = [ 1 2 3;
@@ -188,6 +189,7 @@ end
 	t_patches = 1
 	p_size = 4
 	correct_error = 3
+    # TODO change this into test_throws
 	try
 		add_random_patch(sqr_matrix0, patch_size=p_size, total_patches=t_patches)
 	catch err
