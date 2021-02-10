@@ -1,5 +1,7 @@
 using TopologyPreprocessing
 using Test
+import Random
+Random.seed!(1234)
 
 # using MatrixOrganization
 
