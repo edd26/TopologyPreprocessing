@@ -1,3 +1,7 @@
+using Pkg
+
+Pkg.build("GR")
+
 module TopologyPreprocessing
     # include("AverageBettis.jl")
 
@@ -36,7 +40,8 @@ module TopologyPreprocessing
     export get_bettis,
             normalise_bettis,
             get_vectorized_bettis,
-            plot_bettis
+            plot_bettis,
+            get_bettis_color_palete
 
     export get_barcodes,
             plot_barcodes,
