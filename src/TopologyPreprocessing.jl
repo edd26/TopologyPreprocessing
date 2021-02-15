@@ -1,7 +1,3 @@
-using Pkg
-
-Pkg.build("GR")
-
 module TopologyPreprocessing
     # include("AverageBettis.jl")
 
