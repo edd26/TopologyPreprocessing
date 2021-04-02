@@ -53,7 +53,7 @@ Plots = "1.9"
 Ripserer = "0.16"
 StatsBase = "0.33"
 StatsPlots = "0.14"
-VideoIO = "0.8"
+VideoIO = "0.8, 0.9"
 julia = "1"
 
 [extras]
