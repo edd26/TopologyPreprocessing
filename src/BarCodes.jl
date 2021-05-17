@@ -59,9 +59,11 @@ function plot_barcodes(barcodes::Vector;
     	- size::Tuple{T, T} where {T::Number}
     	- lw::Integer or linewidth:Integer
     (for more, see plots documentation):
-    TODO: min_dim is not included in all_dims variable
-    TODO: add change of x label based on x values- so it is either edge density for 0:1 range values or Filtration step otherwise
     """
+    # TODO min_dim is not included in all_dims variable
+    # TODO add change of x label based on x values- so it is either edge density for 0:1 range values or Filtration step otherwise
+    # TODO add ordering of bars to firstly birth time, then death time
+
     # barcodes = all_barcodes_geom
     max_dim = size(barcodes, 1)
     all_dims = 1:max_dim
@@ -88,19 +90,27 @@ function plot_barcodes(barcodes::Vector;
     y_val_ranges = [ranges_sums[k]+1:ranges_sums[k+1] for k = 1:max_dim]
 
     # for p = min_dim:(max_dim) #TODO ths can not be starting from min_dim, because it may be 0
-    for p = 1:(max_dim) #TODO ths can not be starting from min_dim, because it may be 0
+    for (p, dim) = enumerate(min_dim:max_dim)# 1:(max_dim) #TODO ths can not be starting from min_dim, because it may be 0
         args = (lc = colors_set[p], linewidth = lw)
 
         b = barcodes[p][1:1:(end-1),:]
+
+        if dim==0
+            b = sort(b, dims=1)
+        end
+
+
+
         total_bars = size(b,1)
         y_vals = [[k, k] for k in y_val_ranges[p]]
         lc = colors_set[p]
         for k = 1:total_bars
-            plot!(b[k,:], y_vals[k]; label=false, lc=lc)#; args...)
+            # TODO change label to empty one
+            plot!(b[k,:], y_vals[k]; label="", lc=lc)#; args...)
         end
-        # if betti_labels
-        #     label = "β$(all_dims[p])"
-        # end
+        if false && betti_labels
+            label = "β$(dim)"
+        end
         # plot!(label=label)
     end
 
