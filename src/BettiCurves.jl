@@ -121,6 +121,7 @@ end
 #%%
 function plot_bettis(bettis::Vector;
                         min_dim::Integer = 1,
+                        use_edge_density::Bool=true,
                         betti_labels::Bool = true,
                         default_labels::Bool = true,
                         kwargs...)#; plot_size = (width=1200, height=800),
@@ -158,10 +159,20 @@ function plot_bettis(bettis::Vector;
         lw = 2
     end
 
+    # Create iterator for all loops
+    all_iterations = 1:(max_dim) #TODO ths can not be starting from min_dim, because it may be 0
+
+    if use_edge_density
+        for p = all_iterations
+            max_step = findmax(bettis[p][:, 1])[1]
+            bettis[p][:, 1] ./= max_step
+        end
+    end
+
     colors_set = get_bettis_color_palete(min_dim=min_dim)
     plot_ref = plot(; kwargs...)
     # for p = min_dim:(max_dim) #TODO ths can not be starting from min_dim, because it may be 0
-    for p = 1:(max_dim) #TODO ths can not be starting from min_dim, because it may be 0
+    for p = all_iterations
         args = (lc = colors_set[p], linewidth = lw)
         if betti_labels
             args = (args..., label = "β$(all_dims[p])")
@@ -189,11 +200,22 @@ function plot_bettis(bettis::Vector;
         ylabel!("Number of cycles")
     end
 
+    # set tlims to integer values
+    max_ylim = findmax(ceil.(Int, ylims(plot_ref)))[1]
+    if max_ylim <=3
+        ylims!((0, 3))
+    end
+
+    if use_edge_density
+        xlims!((0, 1))
+    end
+
     return plot_ref
 end
 
 function plot_bettis(bettis::Array;
                         min_dim::Integer = 1,
+                        use_edge_density::Bool=true,
                         betti_labels::Bool = true,
                         default_labels::Bool = true,
                         normalised=true,
@@ -239,6 +261,13 @@ function plot_bettis(bettis::Array;
         lw = 2
     end
 
+    if use_edge_density
+        for p = 1:(max_dim) #TODO ths can not be starting from min_dim, because it may be 0
+            max_step = findmax(bettis[p][:, 1])[1]
+            bettis[p][:, 1] ./=max_step
+        end
+    end
+
     colors_set = get_bettis_color_palete(min_dim=min_dim)
     plot_ref = plot(; kwargs...)
     # for p = min_dim:(max_dim) #TODO ths can not be starting from min_dim, because it may be 0
@@ -268,6 +297,16 @@ function plot_bettis(bettis::Array;
         ylabel!(kwargs[y_pos])
     elseif default_labels
         ylabel!("Number of cycles")
+    end
+
+    # set tlims to integer values
+    max_ylim = findmax(ceil.(Int, ylims(plot_ref)))[1]
+    if max_ylim <=3
+        ylims!((0, 3))
+    end
+
+    if use_edge_density
+        xlims!((0, 1))
     end
 
     return plot_ref
