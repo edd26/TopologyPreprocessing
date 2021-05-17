@@ -4,7 +4,6 @@ module TopologyPreprocessing
     # include("DirOperations.jl")
     # include("GeometricSampling.jl")
     # include("GifGenerator.jl")
-    # include("ImageProcessing.jl")
     #
     #
     # include("MatrixToolbox.jl")
@@ -52,5 +51,6 @@ module TopologyPreprocessing
     include("MatrixOrganization.jl")
     include("BettiCurves.jl")
     include("BarCodes.jl")
+    include("ImageProcessing.jl")
 
 end # module
