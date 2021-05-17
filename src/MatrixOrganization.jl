@@ -89,8 +89,10 @@ function organize_shuff_matrix(input_matrix; do_plots=false)
 									plt_title = "unscrambled_matrix, size:$(matrix_size)",
 									color_palete=:lightrainbow)
 		display(reorganized_plt_ref)
+		return unscrambled_matrix, reorganized_plt_ref
+	else
+		return unscrambled_matrix
 	end
-	return unscrambled_matrix, reorganized_plt_ref
 end
 
 
@@ -147,8 +149,10 @@ function order_max_vals_near_diagonal(input_matrix; do_plots=false, direction=:d
 									plt_title = "reordered_matrix, size:$(matrix_size)",
 									color_palete=:lightrainbow)
 		display(reorganized_plt_ref)
+		return reordered_matrix, reorganized_plt_ref
+	else
+		return reordered_matrix
 	end
-	return reordered_matrix, reorganized_plt_ref
 end
 
 
