@@ -123,22 +123,6 @@ end
 # end
 
 
-# TODO remove it from here
-function plot_betti_numbers(betti_numbers, edge_density, title="Geometric  matrix"; stop=0.6)
-    """
-    Plots Betti curves. The betti numbers should be obtained with the clique-top
-    library.
-    """
-    p1 = plot(edge_density, betti_numbers[:,1], label="beta_0", title=title, legend=:topleft) #, ylims = (0,maxy)
-    plot!(edge_density, betti_numbers[:,2], label="beta_1")
-    if size(betti_numbers,2)>2
-        plot!(edge_density, betti_numbers[:,3], label="beta_2")
-    end
-
-    return p1
-end
-
-
 # function save_matrix_to_file(matrix, filename)
 #     """
 #     Saves given @matrix to the csv file with the name @filename. If there is no path
