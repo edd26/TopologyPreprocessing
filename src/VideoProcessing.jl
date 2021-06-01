@@ -1,13 +1,13 @@
 # import Makie
 import VideoIO
- using StatsBase
- using Images
- using ImageFeatures
-  # using TestImages
- using ImageDraw
- using CoordinateTransformations
- # using Makie
- using Logging
+using StatsBase
+using Images
+using ImageFeatures
+# using TestImages
+# using ImageDraw
+using CoordinateTransformations
+# using Makie
+# using Logging
 
 export get_video_array_from_file,
         get_video_dimension,

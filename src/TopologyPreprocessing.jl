@@ -11,19 +11,20 @@ module TopologyPreprocessing
     # include("SavingFigures.jl")
     # include("VideoProcessing.jl")
 
+    # MatrixOrganization.jl
     export matrix_poling,
             subsample_matrix,
             add_random_patch
 
+    # MatrixProcessing.jl
     export shift_to_non_negative,
             normalize_to_01,
             diagonal_symmetrize,
             group_distances,
             generate_indices,
             reduce_arrs_to_min_len,
-            reduce_arrs_to_max_len
-
-    export get_ordered_matrix,
+            increase_arrs_to_max_len,
+            get_ordered_matrix,
             group_distances,
             generate_indices,
             arr_to_vec,
@@ -31,12 +32,14 @@ module TopologyPreprocessing
             sort_index_by_values,
             set_values!
 
+    # BettiCurves.jl
     export get_bettis,
             normalise_bettis,
             get_vectorized_bettis,
             plot_bettis,
             get_bettis_color_palete
 
+    # BarCodes.jl
     export get_barcodes,
             plot_barcodes,
             get_birth_death_ratio,
@@ -46,10 +49,14 @@ module TopologyPreprocessing
             boxplot_lifetime,
             get_barcode_max_db_ratios
 
-    include("MatrixProcessing.jl")
+
+
+
     include("MatrixOrganization.jl")
+    include("MatrixProcessing.jl")
     include("BettiCurves.jl")
     include("BarCodes.jl")
+
     include("ImageProcessing.jl")
     include("PointsSubstitution.jl")
 

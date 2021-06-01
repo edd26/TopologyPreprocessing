@@ -7,10 +7,10 @@
 # TODO Check if the threshold of values is applied here and if it has some
 # 		consequence on results
 using Eirene
-	using Random
+using Random
 
 	#include("MatrixProcessing.jl")
-	include("MatrixToolbox.jl")
+include("MatrixToolbox.jl")
 	# include("BettiCurves.jl")
 	# include("PlottingWrappers.jl")
 
