@@ -1,17 +1,16 @@
+using Plots
+using LinearAlgebra
+using Images
+using ImageFiltering
+using Random
 # new_component
 # using Eirene
-using DelimitedFiles
- 	using Plots
-    using LinearAlgebra
-    using Images
-    using Distances
-    using Images
-		using ImageFiltering
-    using JLD
-	using Random
+# using DelimitedFiles
+# using Distances
+# using JLD
 
-    include("PlottingWrappers.jl")
-	include("PointsSubstitution.jl")
+include("PlottingWrappers.jl")
+include("PointsSubstitution.jl")
 
 function expand_matrix(input_matrix, expansion_size, last_components;do_plot=false)
 	"""
@@ -29,6 +28,7 @@ function expand_matrix(input_matrix, expansion_size, last_components;do_plot=fal
 		input_matrix, new_comp = add_step_to_matrix(input_matrix, new_comp)
 	end
 	if do_plot
+# TODO separate plotting from processing
 		expand_plt_ref = plot_square_heatmap(input_matrix, 1,size(input_matrix,1);
 											plt_title = "Original, size:$(matrix_size)",
 											color_palete=:lightrainbow)
@@ -57,6 +57,7 @@ function shuffle_matrix(input_matrix, shuffles; do_plot=false)
 	end
 
 	if do_plot
+# TODO separate plotting from processing
 		shuff_plt_ref = plot_square_heatmap(shuffled_ord_mat, 1,size(shuffled_ord_mat,1);
 											plt_title = "Shuffled, size:$(matrix_size)",
 											color_palete=:lightrainbow)
@@ -85,6 +86,7 @@ function organize_shuff_matrix(input_matrix; do_plots=false)
 		# skip 1 row and work on next one
 	end
 	if do_plots
+# TODO separate plotting from processing
 		reorganized_plt_ref = plot_square_heatmap(unscrambled_matrix, 1,size(unscrambled_matrix,1);
 									plt_title = "unscrambled_matrix, size:$(matrix_size)",
 									color_palete=:lightrainbow)
@@ -145,6 +147,7 @@ function order_max_vals_near_diagonal(input_matrix; do_plots=false, direction=:d
 
 
 	if do_plots
+# TODO separate plotting from processing
 		reorganized_plt_ref = plot_square_heatmap(reordered_matrix, 1,size(reordered_matrix,1);
 									plt_title = "reordered_matrix, size:$(matrix_size)",
 									color_palete=:lightrainbow)
@@ -190,6 +193,7 @@ function fine_tune_matrix(input_matrix; do_plots=false)#, direction=:descending)
 
 
 	if do_plots
+# TODO separate plotting from processing
 		fine_tuned_plt_ref = plot_square_heatmap(fine_tune_matrix, 1,size(reordered_matrix,1);
 										plt_title = "fine_tuned, size:$(matrix_size)",
 										color_palete=:lightrainbow)
@@ -198,6 +202,7 @@ function fine_tune_matrix(input_matrix; do_plots=false)#, direction=:descending)
 	return fine_tune_matrix, fine_tuned_plt_ref
 end
 
+# TODO separate plotting from processing
 function order_max_vals_by_row_avg(input_matrix; do_plots=false)
 	# Find max values next to the diagonal
 	matrix_size = size(input_matrix,1)
@@ -223,10 +228,12 @@ function order_max_vals_by_row_avg(input_matrix; do_plots=false)
 		swap_rows!(sorted_matrix, k, max_ind)
 		# swap_rows!(sorted_matrix, k-1, max_ind-1)
 	end
+# TODO separate plotting from processing
 	reorganized_plt_ref = plot_square_heatmap(sorted_matrix, 1,size(reordered_matrix,1);
 							plt_title = "reordered_matrix, size:$(matrix_size)",
 							color_palete=:lightrainbow)
 
+# TODO separate plotting from processing
 		input_mat_plt_ref = plot_square_heatmap(input_matrix, 1,size(reordered_matrix,1);
 									plt_title = "input_matrix, size:$(matrix_size)",
 									color_palete=:lightrainbow)
@@ -254,6 +261,7 @@ function order_max_vals_by_row_avg(input_matrix; do_plots=false)
 
 
 	if do_plots
+# TODO separate plotting from processing
 		reorganized_plt_ref = plot_square_heatmap(sorted_matrix, 1,size(reordered_matrix,1);
 									plt_title = "reordered_matrix, size:$(matrix_size)",
 									color_palete=:lightrainbow)
@@ -272,6 +280,7 @@ function order_max_vals_near_diagonal2(input_matrix; do_final_plot=false, do_all
 	# for every row in matrix
 	for k = 1:2:matrix_size-1
 		# global reordered_matrix
+# TODO separate plotting from processing
 		reorganized_plt_ref_pt0 = plot_square_heatmap(reordered_matrix, 1,size(reordered_matrix,1);
 								plt_title = "reordered_matrix, size:$(matrix_size)",
 								color_palete=:lightrainbow)
@@ -281,6 +290,7 @@ function order_max_vals_near_diagonal2(input_matrix; do_final_plot=false, do_all
 		target_row = max_ind[1]+k-1
 
 		reordered_matrix = swap_rows(reordered_matrix, k, target_row)
+# TODO separate plotting from processing
 		reorganized_plt_ref_pt1 = plot_square_heatmap(reordered_matrix, 1,size(reordered_matrix,1);
 									plt_title = "reordered_matrix, size:$(matrix_size)",
 									color_palete=:lightrainbow)
@@ -291,6 +301,7 @@ function order_max_vals_near_diagonal2(input_matrix; do_final_plot=false, do_all
 		#
 		#
 		if do_all_plots
+# TODO separate plotting from processing
 			reorganized_plt_ref_pt2 = plot_square_heatmap(reordered_matrix, 1,size(reordered_matrix,1);
 										plt_title = "reordered_matrix, size:$(matrix_size)",
 										color_palete=:lightrainbow)
@@ -299,6 +310,7 @@ function order_max_vals_near_diagonal2(input_matrix; do_final_plot=false, do_all
 		end
 	end
 	if do_final_plot
+# TODO separate plotting from processing
 		reorganized_plt_ref = plot_square_heatmap(reordered_matrix, 1,size(reordered_matrix,1);
 									plt_title = "reordered_matrix, size:$(matrix_size)",
 									color_palete=:lightrainbow)
