@@ -29,7 +29,7 @@ function generate_geometric_matrix(random_points)
     @random_points matrix.
     """
 
-    geometric_matrix = pairwise(Euclidean(), random_points, dims=2)
+    geometric_matrix = Distances.pairwise(Euclidean(), random_points, dims=2)
     return geometric_matrix
 end
 
