@@ -10,7 +10,7 @@ export generate_random_point_cloud,
         generate_random_matrix,
         generate_matrix_ordering,
         # generate_set_of_graphs,
-        plot_betti_numbers,
+        # plot_betti_numbers,
         # save_matrix_to_file;
 
 
