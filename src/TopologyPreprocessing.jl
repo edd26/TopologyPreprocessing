@@ -8,7 +8,6 @@ module TopologyPreprocessing
     #
     # include("MatrixToolbox.jl")
     # include("PlottingWrappers.jl")
-    # include("PointsSubstitution.jl")
     # include("SavingFigures.jl")
     # include("VideoProcessing.jl")
 
@@ -52,5 +51,7 @@ module TopologyPreprocessing
     include("BettiCurves.jl")
     include("BarCodes.jl")
     include("ImageProcessing.jl")
+    include("PointsSubstitution.jl")
+
 
 end # module
