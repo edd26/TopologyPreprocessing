@@ -4,14 +4,14 @@ using Random
 # using LightGraphs
 # using DelimitedFiles
 
-export generate_random_point_cloud,
-        generate_geometric_matrix,
-        generate_shuffled_matrix,
-        generate_random_matrix,
-        generate_matrix_ordering,
-        # generate_set_of_graphs,
-        # plot_betti_numbers,
-        # save_matrix_to_file;
+# export generate_random_point_cloud,
+#         generate_geometric_matrix,
+#         generate_shuffled_matrix,
+#         generate_random_matrix,
+#         generate_matrix_ordering,
+#         # generate_set_of_graphs,
+#         # plot_betti_numbers,
+#         # save_matrix_to_file;
 
 
 """
