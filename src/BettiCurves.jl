@@ -4,8 +4,8 @@ using Eirene
 using Plots
 using PlotThemes
 using PlotUtils
-using Dierckx
 using StatsPlots
+# using Dierckx
 
 #%%
 function get_bettis(results_eirene::Dict, max_dim::Integer; min_dim::Int = 1)
@@ -121,6 +121,7 @@ end
 #%%
 function plot_bettis(bettis::Vector;
                         min_dim::Integer = 1,
+                        use_edge_density::Bool=true,
                         betti_labels::Bool = true,
                         default_labels::Bool = true,
                         kwargs...)#; plot_size = (width=1200, height=800),
@@ -158,15 +159,26 @@ function plot_bettis(bettis::Vector;
         lw = 2
     end
 
+    # Create iterator for all loops
+    all_iterations = 1:(max_dim) #TODO ths can not be starting from min_dim, because it may be 0
+
+    if use_edge_density
+        for p = all_iterations
+            max_step = findmax(bettis[p][:, 1])[1]
+            bettis[p][:, 1] ./= max_step
+        end
+    end
+
     colors_set = get_bettis_color_palete(min_dim=min_dim)
     plot_ref = plot(; kwargs...)
     # for p = min_dim:(max_dim) #TODO ths can not be starting from min_dim, because it may be 0
-    for p = 1:(max_dim) #TODO ths can not be starting from min_dim, because it may be 0
-        args = (lc = colors_set[p], linewidth = lw)
+    # for p = all_iterations
+    for (index, p) in enumerate(min_dim:max_dim)
+        args = (lc = colors_set[index], linewidth = lw)
         if betti_labels
-            args = (args..., label = "β$(all_dims[p])")
+            args = (args..., label = "β$(p)")
         end
-        plot!(bettis[p][:, 1], bettis[p][:, 2]; args...)
+        plot!(bettis[index][:, 1], bettis[index][:, 2]; args...)
     end
 
     legend_pos = findfirst(x -> x == :legend, keys(kwargs))
@@ -189,11 +201,22 @@ function plot_bettis(bettis::Vector;
         ylabel!("Number of cycles")
     end
 
+    # set tlims to integer values
+    max_ylim = findmax(ceil.(Int, ylims(plot_ref)))[1]
+    if max_ylim <=3
+        ylims!((0, 3))
+    end
+
+    if use_edge_density
+        xlims!((0, 1))
+    end
+
     return plot_ref
 end
 
 function plot_bettis(bettis::Array;
                         min_dim::Integer = 1,
+                        use_edge_density::Bool=true,
                         betti_labels::Bool = true,
                         default_labels::Bool = true,
                         normalised=true,
@@ -215,7 +238,7 @@ function plot_bettis(bettis::Array;
     TODO: min_dim is not included in all_dims variable
     TODO: add change of x label based on x values- so it is either edge density for 0:1 range values or Filtration step otherwise
     """
-    max_dim = size(bettis, 2)
+    max_dim = size(bettis, 2)-1-min_dim
     all_dims = 1:max_dim
 
     if min_dim > max_dim
@@ -239,15 +262,24 @@ function plot_bettis(bettis::Array;
         lw = 2
     end
 
+    # if use_edge_density
+    #     # for p = 1:(max_dim) #TODO ths can not be starting from min_dim, because it may be 0
+    #     for (index, p) in enumerate(min_dim:max_dim)
+    #         max_step = findmax(bettis[:, 1])[1]
+    #         bettis[p][:, 1] ./=max_step
+    #     end
+    # end
+
     colors_set = get_bettis_color_palete(min_dim=min_dim)
     plot_ref = plot(; kwargs...)
     # for p = min_dim:(max_dim) #TODO ths can not be starting from min_dim, because it may be 0
-    for p = 1:(max_dim) #TODO ths can not be starting from min_dim, because it may be 0
-        args = (lc = colors_set[p], linewidth = lw)
+    # for p = 1:(max_dim) #TODO ths can not be starting from min_dim, because it may be 0
+    for (index, p) in enumerate(min_dim:max_dim)
+        args = (lc = colors_set[index], linewidth = lw)
         if betti_labels
-            args = (args..., label = "β$(all_dims[p])")
+            args = (args..., label = "β$(p)")
         end
-        plot!(x_vals, bettis[:, p]; args...)
+        plot!(x_vals, bettis[:, index]; args...)
     end
 
     legend_pos = findfirst(x -> x == :legend, keys(kwargs))
@@ -268,6 +300,16 @@ function plot_bettis(bettis::Array;
         ylabel!(kwargs[y_pos])
     elseif default_labels
         ylabel!("Number of cycles")
+    end
+
+    # set tlims to integer values
+    max_ylim = findmax(ceil.(Int, ylims(plot_ref)))[1]
+    if max_ylim <=3
+        ylims!((0, 3))
+    end
+
+    if use_edge_density
+        xlims!((0, 1))
     end
 
     return plot_ref
@@ -644,6 +686,7 @@ function get_bettis_from_image(img_name,
     # ==============================================================================
     # ================================ Plot results ================================
 
+# TODO separate plotting from processing
     if plot_heatmaps
 
         full_ordered_matrix = get_ordered_matrix(C_ij; assing_same_values = false)
@@ -1370,3 +1413,17 @@ function multiscale_matrix_testing(sample_space_dims = 3,
         return geom_mat_results
     end
 end
+
+# function plot_betti_numbers(betti_numbers, edge_density, title="Geometric  matrix"; stop=0.6)
+#     """
+#     Plots Betti curves. The betti numbers should be obtained with the clique-top
+#     library.
+#     """
+#     p1 = plot(edge_density, betti_numbers[:,1], label="beta_0", title=title, legend=:topleft) #, ylims = (0,maxy)
+#     plot!(edge_density, betti_numbers[:,2], label="beta_1")
+#     if size(betti_numbers,2)>2
+#         plot!(edge_density, betti_numbers[:,3], label="beta_2")
+#     end
+#
+#     return p1
+# end

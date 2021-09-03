@@ -109,6 +109,7 @@ end
 
 
 @testset "BettiCurves.jl -> plot bettis" begin
+    # TODO remove tests which test Plots.plot function and not plot_bettis functionality
     sample_distance_matrix1 = [0  1  25 4  5  9  13 17;
                                   1  0  2  26 6  10 14 18;
                                   25 2  0  3  7  11 15 19;
@@ -140,10 +141,12 @@ end
 
         @test_throws DomainError plot_bettis(all_bettis, min_dim=max_B_dim+1)
 
-        for dim = min_B_dim:max_B_dim
-            @test p.series_list[dim][:label] == "β$(dim)"
-            @test p.series_list[dim][:x] == all_bettis[dim][:,1]
-            @test p.series_list[dim][:y] == all_bettis[dim][:,2]
+        for (dim_index, dim)= enumerate(min_B_dim:max_B_dim)
+            @test p.series_list[dim_index][:label] == "β$(dim)"
+            if !isnan(all_bettis[dim_index][:,1][1])
+                @test p.series_list[dim_index][:x] == all_bettis[dim_index][:,1]
+                @test p.series_list[dim_index][:y] == all_bettis[dim_index][:,2]
+            end
         end
 
 
@@ -154,18 +157,20 @@ end
 
 
         let p1 = plot_bettis(all_bettis, betti_labels=false)
-            for dim = min_B_dim:max_B_dim
+            for (dim_index, dim)= enumerate(min_B_dim:max_B_dim)
                 @test p1.series_list[dim][:label] == "y$(dim)"
-                @test p1.series_list[dim][:x] == all_bettis[dim][:,1]
-                @test p1.series_list[dim][:y] == all_bettis[dim][:,2]
+                if !isnan(all_bettis[dim_index][:,1][1])
+                    @test p1.series_list[dim][:x] == all_bettis[dim][:,1]
+                    @test p1.series_list[dim][:y] == all_bettis[dim][:,2]
+                end
             end
         end
 
         let lw=4,
             p1 = plot_bettis(all_bettis, betti_labels=true, lw=lw)
-            for dim = min_B_dim:max_B_dim
-                @test p1.series_list[dim][:label] == "β$(dim)"
-                @test p1.series_list[dim][:linewidth] == lw
+            for (dim_index, dim)= enumerate(min_B_dim:max_B_dim)
+                @test p1.series_list[dim_index][:label] == "β$(dim)"
+                @test p1.series_list[dim_index][:linewidth] == lw
             end
         end
 
