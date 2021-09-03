@@ -116,7 +116,8 @@ function get_ordered_matrix(in_matrix::Matrix;
                             force_symmetry::Bool = false,
                             small_dist_grouping::Bool = false,
                             min_dist::Number = 1e-16,
-                            total_dist_groups::Int = 0)
+                            total_dist_groups::Int = 0,
+                            ordering_start::Int=1)
     """
         get_ordered_matrix(in_matrix::Matrix;
                                         assign_same_values::Bool=false,
@@ -201,7 +202,7 @@ function get_ordered_matrix(in_matrix::Matrix;
     # Sort indices vector according to inpu array
     index_sorting = sort_index_by_values(in_matrix, all_ind_collected)
 
-    ordering_number = 0
+    ordering_number = ordering_start
     for k = 1:total_elements
         # global ordering_number
         next_sorted_pos = index_sorting[k]
