@@ -13,7 +13,7 @@ using Eirene
 # ================================
 #  ======== Untested code ========
 
-function get_barcodes(results_eirene::Dict, max_dim::Integer; min_dim::Int = 1)
+function get_barcodes(results_eirene::Dict, max_dim::Integer; min_dim::Int = 1, sorted::Bool=false)
     """
         get_barcodes(results_eirene::Dict, max_dim::Integer; min_dim::Int=1)
 
@@ -33,6 +33,9 @@ function get_barcodes(results_eirene::Dict, max_dim::Integer; min_dim::Int = 1)
         result = barcode(results_eirene, dim = d)
         if isempty(result) && d > 1
             result = zeros(size(barcodes[d-1]))
+        end
+        if sorted
+            result = result[sortperm(result[:,1]),:]
         end
         push!(barcodes, result)
     end
@@ -59,11 +62,14 @@ function plot_barcodes(barcodes::Vector;
     	- size::Tuple{T, T} where {T::Number}
     	- lw::Integer or linewidth:Integer
     (for more, see plots documentation):
-    TODO: min_dim is not included in all_dims variable
-    TODO: add change of x label based on x values- so it is either edge density for 0:1 range values or Filtration step otherwise
     """
+    # TODO min_dim is not included in all_dims variable
+    # TODO add change of x label based on x values- so it is either edge density for 0:1 range values or Filtration step otherwise
+    # TODO add ordering of bars to firstly birth time, then death time
+
     # barcodes = all_barcodes_geom
-    max_dim = size(barcodes, 1)
+    max_dim = size(barcodes, 1) - (1-min_dim) # TODO not sure if this is correct solution
+    dims_indices = 1:length(min_dim:max_dim)
     all_dims = 1:max_dim
 
     if min_dim > max_dim
@@ -83,24 +89,33 @@ function plot_barcodes(barcodes::Vector;
     colors_set = get_bettis_color_palete(min_dim=min_dim)
     plot_ref = plot(; kwargs...)
 
-    all_sizes = [size(barcodes[k],1) for k = 1:max_dim]
-    ranges_sums = vcat(0,[sum(all_sizes[1:k]) for k = 1:max_dim])
-    y_val_ranges = [ranges_sums[k]+1:ranges_sums[k+1] for k = 1:max_dim]
+    all_sizes = [size(barcodes[k],1) for k = dims_indices]
+    ranges_sums = vcat(0,[sum(all_sizes[1:k]) for k = dims_indices])
+    y_val_ranges = [ranges_sums[k]+1:ranges_sums[k+1] for k = dims_indices]
 
     # for p = min_dim:(max_dim) #TODO ths can not be starting from min_dim, because it may be 0
-    for p = 1:(max_dim) #TODO ths can not be starting from min_dim, because it may be 0
+    for (p, dim) = enumerate(min_dim:max_dim)# 1:(max_dim) #TODO ths can not be starting from min_dim, because it may be 0
+        # @info p, dim
         args = (lc = colors_set[p], linewidth = lw)
 
         b = barcodes[p][1:1:(end-1),:]
+
+        if dim==0
+            b = sort(b, dims=1)
+        end
+
+
+
         total_bars = size(b,1)
         y_vals = [[k, k] for k in y_val_ranges[p]]
         lc = colors_set[p]
         for k = 1:total_bars
-            plot!(b[k,:], y_vals[k]; label=false, lc=lc)#; args...)
+            # TODO change label to empty one
+            plot!(b[k,:], y_vals[k]; label="", lc=lc)#; args...)
         end
-        # if betti_labels
-        #     label = "β$(all_dims[p])"
-        # end
+        if false && betti_labels
+            label = "β$(dim)"
+        end
         # plot!(label=label)
     end
 
@@ -336,7 +351,9 @@ function plot_bd_diagram(barcodes; dims=1:length(barcodes), use_js::Bool=false,
     	- size::Tuple{T, T} where {T::Number}
     	- lw::Integer or linewidth:Integer
     (for more, see plots documentation):
+    TODO dims are defined as if the dimensions always starts at 1- this has to be changed
     """
+    # TODO max min should be ready to use from input data- might be better to have better structures as an inupt
     max_dim = size(barcodes, 1)
     min_dim = findmin(dims)[1]
     all_dims = min_dim:max_dim
@@ -369,6 +386,7 @@ function plot_bd_diagram(barcodes; dims=1:length(barcodes), use_js::Bool=false,
         # colors_set[p]
         my_vec = barcodes[p]
 
+        # TODO class size is not a default and basic bd diagram property- should be factored out to other function
         if class_labels != [] && class_sizes != []
             labels = ["class/size $(class_labels[k])/$(class_sizes[class_labels[k]])" for k in 1:size(class_labels,1)]
         elseif  class_sizes == []
@@ -395,10 +413,11 @@ function plot_bd_diagram(barcodes; dims=1:length(barcodes), use_js::Bool=false,
     end
 
     # Add diagonal
-    max_x = findmax(barcodes[dims][:,1])[1]
-    max_y = findmax(barcodes[dims][:,2])[1]
-
-    plot!([0, max_y], [0, max_y])
+    all_births = vcat([barcodes[d][:,1] for d in dims]...)
+    all_deaths = vcat([barcodes[d][:,2] for d in dims]...)
+    max_x = findmax(all_births)[1]
+    max_y = findmax(all_deaths)[1]
+    plot!([0, max_y], [0, max_y], label = "")
 
     return plot_ref
 end
@@ -496,4 +515,95 @@ function plot_all_bd_diagrams(barcodes_collection;
     end
 
     return plot_dict
+end
+
+
+## ===-
+# Simpler plotting
+
+function plot_simple_bd_diagram(barcodes; dims=1:length(barcodes), max_bd=0, use_js::Bool=false,
+                                                kwargs...)
+    """
+    	plot_bd_diagram(barcodes;
+                            dims::Range,
+                            use_js::Bool=false,
+                            kwargs...)
+
+    Creates a birth/death diagram from `barcodes` and returns the handlers to
+    the plots.
+
+    By default, dims is set to range '1:length(barcodes)', which plots all of
+    the diagrams. If set to an integer, plots only 1 dimension.
+
+    If 'use_js' is set to true, plotly backend is used for plotting.
+
+    'kwargs' are plot parameters
+
+    Some of the possible 'kwargs' are:
+    	- title::String
+    	- legend:Bool
+    	- size::Tuple{T, T} where {T::Number}
+    	- lw::Integer or linewidth:Integer
+    (for more, see plots documentation):
+    TODO dims are defined as if the dimensions always starts at 1- this has to be changed
+    """
+    # TODO max min should be ready to use from input data- might be better to have better structures as an inupt
+    max_dim = size(barcodes, 1)
+    min_dim = findmin(dims)[1]
+    all_dims = min_dim:max_dim
+
+    if findmax(dims)[1] > max_dim
+        throw(DomainError(
+            min_dim,
+            "\'dims\' must be less than maximal dimension in \'bettis\'",
+        ))
+    end
+
+    lw_pos = findfirst(x -> x == :lw || x == :linewidth, keys(kwargs))
+    if !isnothing(lw_pos)
+        lw = kwargs[lw_pos]
+    else
+        lw = 2
+    end
+
+    colors_set = TopologyPreprocessing.get_bettis_color_palete(min_dim=1)
+
+    if use_js
+        plotly()
+    else
+        gr()
+    end
+
+    plot_ref = plot(;kwargs...)
+
+    for p in dims
+        # colors_set[p]
+        my_vec = barcodes[p]
+
+        args = (color = colors_set[p],
+                linewidth = lw,
+                aspect_ratio=1,
+                size = (600,600),
+                legend = :bottomright,
+                kwargs...)
+
+        # scatter!(my_vec[:, 1], my_vec[:, 2], args...)
+        plot!(my_vec[:, 1], my_vec[:, 2], seriestype = :scatter; args...)
+    end
+
+    # Add diagonal
+
+    if max_bd>0
+        max_x = max_bd
+        max_y = max_bd
+        plot!([0, max_y], [0, max_y], label = "")
+    else
+        all_births = vcat([barcodes[d][:,1] for d in dims]...)
+        all_deaths = vcat([barcodes[d][:,2] for d in dims]...)
+        max_x = findmax(all_births)[1]
+        max_y = findmax(all_deaths)[1]
+        plot!([0, max_y], [0, max_y], label = "")
+    end
+
+    return plot_ref
 end
