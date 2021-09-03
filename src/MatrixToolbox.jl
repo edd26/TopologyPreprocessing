@@ -1,17 +1,17 @@
 using Distances
-using DataFrames
 using Random
-using LightGraphs
-using DelimitedFiles
+# using DataFrames
+# using LightGraphs
+# using DelimitedFiles
 
-export generate_random_point_cloud,
-        generate_geometric_matrix,
-        generate_shuffled_matrix,
-        generate_random_matrix,
-        generate_matrix_ordering,
-        generate_set_of_graphs,
-        plot_betti_numbers,
-        save_matrix_to_file;
+# export generate_random_point_cloud,
+#         generate_geometric_matrix,
+#         generate_shuffled_matrix,
+#         generate_random_matrix,
+#         generate_matrix_ordering,
+#         # generate_set_of_graphs,
+#         # plot_betti_numbers,
+#         # save_matrix_to_file;
 
 
 """
@@ -29,7 +29,7 @@ function generate_geometric_matrix(random_points)
     @random_points matrix.
     """
 
-    geometric_matrix = pairwise(Euclidean(), random_points, dims=2)
+    geometric_matrix = Distances.pairwise(Euclidean(), random_points, dims=2)
     return geometric_matrix
 end
 
@@ -94,60 +94,44 @@ end
 
 
 
-function generate_set_of_graphs(matrix_size, matrix_ordering)
-    """
-    Returns set of graphs generated from the @matrix_ordering. In every succesive
-    graph, single connection between points is added.
-
-    NOTE: the function does not take the coordinates of the numbered vertices.
-    """
-    vetrices = matrix_size
-    edges = matrix_ordering
-    num_of_edges = size(edges)[2]
-
-    set_of_graphs = [a=Graph(vetrices) for a=1:num_of_edges]
-    edges_counter = zeros(Int, num_of_edges)
-    edge_density =  zeros(num_of_edges)
-
-    k=1
-    for k in range(1,stop=num_of_edges)~
-        add_edge!(set_of_graphs[k], edges[1,k], edges[2,k]);
-        edges_counter[k] = ne(set_of_graphs[k])
-        edge_density[k] = edges_counter[k]/binomial(matrix_size,2)
-
-        if k<num_of_edges # if is used to eliminate copying at last iteration
-            set_of_graphs[k+1] = copy(set_of_graphs[k])
-        end
-    end
-    return set_of_graphs, edge_density
-end
-
-
-# TODO remove it from here
-function plot_betti_numbers(betti_numbers, edge_density, title="Geometric  matrix"; stop=0.6)
-    """
-    Plots Betti curves. The betti numbers should be obtained with the clique-top
-    library.
-    """
-    p1 = plot(edge_density, betti_numbers[:,1], label="beta_0", title=title, legend=:topleft) #, ylims = (0,maxy)
-    plot!(edge_density, betti_numbers[:,2], label="beta_1")
-    if size(betti_numbers,2)>2
-        plot!(edge_density, betti_numbers[:,3], label="beta_2")
-    end
-
-    return p1
-end
+# function generate_set_of_graphs(matrix_size, matrix_ordering)
+#     """
+#     Returns set of graphs generated from the @matrix_ordering. In every succesive
+#     graph, single connection between points is added.
+#
+#     NOTE: the function does not take the coordinates of the numbered vertices.
+#     """
+#     vetrices = matrix_size
+#     edges = matrix_ordering
+#     num_of_edges = size(edges)[2]
+#
+#     set_of_graphs = [a=Graph(vetrices) for a=1:num_of_edges]
+#     edges_counter = zeros(Int, num_of_edges)
+#     edge_density =  zeros(num_of_edges)
+#
+#     k=1
+#     for k in range(1,stop=num_of_edges)~
+#         add_edge!(set_of_graphs[k], edges[1,k], edges[2,k]);
+#         edges_counter[k] = ne(set_of_graphs[k])
+#         edge_density[k] = edges_counter[k]/binomial(matrix_size,2)
+#
+#         if k<num_of_edges # if is used to eliminate copying at last iteration
+#             set_of_graphs[k+1] = copy(set_of_graphs[k])
+#         end
+#     end
+#     return set_of_graphs, edge_density
+# end
 
 
-function save_matrix_to_file(matrix, filename)
-    """
-    Saves given @matrix to the csv file with the name @filename. If there is no path
-    added to the @filename, then file saved is in local folder.
-    """
-    open(filename, "w") do io
-        writedlm(io,  matrix, ',')
-    end
-end
+# function save_matrix_to_file(matrix, filename)
+#     """
+#     Saves given @matrix to the csv file with the name @filename. If there is no path
+#     added to the @filename, then file saved is in local folder.
+#     """
+#     open(filename, "w") do io
+#         writedlm(io,  matrix, ',')
+#     end
+# end
 
 
 # =====
