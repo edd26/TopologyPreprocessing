@@ -1,7 +1,7 @@
 using Plots
 using LinearAlgebra
-using Images
-using ImageFiltering
+# using Images
+# using ImageFiltering
 using Random
 # new_component
 # using Eirene

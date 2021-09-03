@@ -1,6 +1,6 @@
 using Statistics
 using Combinatorics
-using ImageFiltering
+# using ImageFiltering
 
 """
     rotate_img_around_center(img, angle = 5pi/6)

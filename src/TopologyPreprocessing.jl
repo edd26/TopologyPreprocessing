@@ -57,8 +57,8 @@ module TopologyPreprocessing
     include("BettiCurves.jl")
     include("BarCodes.jl")
 
-    include("ImageProcessing.jl")
-    include("PointsSubstitution.jl")
+    # include("ImageProcessing.jl")
+    # include("PointsSubstitution.jl")
 
 
 end # module
