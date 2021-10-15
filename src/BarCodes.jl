@@ -42,11 +42,21 @@ function get_barcodes(results_eirene::Dict, max_dim::Integer; min_dim::Int = 1, 
     return barcodes
 end
 
-
 function plot_barcodes(barcodes::Vector;
+                        kwargs...)
+    plot_ref = plot(; kwargs...)
+    plot_barcodes!(barcodes, plot_ref;
+                        kwargs...)
+
+end
+
+
+function plot_barcodes!(barcodes::Vector, plot_ref;
                         min_dim::Integer = 1,
                         barcodes_labels::Bool = true,
                         default_labels::Bool = true,
+                        sort_by_birth::Bool = false,
+                        alpha::Float64 = 1.,
                         kwargs...)#; plot_size = (width=1200, height=800),
     """
     	plot_barcodes(barcodes; min_dim::Integer=1, betti_labels::Bool=true, default_labels::Bool=true kwargs...)
@@ -63,14 +73,11 @@ function plot_barcodes(barcodes::Vector;
     	- lw::Integer or linewidth:Integer
     (for more, see plots documentation):
     """
-    # TODO min_dim is not included in all_dims variable
     # TODO add change of x label based on x values- so it is either edge density for 0:1 range values or Filtration step otherwise
     # TODO add ordering of bars to firstly birth time, then death time
 
     # barcodes = all_barcodes_geom
     max_dim = size(barcodes, 1) - (1-min_dim) # TODO not sure if this is correct solution
-    dims_indices = 1:length(min_dim:max_dim)
-    all_dims = 1:max_dim
 
     if min_dim > max_dim
         throw(DomainError(
@@ -87,11 +94,15 @@ function plot_barcodes(barcodes::Vector;
     end
 
     colors_set = get_bettis_color_palete(min_dim=min_dim)
-    plot_ref = plot(; kwargs...)
 
+    dims_indices = 1:length(min_dim:max_dim)
     all_sizes = [size(barcodes[k],1) for k = dims_indices]
     ranges_sums = vcat(0,[sum(all_sizes[1:k]) for k = dims_indices])
     y_val_ranges = [ranges_sums[k]+1:ranges_sums[k+1] for k = dims_indices]
+
+    if sort_by_birth
+        sort_barcodes!(barcodes, min_dim, max_dim)
+    end
 
     # for p = min_dim:(max_dim) #TODO ths can not be starting from min_dim, because it may be 0
     for (p, dim) = enumerate(min_dim:max_dim)# 1:(max_dim) #TODO ths can not be starting from min_dim, because it may be 0
@@ -104,14 +115,12 @@ function plot_barcodes(barcodes::Vector;
             b = sort(b, dims=1)
         end
 
-
-
         total_bars = size(b,1)
         y_vals = [[k, k] for k in y_val_ranges[p]]
         lc = colors_set[p]
         for k = 1:total_bars
             # TODO change label to empty one
-            plot!(b[k,:], y_vals[k]; label="", lc=lc)#; args...)
+            plot!(b[k,:], y_vals[k]; label="", lc=lc, alpha=alpha)#; args...)
         end
         if false && betti_labels
             label = "β$(dim)"
@@ -147,6 +156,15 @@ function plot_barcodes(barcodes::Vector;
 end
 
 
+function sort_barcodes!(barcodes, min_dim, max_dim)
+    for (dim_index, dim) = enumerate(min_dim:max_dim)
+        if dim==0
+            sort!(barcodes[dim_index], dims=1)
+        else
+            sort!(barcodes[dim_index], dims=1)
+        end
+    end
+end
 # TODO This has to be imported from other file
 # function get_bettis_color_palete(; min_dim = 1, use_set::Integer = 1)
 #     """
