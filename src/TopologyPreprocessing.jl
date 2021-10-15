@@ -29,7 +29,7 @@ module TopologyPreprocessing
             generate_indices,
             arr_to_vec,
             cartesianInd_to_vec,
-            sort_index_by_values,
+            sort_indices_by_values,
             set_values!
 
     # BettiCurves.jl
@@ -42,6 +42,7 @@ module TopologyPreprocessing
     # BarCodes.jl
     export get_barcodes,
             plot_barcodes,
+            plot_barcodes!,
             get_birth_death_ratio,
             get_barcode_lifetime,
             get_barcode_max_lifetime,
