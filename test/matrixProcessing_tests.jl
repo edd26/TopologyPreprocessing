@@ -181,18 +181,18 @@ end
         vals_matrix1b = [6 5 4; 3 2 1],
         vals_matrix1c = [4 5 6; 1 2 3]
         let index_matrix1a = [CartesianIndex(1,1), CartesianIndex(1,2), CartesianIndex(1,3), CartesianIndex(2,1), CartesianIndex(2,2), CartesianIndex(2,3)]
-            @test length(sort_index_by_values(vals_matrix1a, index_matrix1a)) == length(vals_matrix1a)
-            @test sort_index_by_values(vals_matrix1a, index_matrix1a) == collect(1:6)
+            @test length(sort_indices_by_values(vals_matrix1a, index_matrix1a)) == length(vals_matrix1a)
+            @test sort_indices_by_values(vals_matrix1a, index_matrix1a) == collect(1:6)
 
-            @test length(sort_index_by_values(vals_matrix1b, index_matrix1a)) == length(vals_matrix1b)
-            @test sort_index_by_values(vals_matrix1b, index_matrix1a) == collect(6:-1:1)
+            @test length(sort_indices_by_values(vals_matrix1b, index_matrix1a)) == length(vals_matrix1b)
+            @test sort_indices_by_values(vals_matrix1b, index_matrix1a) == collect(6:-1:1)
 
-            @test length(sort_index_by_values(vals_matrix1c, index_matrix1a)) == length(vals_matrix1c)
-            @test sort_index_by_values(vals_matrix1c, index_matrix1a) == [4, 5, 6, 1, 2, 3]
+            @test length(sort_indices_by_values(vals_matrix1c, index_matrix1a)) == length(vals_matrix1c)
+            @test sort_indices_by_values(vals_matrix1c, index_matrix1a) == [4, 5, 6, 1, 2, 3]
         end
 
         let index_matrix1b = CartesianIndices((2,3))
-            @test_throws TypeError sort_index_by_values(vals_matrix1a, index_matrix1b)
+            @test_throws TypeError sort_indices_by_values(vals_matrix1a, index_matrix1b)
         end
     end
 
@@ -205,12 +205,12 @@ end
                             CartesianIndex(2,1), CartesianIndex(2,2), CartesianIndex(2,3),
                             CartesianIndex(3,1), CartesianIndex(3,2), CartesianIndex(3,3)]
 
-        @test_throws TypeError sort_index_by_values(vals_matrix2, index_matrix2a)
-        @test_throws TypeError sort_index_by_values(vals_matrix2, index_matrix2b)
+        @test_throws TypeError sort_indices_by_values(vals_matrix2, index_matrix2a)
+        @test_throws TypeError sort_indices_by_values(vals_matrix2, index_matrix2b)
 
-        @test sort_index_by_values(vals_matrix2, index_matrix2c) isa Vector
-        @test sort_index_by_values(vals_matrix2, index_matrix2c) == 1:9
-        @test length(sort_index_by_values(vals_matrix2, index_matrix2c)) == length(vals_matrix2)
+        @test sort_indices_by_values(vals_matrix2, index_matrix2c) isa Vector
+        @test sort_indices_by_values(vals_matrix2, index_matrix2c) == 1:9
+        @test length(sort_indices_by_values(vals_matrix2, index_matrix2c)) == length(vals_matrix2)
     end
 
     let vals_matrix3 = [1, 4, 7, 2, 5, 8, 3, 6, 9],
@@ -218,12 +218,12 @@ end
         index_matrix3b = CartesianIndices((9,)),
         index_matrix3c = [1, 4, 7, 2, 5, 8, 3, 6, 9]
 
-        @test_throws TypeError sort_index_by_values(vals_matrix3, index_matrix3a)
-        @test_throws TypeError sort_index_by_values(vals_matrix3, index_matrix3b)
+        @test_throws TypeError sort_indices_by_values(vals_matrix3, index_matrix3a)
+        @test_throws TypeError sort_indices_by_values(vals_matrix3, index_matrix3b)
 
-        @test sort_index_by_values(vals_matrix3, index_matrix3c) isa Vector
-        @test sort_index_by_values(vals_matrix3, index_matrix3c) == 1:9
-        @test length(sort_index_by_values(vals_matrix3, index_matrix3c)) == length(vals_matrix3)
+        @test sort_indices_by_values(vals_matrix3, index_matrix3c) isa Vector
+        @test sort_indices_by_values(vals_matrix3, index_matrix3c) == 1:9
+        @test length(sort_indices_by_values(vals_matrix3, index_matrix3c)) == length(vals_matrix3)
     end
 
     let target_coords1 = CartesianIndex(2,3),

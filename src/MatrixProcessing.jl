@@ -178,7 +178,6 @@ function get_ordered_matrix(in_matrix::Matrix;
     # TODO Symmetry must be forced for matrix in which there are NaN elements- needs
     #   to be further investigated
     # TODO not working for negative only values
-
     # TODO check for square matrix
 
     # ==
@@ -200,7 +199,7 @@ function get_ordered_matrix(in_matrix::Matrix;
     all_ind_collected = arr_to_vec(matrix_indices)
 
     # Sort indices vector according to inpu array
-    index_sorting = sort_index_by_values(in_matrix, all_ind_collected)
+    index_sorting = sort_indices_by_values(in_matrix, all_ind_collected)
 
     ordering_number = ordering_start
     for k = 1:total_elements
@@ -385,9 +384,9 @@ function cartesianInd_to_vec(some_array::CartesianIndices)
 end
 
 
-function sort_index_by_values(values_matrix::T, index_vector) where {T<:VecOrMat}
+function sort_indices_by_values(values_matrix::T, index_vector) where {T<:VecOrMat}
     """
-        sort_index_by_values(values_matrix::T, index_vector) where {T<:VecOrMat}
+        sort_indices_by_values(values_matrix::T, index_vector) where {T<:VecOrMat}
 
     Sorts the 'index_vector' according to corresponding values in the 'values_matrix'
     and returns a Vector of intigers which is an list of ordering of
@@ -395,7 +394,7 @@ function sort_index_by_values(values_matrix::T, index_vector) where {T<:VecOrMat
     """
     if !isa(index_vector, Vector)
         throw(TypeError(
-            :sort_index_by_values,
+            :sort_indices_by_values,
             "\'index_vector\' must be a vector, otherwise an ordering list can no be created!",
             Vector,
             typeof(index_vector),
@@ -430,17 +429,6 @@ end
 # matrix ordering
 # =====
 
-
-
-
-
-
-
-
-
-
-
-
 function get_high_dim_ordered_matrix(input_matrix)
     matrix_size = size(input_matrix)
     ordered_matrix_3D = zeros(Int, matrix_size)
@@ -450,15 +438,6 @@ function get_high_dim_ordered_matrix(input_matrix)
     end
     return ordered_matrix_3D
 end
-
-
-
-
-
-
-
-
-
 
 
 function reduce_arrs_to_min_len(arrs::Array)
