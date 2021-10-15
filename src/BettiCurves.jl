@@ -2,8 +2,8 @@
 #  ======== Tested code ========
 using Eirene
 using Plots
-using PlotThemes
-using PlotUtils
+# using PlotThemes
+# using PlotUtils
 using StatsPlots
 # using Dierckx
 
