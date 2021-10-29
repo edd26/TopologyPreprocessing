@@ -2,10 +2,7 @@
 #  ======== Tested code ========
 using Eirene
 using Plots
-# using PlotThemes
-# using PlotUtils
 using StatsPlots
-# using Dierckx
 
 #%%
 function get_bettis(results_eirene::Dict, max_dim::Integer; min_dim::Int = 1)

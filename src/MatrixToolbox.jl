@@ -1,8 +1,5 @@
 using Distances
 using Random
-# using DataFrames
-# using LightGraphs
-# using DelimitedFiles
 
 # export generate_random_point_cloud,
 #         generate_geometric_matrix,

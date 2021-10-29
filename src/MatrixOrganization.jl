@@ -1,13 +1,6 @@
+using LinearAlgebra,
 using Plots
-using LinearAlgebra
-# using Images
-# using ImageFiltering
 using Random
-# new_component
-# using Eirene
-# using DelimitedFiles
-# using Distances
-# using JLD
 
 include("PlottingWrappers.jl")
 include("PointsSubstitution.jl")

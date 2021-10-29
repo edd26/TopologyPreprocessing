@@ -1,9 +1,5 @@
 using Eirene
-# using Plots
-# using PlotThemes
-# using PlotUtils
-# using Dierckx
-# using StatsPlots
+
 #%%
 # ==============================
 #  ======== Tested code ========
