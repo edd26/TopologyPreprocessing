@@ -5,22 +5,22 @@ using Plots
 using StatsPlots
 
 #%%
+"""
+    get_bettis(results_eirene::Dict, max_dim::Integer; min_dim::Int=1)
+
+Calls Eirene.betticurve for 'dim' in range from `min_dim` up to 'max_dim' and
+stack the resulting Arrays into a vector.
+
+The returned value is a Vector of Arrays{Float64,2}. Each array is of size
+(n,2), where n is the maximal number of steps taken to compute Betti curve of dimensions
+ranging form `min_dim` to `max_dim`. First column of each array contains numbered steps.
+Second column are the Betti curve values for corresponding step.
+
+Arrays in returned vector correspond to Betti curve dimensions form range
+`min_dim` up to 'max_dim'.
+
+"""
 function get_bettis(results_eirene::Dict, max_dim::Integer; min_dim::Int = 1)
-    """
-        get_bettis(results_eirene::Dict, max_dim::Integer; min_dim::Int=1)
-
-    Calls Eirene.betticurve for 'dim' in range from `min_dim` up to 'max_dim' and
-    stack the resulting Arrays into a vector.
-
-    The returned value is a Vector of Arrays{Float64,2}. Each array is of size
-    (n,2), where n is the maximal number of steps taken to compute Betti curve of dimensions
-    ranging form `min_dim` to `max_dim`. First column of each array contains numbered steps.
-    Second column are the Betti curve values for corresponding step.
-
-    Arrays in returned vector correspond to Betti curve dimensions form range
-    `min_dim` up to 'max_dim'.
-
-    """
     bettis = Matrix{Float64}[]
     for d = min_dim:max_dim
         result = betticurve(results_eirene, dim = d)
@@ -34,15 +34,16 @@ end
 # TODO add get_bettis_from_matrix, to wrap C= eirene...; get bettis
 
 #%%
-function normalise_bettis(bettis::Vector)
-    """
-    	normalise_bettis(bettis::Vector)
-        normalise_bettis(bettis::Array)
 
-    Normalise the number of steps for Betti curves. 'bettis' can be either vector of
-    arrays (each array contain Betti curve of different dimension) or an array
-    containing Betti curve of a single dimension.
-    """
+"""
+  normalise_bettis(bettis::Vector)
+    normalise_bettis(bettis::Array)
+
+Normalise the number of steps for Betti curves. 'bettis' can be either vector of
+arrays (each array contain Betti curve of different dimension) or an array
+containing Betti curve of a single dimension.
+"""
+function normalise_bettis(bettis::Vector)
 
     @debug "Vector version"
     norm_bettis = copy(bettis)
@@ -74,19 +75,19 @@ end
 
 #%%
 # function vectorize_bettis(betti_curves::Array{Matrix{Float64,2}})
+"""
+    vectorize_bettis(betti_curves::Matrix{Float64})
+
+Reshapes the 'betti_curves' from type Array{Matrices{Float64,2}} into
+Matrix{Float64}.
+
+The resulting matrix size is (n, k), where 'n' is equal to the number of
+rows in each matrix, 'k' is equal to the number of matrices.
+
+TODO: Change the name- it takse vector and returns a matrix.
+TODO: get bettis could have an arguent betti_type which would determine resulting type
+"""
 function vectorize_bettis(betti_curves::Vector{Array{Float64,2}})
-    """
-        vectorize_bettis(betti_curves::Matrix{Float64})
-
-    Reshapes the 'betti_curves' from type Array{Matrices{Float64,2}} into
-    Matrix{Float64}.
-
-    The resulting matrix size is (n, k), where 'n' is equal to the number of
-    rows in each matrix, 'k' is equal to the number of matrices.
-
-    TODO: Change the name- it takse vector and returns a matrix.
-    TODO: get bettis could have an arguent betti_type which would determine resulting type
-    """
 
     first_betti = 1
     last_betti = size(betti_curves,1)
@@ -98,15 +99,15 @@ end
 
 # ===
 #%%
-function get_vectorized_bettis(results_eirene::Dict, max_dim::Integer; min_dim::Int = 1)
-    """
-    	get_vectorized_bettis(results_eirene::Dict, max_dim::Integer; min_dim::Int=1)
+"""
+  get_vectorized_bettis(results_eirene::Dict, max_dim::Integer; min_dim::Int=1)
 
-    Takes the eirene result and computes Betti curves for dimensions in range
-    'mindim:maxdim'. Every Betti curve is stored in successive column of the
-    resulting array.
-    TODO: this should return a matrix, where first col are indices and rest are B values (1st col is missing now)
-    """
+Takes the eirene result and computes Betti curves for dimensions in range
+'mindim:maxdim'. Every Betti curve is stored in successive column of the
+resulting array.
+TODO: this should return a matrix, where first col are indices and rest are B values (1st col is missing now)
+"""
+function get_vectorized_bettis(results_eirene::Dict, max_dim::Integer; min_dim::Int = 1)
 
     all_bettis = get_bettis(results_eirene, max_dim, min_dim = min_dim)
     bettis_vector = vectorize_bettis(all_bettis)
@@ -116,29 +117,29 @@ end
 
 # ==
 #%%
+"""
+  plot_bettis(bettis; min_dim::Integer=1, betti_labels::Bool=true, default_labels::Bool=true kwargs...)
+
+Creates a plot for set of betti numbers stored in `bettis` and return the
+handler to the plot.
+
+'kwargs' are plot parameters
+
+Some of the possible 'kwargs' are:
+  - title::String
+  - legend:Bool
+  - size::Tuple{T, T} where {T::Number}
+  - lw::Integer or linewidth:Integer
+(for more, see plots documentation):
+TODO: min_dim is not included in all_dims variable
+TODO: add change of x label based on x values- so it is either edge density for 0:1 range values or Filtration step otherwise
+"""
 function plot_bettis(bettis::Vector;
                         min_dim::Integer = 1,
                         use_edge_density::Bool=true,
                         betti_labels::Bool = true,
                         default_labels::Bool = true,
                         kwargs...)#; plot_size = (width=1200, height=800),
-    """
-    	plot_bettis(bettis; min_dim::Integer=1, betti_labels::Bool=true, default_labels::Bool=true kwargs...)
-
-    Creates a plot for set of betti numbers stored in `bettis` and return the
-    handler to the plot.
-
-    'kwargs' are plot parameters
-
-    Some of the possible 'kwargs' are:
-    	- title::String
-    	- legend:Bool
-    	- size::Tuple{T, T} where {T::Number}
-    	- lw::Integer or linewidth:Integer
-    (for more, see plots documentation):
-    TODO: min_dim is not included in all_dims variable
-    TODO: add change of x label based on x values- so it is either edge density for 0:1 range values or Filtration step otherwise
-    """
     max_dim = size(bettis, 1)
     all_dims = 1:max_dim
 
@@ -211,6 +212,23 @@ function plot_bettis(bettis::Vector;
     return plot_ref
 end
 
+"""
+  plot_bettis(bettis::Array; min_dim::Integer=1, betti_labels::Bool=true, default_labels::Bool=true kwargs...)
+
+Creates a plot for set of betti numbers stored in `bettis` and return the
+handler to the plot.
+
+'kwargs' are plot parameters
+
+Some of the possible 'kwargs' are:
+  - title::String
+  - legend:Bool
+  - size::Tuple{T, T} where {T::Number}
+  - lw::Integer or linewidth:Integer
+(for more, see plots documentation):
+TODO: min_dim is not included in all_dims variable
+TODO: add change of x label based on x values- so it is either edge density for 0:1 range values or Filtration step otherwise
+"""
 function plot_bettis(bettis::Array;
                         min_dim::Integer = 1,
                         use_edge_density::Bool=true,
@@ -218,23 +236,6 @@ function plot_bettis(bettis::Array;
                         default_labels::Bool = true,
                         normalised=true,
                         kwargs...)#; plot_size = (width=1200, height=800),
-    """
-    	plot_bettis(bettis::Array; min_dim::Integer=1, betti_labels::Bool=true, default_labels::Bool=true kwargs...)
-
-    Creates a plot for set of betti numbers stored in `bettis` and return the
-    handler to the plot.
-
-    'kwargs' are plot parameters
-
-    Some of the possible 'kwargs' are:
-    	- title::String
-    	- legend:Bool
-    	- size::Tuple{T, T} where {T::Number}
-    	- lw::Integer or linewidth:Integer
-    (for more, see plots documentation):
-    TODO: min_dim is not included in all_dims variable
-    TODO: add change of x label based on x values- so it is either edge density for 0:1 range values or Filtration step otherwise
-    """
     max_dim = size(bettis, 2)-1-min_dim
     all_dims = 1:max_dim
 
@@ -314,15 +315,15 @@ end
 #  ======= Untested code
 # TODO add default kwargs paring function -> parse_kwargs()
 
+"""
+    plot_all_bettis ...
+"""
 function plot_all_bettis(bettis_collection;
                         min_dim::Integer = 1,
                         betti_labels::Bool = true,
                         default_labels::Bool = true,
                         normalised=true,
                         kwargs...)#; plot_size = (width=1200, height=800),
-    """
-    	plot_all_bettis ...
-    """
     total_dims = size(bettis_collection[1],2)
 
     lw_pos = findfirst(x -> x == :lw || x == :linewidth, keys(kwargs))
@@ -377,12 +378,13 @@ function plot_all_bettis(bettis_collection;
 end
 
 
-function find_max_betti(bettis_collection::Array)
-    """
-        find_max_betti(bettis_collection::Array)
 
-    Returns the highest Betti curve value from all dimensions.
-    """
+"""
+    find_max_betti(bettis_collection::Array)
+
+Returns the highest Betti curve value from all dimensions.
+"""
+function find_max_betti(bettis_collection::Array)
     if typeof(bettis_collection) == Vector
         bettis_collection = vectorize_bettis(bettis_collection)
     end
@@ -399,25 +401,26 @@ end
 
 #  ======= Untested code == end
 #%%
+
+"""
+  printready_plot_bettis(kwargs)
+
+Creates a plot using 'plot_bettis' with arguments which were tested to be very
+good for using them in prints. Used arguments are:
+
+"""
 function printready_plot_bettis(kwargs)
-    """
-    	printready_plot_bettis(kwargs)
-
-    Creates a plot using 'plot_bettis' with arguments which were tested to be very
-    good for using them in prints. Used arguments are:
-
-    """
     return nothing
 end
 
 
 #%%
-function get_bettis_color_palete(; min_dim = 1, use_set::Integer = 1)
-    """
-    	function get_bettis_color_palete()
+"""
+  function get_bettis_color_palete()
 
-    Generates vector with colours used for Betti plots. Designed for Betti plots consistency.
-    """
+Generates vector with colours used for Betti plots. Designed for Betti plots consistency.
+"""
+function get_bettis_color_palete(; min_dim = 1, use_set::Integer = 1)
     # TODO what does the number in the function below is used for?
 
     if use_set == 1
@@ -484,6 +487,16 @@ end
 
 
 #%%
+"""
+  plot_bettis_collection(bettis_collection, bett_num; step=1, show_plt=true, R=0., G=0.4, B=1.0)
+
+PLots collection of Betti curves of rank 'bett-num'. Every successive plot has
+lower opacity than predecessor.  'step' defines step between collection elements
+that are ploted. By default, plot is displayed after carteation. This can be
+disabled by setting 'show_plt' to false.
+
+Color of the plot can be set with 'R', 'G', 'B' parameters.
+"""
 function plot_bettis_collection(bettis_collection,
                                 bett_num,
                                 max_rank;
@@ -492,16 +505,6 @@ function plot_bettis_collection(bettis_collection,
                                 R = 0.0,
                                 G = 0.4,
                                 B = 1.0)
-    """
-    	plot_bettis_collection(bettis_collection, bett_num; step=1, show_plt=true, R=0., G=0.4, B=1.0)
-
-    PLots collection of Betti curves of rank 'bett-num'. Every successive plot has
-    lower opacity than predecessor.  'step' defines step between collection elements
-    that are ploted. By default, plot is displayed after carteation. This can be
-    disabled by setting 'show_plt' to false.
-
-    Color of the plot can be set with 'R', 'G', 'B' parameters.
-    """
     step > 0 || error("Steps should be natural number!")
     bettis_total = size(bettis_collection, 1)
     colors_set = zeros(Float64, bettis_total, 4)
@@ -540,12 +543,13 @@ function plot_bettis_collection(bettis_collection,
 end
 
 #%%
-function get_max_bettis(bettis)
-    """
-        get_max_bettis(bettis)
 
-    Returns the maximal bettis of Betti curves for all dimensions.
-    """
+"""
+    get_max_bettis(bettis)
+
+Returns the maximal bettis of Betti curves for all dimensions.
+"""
+function get_max_bettis(bettis)
 
     all_max_bettis = findmax(bettis, dims=1)[1]
 
@@ -568,6 +572,18 @@ end
 
 
 #%%
+"""
+  plot_and_save_bettis(eirene_results, plot_title::String,
+                results_path::String; extension = ".png",
+                data_size::String="", do_save=true,
+                extend_title=true, do_normalise=true, max_dim=3,
+                legend_on=true)
+
+Plot Betti curves from 0 up to `max_dim` using `eirene_results` from Eirene library and
+returns handler for figure. Optionally, if `do_save` is set, saves the figure
+or if `do_normalise` is set, sets the steps range to be normalised to the
+horizontal axis maximal value.
+"""
 function plot_and_save_bettis(bettis,
                                 plot_title::String,
                                 results_path::String;
@@ -579,18 +595,6 @@ function plot_and_save_bettis(bettis,
                                 max_dim = 3,
                                 legend_on = true,
                                 kwargs...)
-    """
-    	plot_and_save_bettis(eirene_results, plot_title::String,
-    								results_path::String; extension = ".png",
-    								data_size::String="", do_save=true,
-    								extend_title=true, do_normalise=true, max_dim=3,
-    								legend_on=true)
-
-    Plot Betti curves from 0 up to `max_dim` using `eirene_results` from Eirene library and
-    returns handler for figure. Optionally, if `do_save` is set, saves the figure
-    or if `do_normalise` is set, sets the steps range to be normalised to the
-    horizontal axis maximal value.
-    """
     bettis = get_bettis(eirene_results, max_dim)
     if do_normalise
         bettis = normalise_bettis(bettis)
@@ -641,13 +645,13 @@ end
 @deprecate get_and_plot_bettis(eirene_results; max_dim = 3, min_dim = 1, plot_title = "", legend_on = false)
 
 #%%
-function lower_ordmat_resolution(ordered_matrix::Array, total_bins::Int)
-    """
-    	lower_ordmat_resolution(ordered_matrix::Array, total_bins::Int)
+"""
+  lower_ordmat_resolution(ordered_matrix::Array, total_bins::Int)
 
-    Takes ordered matrix 'input_matrix' and reduces the resolution of values in the
-    matrix into 'total_bins' bins.
-    """
+Takes ordered matrix 'input_matrix' and reduces the resolution of values in the
+matrix into 'total_bins' bins.
+"""
+function lower_ordmat_resolution(ordered_matrix::Array, total_bins::Int)
     new_ordered_matrix = zeros(size(ordered_matrix))
     max_val = findmax(ordered_matrix)[1]
     min_val = findmin(ordered_matrix)[1]
@@ -669,18 +673,18 @@ end
 
 
 #%%
+"""
+  average_bettis(bettis_matrix; up_factor=8)
+
+Takes the average values of betti curves stored in 'bettis_matrix'.
+
+'bettis_matrix' consist of different simulations(first index of the matrix),
+different ranks (third index of the matrix). Second index of the matrices
+(saples) may vary accross many simulations and for this reason, all betti curves
+are upsampled by a factor of 'upsample_factor' and then the average for every
+dimension is computed.
+"""
 function average_bettis(bettis_matrix::Matrix; up_factor = 8)
-    """
-    	average_bettis(bettis_matrix; up_factor=8)
-
-    Takes the average values of betti curves stored in 'bettis_matrix'.
-
-    'bettis_matrix' consist of different simulations(first index of the matrix),
-    different ranks (third index of the matrix). Second index of the matrices
-    (saples) may vary accross many simulations and for this reason, all betti curves
-    are upsampled by a factor of 'upsample_factor' and then the average for every
-    dimension is computed.
-    """
 
     bettis_matrix_backup = copy(bettis_matrix)
 
@@ -742,15 +746,15 @@ end
 
 
 #%%
+"""
+  upsample_vector(input_vector; upsample_factor::Int=8)
+
+Takes an 'input_vector' and returns a vector which has 'upsample_factor' many
+times more samples. New samples are interpolated with 'spl' function from
+'Dierckx' package.
+
+"""
 function upsample_vector(input_vector; upsample_factor::Int = 8)
-    """
-    	upsample_vector(input_vector; upsample_factor::Int=8)
-
-    Takes an 'input_vector' and returns a vector which has 'upsample_factor' many
-    times more samples. New samples are interpolated with 'spl' function from
-    'Dierckx' package.
-
-    """
     total_orig_samples = size(input_vector, 1) - 1
     total_samples = upsample_factor * total_orig_samples + 1
 
@@ -772,13 +776,13 @@ end
 # From bettis areas
 # Area under Betti curve functions
 #%%
-function get_area_under_betti_curve(betti_curves::Union{Matrix{Float64}, Array{Array{Float64,2}}};do_normalised::Bool=false)
-    """
-        get_area_under_betti_curve(betti_curves, min_dim, max_dim)
+"""
+    get_area_under_betti_curve(betti_curves, min_dim, max_dim)
 
-    Computes the area under Betti curves stored in 'betti_curves', where each row is
-    a Betti curve and each column is a value.
-    """
+Computes the area under Betti curves stored in 'betti_curves', where each row is
+a Betti curve and each column is a value.
+"""
+function get_area_under_betti_curve(betti_curves::Union{Matrix{Float64}, Array{Array{Float64,2}}};do_normalised::Bool=false)
     #TODO check this part
     if size(betti_curves,2) < 2
         bettis_vector = vectorize_bettis(betti_curves)
@@ -800,13 +804,13 @@ end
 
 
 #%%
-function get_dataset_bettis_areas(dataset; min_dim::Integer=1, max_dim::Integer=3, return_matrix::Bool=true)
-    """
-        get_dataset_bettis_areas(dataset; min_dim::Integer=1, max_dim::Integer=3, return_matrix::Bool=true)
+"""
+    get_dataset_bettis_areas(dataset; min_dim::Integer=1, max_dim::Integer=3, return_matrix::Bool=true)
 
-    Computes topology of every matrix in dataset, computes Betti curves for dimensions
-    min_dim up to max_dim and returns vector (or matrix) of areas under Betti curves.
-    """
+Computes topology of every matrix in dataset, computes Betti curves for dimensions
+min_dim up to max_dim and returns vector (or matrix) of areas under Betti curves.
+"""
+function get_dataset_bettis_areas(dataset; min_dim::Integer=1, max_dim::Integer=3, return_matrix::Bool=true)
     areas_vector = Array[]
     for data = dataset
         @info "Computing topology."
@@ -823,12 +827,12 @@ end
 
 
 #%%
-function get_area_boxes(areas_matrix, min_dim::Integer, max_dim::Integer)
-    """
-        get_area_boxes(areas_matrix, min_dim::Integer, max_dim::Integer)
+"""
+    get_area_boxes(areas_matrix, min_dim::Integer, max_dim::Integer)
 
-    Plots the boxplot of area under betti curves.
-    """
+Plots the boxplot of area under betti curves.
+"""
+function get_area_boxes(areas_matrix, min_dim::Integer, max_dim::Integer)
     bplot = StatsPlots.boxplot()
 
     data_colors = get_bettis_color_palete()
