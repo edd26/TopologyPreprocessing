@@ -9,21 +9,21 @@ using Eirene
 # ================================
 #  ======== Untested code ========
 
+"""
+    get_barcodes(results_eirene::Dict, max_dim::Integer; min_dim::Int=1)
+
+Calls Eirene.barcode for 'dim' in range from `min_dim` up to 'max_dim' and
+stack the resulting Arrays into a vector.
+
+The returned value is a Vector of Arrays{Float64,2}. Each array is of
+different size, because of different number of detected cycles. First column
+of each array contains birth step, second column contains death step.
+
+Arrays in returned vector correspond to Betti curve dimensions form range
+`min_dim` up to 'max_dim'.
+
+"""
 function get_barcodes(results_eirene::Dict, max_dim::Integer; min_dim::Int = 1, sorted::Bool=false)
-    """
-        get_barcodes(results_eirene::Dict, max_dim::Integer; min_dim::Int=1)
-
-    Calls Eirene.barcode for 'dim' in range from `min_dim` up to 'max_dim' and
-    stack the resulting Arrays into a vector.
-
-    The returned value is a Vector of Arrays{Float64,2}. Each array is of
-    different size, because of different number of detected cycles. First column
-    of each array contains birth step, second column contains death step.
-
-    Arrays in returned vector correspond to Betti curve dimensions form range
-    `min_dim` up to 'max_dim'.
-
-    """
     barcodes = Matrix{Float64}[]
     for d = min_dim:max_dim
         result = barcode(results_eirene, dim = d)
@@ -47,6 +47,21 @@ function plot_barcodes(barcodes::Vector;
 end
 
 
+"""
+  plot_barcodes(barcodes; min_dim::Integer=1, betti_labels::Bool=true, default_labels::Bool=true kwargs...)
+
+Creates a plot for set of barcodesstored in `barcodes` and return the
+handler to the plot.
+
+'kwargs' are plot parameters
+
+Some of the possible 'kwargs' are:
+  - title::String
+  - legend:Bool
+  - size::Tuple{T, T} where {T::Number}
+  - lw::Integer or linewidth:Integer
+(for more, see plots documentation):
+"""
 function plot_barcodes!(barcodes::Vector, plot_ref;
                         min_dim::Integer = 1,
                         barcodes_labels::Bool = true,
@@ -54,21 +69,6 @@ function plot_barcodes!(barcodes::Vector, plot_ref;
                         sort_by_birth::Bool = false,
                         alpha::Float64 = 1.,
                         kwargs...)#; plot_size = (width=1200, height=800),
-    """
-    	plot_barcodes(barcodes; min_dim::Integer=1, betti_labels::Bool=true, default_labels::Bool=true kwargs...)
-
-    Creates a plot for set of barcodesstored in `barcodes` and return the
-    handler to the plot.
-
-    'kwargs' are plot parameters
-
-    Some of the possible 'kwargs' are:
-    	- title::String
-    	- legend:Bool
-    	- size::Tuple{T, T} where {T::Number}
-    	- lw::Integer or linewidth:Integer
-    (for more, see plots documentation):
-    """
     # TODO add change of x label based on x values- so it is either edge density for 0:1 range values or Filtration step otherwise
     # TODO add ordering of bars to firstly birth time, then death time
 
@@ -223,12 +223,12 @@ function get_barcode_lifetime(barcodes; max_dim::Integer=3)
 end
 
 #%%
-function get_barcode_max_lifetime(lifetimes)
-    """
-        get_barcode_max_lifetime(lifetimes, min_dim, max_dim)
+"""
+    get_barcode_max_lifetime(lifetimes, min_dim, max_dim)
 
-    Returns the maximal life times of barcode for all dimensions.
-    """
+Returns the maximal life times of barcode for all dimensions.
+"""
+function get_barcode_max_lifetime(lifetimes)
     total_lifetimes = length(lifetimes)
     all_max_lifetimes = zeros(total_lifetimes, 1)
 
@@ -240,12 +240,12 @@ function get_barcode_max_lifetime(lifetimes)
 end
 
 
-function boxplot_birth_death(birth_death_ratio_π, min_dim::Integer, max_dim::Integer)
-    """
-        boxplot_birth_death(areas_matrix, min_dim::Integer, max_dim::Integer)
+"""
+    boxplot_birth_death(areas_matrix, min_dim::Integer, max_dim::Integer)
 
-    Plots the boxplot of area under betti curves.
-    """
+Plots the boxplot of area under betti curves.
+"""
+function boxplot_birth_death(birth_death_ratio_π, min_dim::Integer, max_dim::Integer)
     bplot = StatsPlots.boxplot()
 
     data_colors = get_bettis_color_palete()
@@ -259,12 +259,12 @@ function boxplot_birth_death(birth_death_ratio_π, min_dim::Integer, max_dim::In
     return bplot
 end
 
-function boxplot_lifetime(barcode_lifetime, min_dim::Integer, max_dim::Integer)
-    """
-        boxplot_birth_death(areas_matrix, min_dim::Integer, max_dim::Integer)
+"""
+    boxplot_birth_death(areas_matrix, min_dim::Integer, max_dim::Integer)
 
-    Plots the boxplot of area under betti curves.
-    """
+Plots the boxplot of area under betti curves.
+"""
+function boxplot_lifetime(barcode_lifetime, min_dim::Integer, max_dim::Integer)
     bplot = StatsPlots.boxplot()
 
     data_colors = get_bettis_color_palete()
@@ -279,12 +279,12 @@ function boxplot_lifetime(barcode_lifetime, min_dim::Integer, max_dim::Integer)
 end
 
 #%%
-function get_barcode_max_db_ratios(db_ratos)
-    """
-        get_barcode_max_db_ratios(lifetimes, min_dim, max_dim)
+"""
+    get_barcode_max_db_ratios(lifetimes, min_dim, max_dim)
 
-    Returns the maximal life times of barcode for all dimensions.
-    """
+Returns the maximal life times of barcode for all dimensions.
+"""
+function get_barcode_max_db_ratios(db_ratos)
     total_db = length(db_ratos)
     all_max_db = zeros(total_db, 1)
 
@@ -296,16 +296,16 @@ function get_barcode_max_db_ratios(db_ratos)
 end
 
 
+"""
+    get_normalised_barcodes(barcodes::Vector, betti_numbers::Array)
+
+Returns the barcodes which values are within [0,1] range.
+1. get corresponding bettis
+2. get max number of steps
+3. divide all values by total number of steps.
+
+"""
 function get_normalised_barcodes(barcodes, betti_numbers::Array)
-    """
-        get_normalised_barcodes(barcodes::Vector, betti_numbers::Array)
-
-    Returns the barcodes which values are within [0,1] range.
-    1. get corresponding bettis
-    2. get max number of steps
-    3. divide all values by total number of steps.
-
-   """
     if typeof(betti_numbers) == Vector
         total_steps = size(betti_numbers[1],1)
     else
@@ -316,13 +316,13 @@ function get_normalised_barcodes(barcodes, betti_numbers::Array)
 end
 
 
-function get_normalised_barcodes_collection(barcodes_collection, bettis_collection)
-    """
-        get_normalised_barcodes_collection(barcodes_collection, bettis_collection)
+"""
+    get_normalised_barcodes_collection(barcodes_collection, bettis_collection)
 
-    Applies get_normalised_barcodes to the collection of barcodes and corresponding
-    betti curves.
-    """
+Applies get_normalised_barcodes to the collection of barcodes and corresponding
+betti curves.
+"""
+function get_normalised_barcodes_collection(barcodes_collection, bettis_collection)
     if size(barcodes_collection,1) != size(bettis_collection,1)
         throw(BoundsError(barcodes_collection, bettis_collection,
             "Both collections must have same number of elements",
@@ -339,34 +339,34 @@ function get_normalised_barcodes_collection(barcodes_collection, bettis_collecti
 end
 
 
+"""
+  plot_bd_diagram(barcodes;
+                        dims::Range,
+                        use_js::Bool=false,
+                        kwargs...)
+
+Creates a birth/death diagram from `barcodes` and returns the handlers to
+the plots.
+
+By default, dims is set to range '1:length(barcodes)', which plots all of
+the diagrams. If set to an integer, plots only 1 dimension.
+
+If 'use_js' is set to true, plotly backend is used for plotting.
+
+'kwargs' are plot parameters
+
+Some of the possible 'kwargs' are:
+  - title::String
+  - legend:Bool
+  - size::Tuple{T, T} where {T::Number}
+  - lw::Integer or linewidth:Integer
+(for more, see plots documentation):
+TODO dims are defined as if the dimensions always starts at 1- this has to be changed
+"""
 function plot_bd_diagram(barcodes; dims=1:length(barcodes), use_js::Bool=false,
                                                 class_sizes=[],
                                                 class_labels=[],
                                                 kwargs...)
-    """
-    	plot_bd_diagram(barcodes;
-                            dims::Range,
-                            use_js::Bool=false,
-                            kwargs...)
-
-    Creates a birth/death diagram from `barcodes` and returns the handlers to
-    the plots.
-
-    By default, dims is set to range '1:length(barcodes)', which plots all of
-    the diagrams. If set to an integer, plots only 1 dimension.
-
-    If 'use_js' is set to true, plotly backend is used for plotting.
-
-    'kwargs' are plot parameters
-
-    Some of the possible 'kwargs' are:
-    	- title::String
-    	- legend:Bool
-    	- size::Tuple{T, T} where {T::Number}
-    	- lw::Integer or linewidth:Integer
-    (for more, see plots documentation):
-    TODO dims are defined as if the dimensions always starts at 1- this has to be changed
-    """
     # TODO max min should be ready to use from input data- might be better to have better structures as an inupt
     max_dim = size(barcodes, 1)
     min_dim = findmin(dims)[1]
@@ -437,6 +437,28 @@ function plot_bd_diagram(barcodes; dims=1:length(barcodes), use_js::Bool=false,
 end
 
 #%%
+"""
+  plot_all_bd_diagrams(barcodes_collection;
+                        min_dim::Integer=1,
+                        betti_labels::Bool=true,
+                        default_labels::Bool=true,
+                        all_legend=false,
+                        my_alpha=0.12,
+                        aspect_ratio=1,
+                        kwargs...)
+
+Creates a set of birth/death diagrams from `barcodes_collection`
+     and returns a dictionary with the handlers to the plots.
+
+'kwargs' are plot parameters
+
+Some of the possible 'kwargs' are:
+  - title::String
+  - legend:Bool
+  - size::Tuple{T, T} where {T::Number}
+  - lw::Integer or linewidth:Integer
+(for more, see plots documentation):
+"""
 function plot_all_bd_diagrams(barcodes_collection;
                                 min_dim::Integer = 1,
                                 betti_labels::Bool = true,
@@ -447,28 +469,6 @@ function plot_all_bd_diagrams(barcodes_collection;
                                 base_w=600,
                                 base_h=600,
                                 kwargs...)
-    """
-    	plot_all_bd_diagrams(barcodes_collection;
-                            min_dim::Integer=1,
-                            betti_labels::Bool=true,
-                            default_labels::Bool=true,
-                            all_legend=false,
-                            my_alpha=0.12,
-                            aspect_ratio=1,
-                            kwargs...)
-
-    Creates a set of birth/death diagrams from `barcodes_collection`
-         and returns a dictionary with the handlers to the plots.
-
-    'kwargs' are plot parameters
-
-    Some of the possible 'kwargs' are:
-    	- title::String
-    	- legend:Bool
-    	- size::Tuple{T, T} where {T::Number}
-    	- lw::Integer or linewidth:Integer
-    (for more, see plots documentation):
-    """
     total_dims = size(barcodes_collection[1],1)
 
     lw_pos = findfirst(x -> x == :lw || x == :linewidth, keys(kwargs))
@@ -535,32 +535,32 @@ end
 ## ===-
 # Simpler plotting
 
+"""
+  plot_bd_diagram(barcodes;
+                        dims::Range,
+                        use_js::Bool=false,
+                        kwargs...)
+
+Creates a birth/death diagram from `barcodes` and returns the handlers to
+the plots.
+
+By default, dims is set to range '1:length(barcodes)', which plots all of
+the diagrams. If set to an integer, plots only 1 dimension.
+
+If 'use_js' is set to true, plotly backend is used for plotting.
+
+'kwargs' are plot parameters
+
+Some of the possible 'kwargs' are:
+  - title::String
+  - legend:Bool
+  - size::Tuple{T, T} where {T::Number}
+  - lw::Integer or linewidth:Integer
+(for more, see plots documentation):
+TODO dims are defined as if the dimensions always starts at 1- this has to be changed
+"""
 function plot_simple_bd_diagram(barcodes; dims=1:length(barcodes), max_bd=0, use_js::Bool=false,
                                                 kwargs...)
-    """
-    	plot_bd_diagram(barcodes;
-                            dims::Range,
-                            use_js::Bool=false,
-                            kwargs...)
-
-    Creates a birth/death diagram from `barcodes` and returns the handlers to
-    the plots.
-
-    By default, dims is set to range '1:length(barcodes)', which plots all of
-    the diagrams. If set to an integer, plots only 1 dimension.
-
-    If 'use_js' is set to true, plotly backend is used for plotting.
-
-    'kwargs' are plot parameters
-
-    Some of the possible 'kwargs' are:
-    	- title::String
-    	- legend:Bool
-    	- size::Tuple{T, T} where {T::Number}
-    	- lw::Integer or linewidth:Integer
-    (for more, see plots documentation):
-    TODO dims are defined as if the dimensions always starts at 1- this has to be changed
-    """
     # TODO max min should be ready to use from input data- might be better to have better structures as an inupt
     max_dim = size(barcodes, 1)
     min_dim = findmin(dims)[1]
