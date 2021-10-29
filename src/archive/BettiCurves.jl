@@ -635,10 +635,112 @@ end
 #%%
 
 @deprecate bettis_eirene(matr, maxdim; mintime = -Inf, maxtime = Inf, numofsteps = Inf, mindim = 1) get_bettis(results_eirene, max_dim; min_dim = 1)
-@deprecate get_bettis_from_image(img_name, plot_params; file_path = "", plot_heatmaps = true, save_heatmaps = false, plot_betti_figrues = true)
+
+#%%
+function get_bettis_from_image(img_name,
+                                plot_params;
+                                file_path = "",
+                                plot_heatmaps = true,
+                                save_heatmaps = false,
+                                plot_betti_figrues = true)
+    """
+    	function get_bettis_from_image(img_name)
+
+    Computes Betti curves for the image file indicated by @img_name. If the image is
+    	not symmetric, then it is the elements below diagonal are copied over the
+    	elmenents above the diagonal.
+    """
+    file_n = split(img_name, ".")[1]
+    img1_gray = Gray.(load(file_path * img_name))
+    img_size = size(img1_gray)
+
+    C_ij = Float64.(img1_gray)
+
+    if !issymmetric(C_ij)
+        img1_gray = symmetrize_image(img1_gray)
+        C_ij = Float64.(img1_gray)
+    end
+    img_size = size(C_ij, 1)
+    # C_ij =-C_ij
+    # C_ij .+= 1
+
+
+    # ==============================================================================
+    # =============================== Ordered matrix ===============================
+    if size(C_ij, 1) > 80
+        @warn "Running Eirene for big matrix: " img_size
+        @warn "Eirene may have trobules with big matrices/images."
+    end
+
+    ordered_matrix = get_ordered_matrix(C_ij; assing_same_values = false)
+
+
+    # ==============================================================================
+    # ============================ Persistance homology ============================
+    C = eirene(ordered_matrix, maxdim = 3, model = "vr")
+
+
+    # ==============================================================================
+    # ================================ Plot results ================================
+
+# TODO separate plotting from processing
+    if plot_heatmaps
+
+        full_ordered_matrix = get_ordered_matrix(C_ij; assing_same_values = false)
+        heat_map2 = plot_square_heatmap(
+            full_ordered_matrix,
+            10,
+            img_size;
+            plt_title = "Order matrix of $(file_n)",
+            plot_params = plot_params,
+        )
+
+        if save_heatmaps
+            heatm_details = "_heatmap_$(file_n)"
+            savefig(heat_map2, heatmaps_path * "ordering" * heatm_details)
+        end
+    end
+
+    if plot_betti_figrues
+        plot_title = "Betti curves of $(file_n), size=$(img_size) "
+        figure_name = "betti_$(file_n)_n$(img_size)"
+        ref = plot_and_save_bettis(C,
+                                    plot_title,
+                                    figure_path,;
+                                    file_name = figure_name,
+                                    plot_params = plot_params,
+                                    do_save = false,
+                                    extend_title = false,
+                                    do_normalise = false,
+                                    max_dim = 3,
+                                    legend_on = true,
+                                    min_dim = 1)
+    end
+    display(img1_gray)
+    display(heat_map2)
+    display(ref)
+end
+
+# ===============================================
 @deprecate get_bettis_from_image2(img_name;file_path = "",plot_heatmaps = true, save_heatmaps = false, plot_betti_figrues = true) get_bettis_from_image(img_name, plot_params; file_path = "", plot_heatmaps = true, save_heatmaps = false, plot_betti_figrues = true)
+
 @deprecate plot_and_save_bettis2(eirene_results, plot_title::String, results_path::String; file_name = "", extension = ".png", data_size::String = "", do_save = true, extend_title = true, do_normalise = true, min_dim = 0, max_dim = 3, legend_on = true) plot_and_save_bettis(bettis, plot_title::String, results_path::String; file_name = "", extension = ".png", do_save = true, do_normalise = true, min_dim = 0, max_dim = 3, legend_on = true, kwargs...)
-@deprecate get_and_plot_bettis(eirene_results; max_dim = 3, min_dim = 1, plot_title = "", legend_on = false)
+
+#%%
+function get_and_plot_bettis(eirene_results;
+                                max_dim = 3,
+                                min_dim = 1,
+                                plot_title = "",
+                                legend_on = false)
+    bettis = get_bettis(eirene_results, max_dim)
+    norm_bettis = normalise_bettis(bettis)
+    plot_ref =
+        plot_bettis2(norm_bettis, plot_title, legend_on = legend_on, min_dim = min_dim)
+    # display(plot_ref)
+
+    return plot_ref
+end
+
 
 #%%
 function lower_ordmat_resolution(ordered_matrix::Array, total_bins::Int)
@@ -796,7 +898,25 @@ function get_area_under_betti_curve(betti_curves::Union{Matrix{Float64}, Array{A
     return bettis_area
 end
 
-@deprecate get_area_under_betti_curve(C, min_dim, max_dim)
+# function get_area_under_betti_curve(C, min_dim, max_dim)
+#     """
+#         get_area_under_betti_curve(C, min_dim, max_dim)
+#
+#     Computes the Betti curves and returns their area under curve.
+#     """
+#     all_bettis = get_bettis(C,max_dim, min_dim=min_dim)
+#     bettis_vector = hcat([all_bettis[k][:,2] for k=min_dim:max_dim]...)
+#     # @info sum(bettis_vector, dims=1)
+#
+#
+#     total_steps = size(bettis_vector,1)
+#
+#     bettis_area = sum(bettis_vector, dims=1) ./ total_steps
+#     # @info bettis_area
+#     return bettis_area
+# end
+
+
 
 
 #%%
@@ -819,6 +939,45 @@ function get_dataset_bettis_areas(dataset; min_dim::Integer=1, max_dim::Integer=
     else
         return areas_vector
     end
+end
+
+# struct TopologyData
+#     min_dim::Integer
+#     max_dim::Integer
+#
+#     do_normalise::Bool=true
+#
+#     betti_curves
+#     normed_bettis
+#     betti_areas::Matrix{Int}
+#
+#     # Constructor for input data
+#     function TopologyData(my_matrix::Matrix, max_dim::Int; min_dim::Int, do_normalise::Bool=true)
+#         min_dim = min_dim
+#         max_dim = max_dim
+#
+#         @info "Computing topology for maxdim =" max_dim
+#         C = eirene(my_matrix, maxdim=max_dim)
+#         betti_curves = get_bettis(C, max_dim, min_dim=min_dim)
+#         normed_bettis = normalise_bettis(betti_curves)
+#         betti_areas = get_area_under_betti_curve(betti_curves; do_normalised=do_normalise)
+#     end
+# end
+
+#%%
+function get_dataset_topology(dataset;
+                              min_dim::Integer=1,
+                              max_dim::Integer=3,
+                              get_curves::Bool=true,
+                              get_areas::Bool=true,
+                              get_persistence_diagrams::Bool=true,
+                              do_normalise::Bool=true)
+    topology_set = TopologyData[]
+    for some_matrix in dataset
+        resulting_topology = TopologyData(some_matrix, max_dim, min_dim=min_dim, do_normalise=do_normalise)
+        push!(topology_set, resulting_topology)
+    end
+    return topology_set
 end
 
 
@@ -854,12 +1013,414 @@ function get_bettis_collection_from_matrices(ordered_matrices_collection; max_di
     return bettis_collection
 end
 
+# =========--=======-========-==========-=======-
+# Code from Points substitution:
+
+# Compute series of betti curves
+# function get_bettis_collection(ordered_matrices_collection; max_B_dim=3)
+#     bettis_collection = Array[]
+#
+#     for matrix = ordered_matrices_collection
+# 		@debug "Computing Bettis..."
+# 		eirene_geom = eirene(matrix,maxdim=max_B_dim,model="vr")
+#
+# 		bettis = reshape_bettis(get_bettis(eirene_geom, max_B_dim))
+# 		push!(bettis_collection, bettis)
+#     end
+#
+#     return bettis_collection
+# end
+#
+# # Plot series of betti curves with their heatmaps
+# function reshape_bettis(bettis)
+# 	bettis_count = size(bettis,1)
+# 	output_betti = zeros(size(bettis[1],1), bettis_count)
+#
+# 	for betti = 1:bettis_count
+# 		output_betti[:,betti] = bettis[betti][:,2]
+# 	end
+# 	return output_betti
+# end
+#
+# function get_ord_mat_collection(matrix_collection)
+# 	mat_size = size(matrix_collection[1],1)
+# 	ordered_mat_coll = [zeros(Int, mat_size,mat_size) for k=1:length(matrix_collection)]
+#
+# 	size(matrix_collection)
+# 	for matrix = 1:length(matrix_collection)
+# 		ordered_mat_coll[matrix] = Int.(get_ordered_matrix(matrix_collection[matrix]))
+# 	end
+# 	return ordered_mat_coll
+# end
+#
+#
+#
+#
+#
+# function print_hmap_with_bettis(ordered_matrices_collection, bettis_collection,
+# 														plot_data::PlottingData)
+# 	num_plots = size(ordered_matrices_collection,1)
+# 	sources = 1:(plot_data.src_pts_number)
+# 	targets = 1:(plot_data.trgt_pts_number)
+# 	plot_set = Any[]
+#
+#     max_betti = get_max_betti_from_collection(bettis_collection;dim=1)
+#
+# 	index = 1
+# 	for src = 1:size(sources,1), trgt = 1:size(targets,1)
+#         # index = src * trgt
+#         ordered_geom_gr = ordered_matrices_collection[index]
+#         bettis = bettis_collection[index]
+#         title_hmap = "trgt:$(targets[trgt])_src:$(sources[src])_r:$(rank(ordered_geom_gr))"
+#         title_bettis = "gr_trg=$(targets[trgt])_src=$(sources[src])_steps=$(size(bettis,1))"
+#         push!(plot_set, make_hm_and_betti_plot(ordered_geom_gr, bettis, title_hmap, title_bettis, max_betti))
+# 		index +=1
+# 	end
+#
+# 	return plot_set
+# end
+#
+# function make_hm_and_betti_plot(ordered_geom_gr, bettis, title_hmap, title_bettis, max_betti)
+#     # @debug "src" src
+#     # @debug "trgt" trgt
+#     hmap_plot = plot_square_heatmap(ordered_geom_gr, 10,size(ordered_geom_gr,1);plt_title = title_hmap)
+#     plot!(yflip = true,)
+#
+#     bettis_plot_ref = plot(title=title_bettis);
+#     max_dim = size(bettis,2)
+#     for p = 1:max_dim
+#         x_vals = collect(1:size(bettis[:,1],1))./size(bettis[:,1])
+#
+#         plot!(x_vals, bettis[:,p], label="\\beta_"*string(p));
+#         plot!(legend=true, )
+#     end
+#
+#     plot!(ylim=(0,max_betti))
+# 	plot!(xlim=(0,1))
+#     ylabel!("Number of cycles")
+#     xlabel!("Steps")
+#
+#     final_plot = plot(hmap_plot, bettis_plot_ref, layout = 2,
+# 						top_margin=2mm,
+# 						left_margin=0mm,
+# 						bottom_margin=2mm,
+# 						size=(600,300))
+#     display(final_plot)
+#     return final_plot
+# end
+#
+# # TODO BUG: substitution does not work- all the plots are the same
+# function main_generation1()
+#     mat_size = 6
+#     dim = 80
+#     src_pts_number = 1
+#     trgt_pts_number = 2
+#     trgt_steps = 0
+#
+#     src_points, trgt_points =
+#     	get_replacing_points(mat_size, src_pts_number, trgt_pts_number)
+#
+#     matrix_collection =
+#     	get_matrix_collection(mat_size, dim, src_points, trgt_points; trgt_step=trgt_steps)
+#
+#     ordered_matrices_collection = get_ord_mat_collection(matrix_collection)
+#
+#     bettis_collection = get_bettis_collection(ordered_matrices_collection)
+#
+#
+#     plot_data = PlottingData(mat_size, dim, src_pts_number, trgt_pts_number, src_points, trgt_points, trgt_steps)
+#     # plot_data = PlottingData2(mat_size , dim, )
+#
+#     plotting_data = print_hmap_with_bettis(ordered_matrices_collection,
+# 													bettis_collection, plot_data)
+# end
+#
+#
+# function get_geom_matrix(mat_size, dim)
+# 	# TODO change the matrix collection shape to be a matrix, not a vector
+#     point_cloud = generate_random_point_cloud(mat_size, dim)
+#     matrix_collection = generate_geometric_matrix(point_cloud)
+#     # matrix_collection = get_ordered_matrix(matrix_collection; assing_same_values=true)
+#
+#     return matrix_collection
+# end
+#
+# function get_rand_matrix(mat_size, dim)
+#     matrix_collection = generate_random_matrix(mat_size)
+#     matrix_collection = get_ordered_matrix(matrix_collection; assing_same_values=true)
+#
+#     return matrix_collection
+# end
+#
+# # TODO Analyse zero point behaviour
+# function get_dist_mat_collection(dist_matrix, src_points, trgt_points, trgt_steps; do_ordering=false)
+#     dist_matrix_backup = copy(dist_matrix)
+#     mat_size = size(dist_matrix,1)
+#     src_points_num = size(src_points,1)
+#     trgt_points_num = size(trgt_points,1)
+#     # ordered_mat_coll = [zeros(Int, mat_size,mat_size) for k=1:(src_points_num*trgt_points_num)]
+#     ordered_mat_coll = Array[]
+#
+# 	swapping_iterator = 0
+#
+#     for srcs = 1:src_points_num
+#         # replacement_row = get_row(dist_matrix, src_points[srcs])
+#
+#         for target = 1:trgt_points_num
+#             @debug "src:" src_points[srcs]
+#             @debug "trgt:" trgt_points[target, srcs]
+#             replacement_row = get_row(dist_matrix_backup, src_points[srcs])
+#             # dist_matrix_backup .=
+# 			set_row!(dist_matrix_backup, trgt_points[target, srcs], replacement_row)
+#             # ordered_mat_coll[srcs * target] = copy(dist_matrix_backup)
+# 			if do_ordering
+# 				swap_rows!(dist_matrix_backup, trgt_points[target, srcs], mat_size-swapping_iterator)
+# 				swapping_iterator +=1
+# 			end
+#             push!(ordered_mat_coll, copy(dist_matrix_backup))
+#         end
+#     end
+#
+#     return ordered_mat_coll
+# end
+#
+# function get_ordered_set(distance_matrices_collection)
+# 	result = copy(distance_matrices_collection)
+#
+# 	for matrix = 1:size(distance_matrices_collection,1)
+# 		result[matrix] = get_ordered_matrix(distance_matrices_collection[matrix];assing_same_values=true )
+# 	end
+# 	return result
+# end
+#
+# function matrix_analysis(test_data::PlottingData;generation_function=get_geom_matrix)
+# 	mat_size = test_data.mat_size
+# 	dim = test_data.dim
+# 	src_pts_number = test_data.src_pts_number
+# 	trgt_pts_number = test_data.trgt_pts_number
+# 	trgt_steps = 0
+#
+# 	src_points, trgt_points = get_replacing_points(mat_size, src_pts_number, trgt_pts_number)
+# 	distance_matrix = generation_function(mat_size, dim)
+#
+# 	distance_matrices_collection = get_dist_mat_collection(distance_matrix, src_points, trgt_points, trgt_steps)
+# 	ordered_matrices_collection = get_ordered_set(distance_matrices_collection)
+# 	bettis_collection = get_bettis_collection(ordered_matrices_collection)
+#
+# 	plot_data = PlottingData(mat_size, dim, src_pts_number, trgt_pts_number, src_points, trgt_points, trgt_steps)
+#
+# 	plots_set = print_hmap_with_bettis(ordered_matrices_collection,
+# 												bettis_collection, plot_data)
+#
+#
+# 	return distance_matrices_collection, ordered_matrices_collection, bettis_collection, plot_data, plots_set
+# end
+
 #%%
-@deprecate get_dataset_topology(dataset; min_dim::Integer=1, max_dim::Integer=3, get_curves::Bool=true, get_areas::Bool=true, get_persistence_diagrams::Bool=true, do_normalise::Bool=true)
-@deprecate get_bettis_collection(ordered_matrices_collection; max_B_dim=3)
-@deprecate reshape_bettis(bettis)
-@deprecate print_hmap_with_bettis(ordered_matrices_collection, bettis_collection, plot_data::PlottingData)
-@deprecate make_hm_and_betti_plot(ordered_geom_gr, bettis, title_hmap, title_bettis, max_betti)
-@deprecate matrix_analysis(test_data::PlottingData;generation_function=get_geom_matrix)
-@deprecate multiscale_matrix_testing(sample_space_dims = 3, maxsim = 5, min_B_dim = 1, max_B_dim = 3, size_start = 10, size_step = 5, size_stop = 50; do_random = true, control_saving = false, perform_eavl = false)
-@deprecate plot_betti_numbers(betti_numbers, edge_density, title="Geometric  matrix"; stop=0.6)
+# This does not belong here
+function multiscale_matrix_testing(sample_space_dims = 3,
+                                    maxsim = 5,
+                                    min_B_dim = 1,
+                                    max_B_dim = 3,
+                                    size_start = 10,
+                                    size_step = 5,
+                                    size_stop = 50;
+                                    do_random = true,
+                                    control_saving = false,
+                                    perform_eavl = false)
+    """
+    multiscale_matrix_testing(sample_space_dims = 3,
+    									maxsim=5,
+    									min_B_dim = 1,
+    									max_B_dim = 3,
+    									size_start = 10,
+    									size_step = 5,
+    									size_stop = 80; do_random=true)
+
+    Function for testing the average number of cycles from geometric and random
+    	matrices.
+
+    It is possible to save intermidiate results- for that, @control_saving must be
+    set true.
+
+    Performance of computation of Betti curves can be monitored, if the
+    @perform_eavl is set too true. Bydefault, it is set to false.
+    """
+    num_of_bettis = length(collect(min_B_dim:max_B_dim))
+
+    if length(sample_space_dims) > 1
+        @warn "Can not do random processing for multiple dimensions"
+        do_random = false
+    end
+
+    geom_mat_results = Any[]
+    if do_random
+        rand_mat_results = Any[]
+        result_list = [geom_mat_results, rand_mat_results]
+    else
+        result_list = [geom_mat_results]
+    end
+
+    for sample_space_dim in sample_space_dims
+        if !do_random
+            @info "Sampling space size: " sample_space_dim
+        end
+
+        repetitions = size_start:size_step:size_stop
+        for space_samples in repetitions
+            @info "Generating data for: " space_samples
+            # ==========================================
+            # ============= Generate data ==============
+            # ===
+            # Generate random matrix
+            if do_random
+                symm_mat_rand = [generate_random_matrix(space_samples) for i = 1:maxsim]
+                ordered_mat_rand = [
+                    get_ordered_matrix(symm_mat_rand[i]; assing_same_values = false)
+                    for i = 1:maxsim
+                ]
+            end
+
+            # ===
+            # Generate geometric matrix
+            pts_rand = [
+                generate_random_point_cloud(sample_space_dim, space_samples)
+                for i = 1:maxsim
+            ]
+            symm_mat_geom = [generate_geometric_matrix(pts_rand[i]') for i = 1:maxsim]
+            ordered_mat_geom = [
+                get_ordered_matrix(symm_mat_geom[i]; assign_same_values = false)
+                for i = 1:maxsim
+            ]
+
+            # ======================================================================
+            # ========================= Do the Betti analysis ======================
+            if do_random
+                set = [ordered_mat_geom, ordered_mat_rand]
+            else
+                set = [ordered_mat_geom]
+            end
+            for matrix_set in set
+                @debug("Betti analysis!")
+                # ===
+                # Generate bettis
+                many_bettis = Array[]
+                if perform_eavl
+                    many_timings = Float64[]
+                    many_bytes = Float64[]
+                    many_gctime = Float64[]
+                    many_memallocs = Base.GC_Diff[]
+                end
+
+                for i = 1:maxsim
+                    if i % 10 == 0
+                        @info "Computing Bettis for: " i
+                    end
+
+                    if perform_eavl
+                        results, timing, bytes, gctime, memallocs = @timed bettis_eirene(
+                            matrix_set[i],
+                            max_B_dim,
+                            mindim = min_B_dim,
+                        )
+                        push!(many_bettis, results)
+                        push!(many_timings, timing)
+                        push!(many_bytes, bytes)
+                        push!(many_gctime, gctime)
+                        push!(many_memallocs, memallocs)
+                    else
+                        push!(
+                            many_bettis,
+                            bettis_eirene(matrix_set[i], max_B_dim, mindim = min_B_dim),
+                        )
+                    end
+                end
+
+                # ===
+                # Get maximal number of cycles from each Betti from simulations
+                max_cycles = zeros(maxsim, max_B_dim)
+                for i = 1:maxsim, betti_dim = 1:max_B_dim
+                    @debug("\tFindmax in bettis")
+                    max_cycles[i, betti_dim] = findmax(many_bettis[i][:, betti_dim])[1]
+                end
+
+                # ===
+                # Get the statistics
+                avg_cycles = zeros(1, length(min_B_dim:max_B_dim))
+                std_cycles = zeros(1, length(min_B_dim:max_B_dim))
+                k = 1
+                for betti_dim = min_B_dim:max_B_dim
+                    avg_cycles[k] = mean(max_cycles[:, betti_dim])
+                    std_cycles[k] = std(max_cycles[:, betti_dim])
+                    k += 1
+                end
+
+                # ===
+                # Put results into dictionary
+                betti_statistics = Dict()
+                if matrix_set == ordered_mat_geom
+                    @debug("Saving ordered")
+                    betti_statistics["matrix_type"] = "ordered"
+                    betti_statistics["space_dim"] = sample_space_dim
+                    result_list = geom_mat_results
+                else
+                    @debug("Saving radom")
+                    betti_statistics["matrix_type"] = "random"
+                    result_list = rand_mat_results
+                end
+                betti_statistics["space_samples"] = space_samples
+                betti_statistics["simualtions"] = maxsim
+                betti_statistics["min_betti_dim"] = min_B_dim
+                betti_statistics["max_betti_dim"] = max_B_dim
+                betti_statistics["avg_cycles"] = avg_cycles
+                betti_statistics["std_cycles"] = std_cycles
+
+                if perform_eavl
+                    betti_statistics["many_timings"] = many_timings
+                    betti_statistics["many_bytes"] = many_bytes
+                    betti_statistics["many_gctime"] = many_gctime
+                    betti_statistics["many_memallocs"] = many_memallocs
+                end
+                push!(result_list, betti_statistics)
+            end # matrix type loop
+            @debug("===============")
+            if control_saving
+                if do_random
+                    save(
+                        "multiscale_matrix_testing_$(space_samples)_$(sample_space_dim).jld",
+                        "rand_mat_results",
+                        rand_mat_results,
+                        "geom_mat_results",
+                        geom_mat_results,
+                    )
+                else
+                    save(
+                        "multiscale_matrix_testing_dimension_$(space_samples)_$(sample_space_dim).jld",
+                        "geom_mat_results",
+                        geom_mat_results,
+                    )
+                end
+            end
+        end # matrix_size_loop
+    end # sampled space dimension
+
+    if do_random
+        return geom_mat_results, rand_mat_results
+    else
+        return geom_mat_results
+    end
+end
+
+# function plot_betti_numbers(betti_numbers, edge_density, title="Geometric  matrix"; stop=0.6)
+#     """
+#     Plots Betti curves. The betti numbers should be obtained with the clique-top
+#     library.
+#     """
+#     p1 = plot(edge_density, betti_numbers[:,1], label="beta_0", title=title, legend=:topleft) #, ylims = (0,maxy)
+#     plot!(edge_density, betti_numbers[:,2], label="beta_1")
+#     if size(betti_numbers,2)>2
+#         plot!(edge_density, betti_numbers[:,3], label="beta_2")
+#     end
+#
+#     return p1
+# end
