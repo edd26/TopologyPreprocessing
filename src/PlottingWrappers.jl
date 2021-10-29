@@ -38,20 +38,20 @@ end
 
 
 #%%
+"""
+row_plot(bd_plots::Dict;base_h = 600, base_w = 600, kwargs...)
+
+Plots all the plots from the input dictionary 'bd_plots' in 'layout=(1,n)',
+where 'n' is total number of plots.
+
+By default, the plots dimensions are: the height='base_h'; the
+width= n * base_w.
+"""
 function row_plot(bd_plots::Dict;base_h = 800, base_w = 800,
 					top_margin= 10mm,
 					left_margin=[10mm 10mm],
 					bottom_margin= 10mm,
 					 kwargs...)
-	"""
-		row_plot(bd_plots::Dict;base_h = 600, base_w = 600, kwargs...)
-
-	Plots all the plots from the input dictionary 'bd_plots' in 'layout=(1,n)',
-	where 'n' is total number of plots.
-
-	By default, the plots dimensions are: the height='base_h'; the
-	width= n * base_w.
-	"""
 	total_dims = length(bd_plots)
 	all_keys = keys(bd_plots)
 	all_plts = tuple()
