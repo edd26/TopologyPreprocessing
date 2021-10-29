@@ -56,7 +56,7 @@ module TopologyPreprocessing
     include("MatrixOrganization.jl")
     include("MatrixProcessing.jl")
     include("BettiCurves.jl")
-    include("BarCodes.jl")
+    include("Barcodes.jl")
 
     # include("ImageProcessing.jl")
     # include("PointsSubstitution.jl")

@@ -1,5 +1,7 @@
-using Plots
-using Measures
+import Plots.plot as plot
+import Plots.plot! as plot!
+import Plots.heatmap as heatmap
+import Plots.@layout as @layout
 
 # include("TopologyStructures.jl")
 

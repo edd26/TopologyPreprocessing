@@ -639,10 +639,10 @@ end
 #%%
 
 @deprecate bettis_eirene(matr, maxdim; mintime = -Inf, maxtime = Inf, numofsteps = Inf, mindim = 1) get_bettis(results_eirene, max_dim; min_dim = 1)
-@deprecate get_bettis_from_image(img_name, plot_params; file_path = "", plot_heatmaps = true, save_heatmaps = false, plot_betti_figrues = true)
+@deprecate get_bettis_from_image(img_name, plot_params; file_path = "", plot_heatmaps = true, save_heatmaps = false, plot_betti_figrues = true) get_bettis(results_eirene, max_dim; min_dim = 1)
 @deprecate get_bettis_from_image2(img_name;file_path = "",plot_heatmaps = true, save_heatmaps = false, plot_betti_figrues = true) get_bettis_from_image(img_name, plot_params; file_path = "", plot_heatmaps = true, save_heatmaps = false, plot_betti_figrues = true)
 @deprecate plot_and_save_bettis2(eirene_results, plot_title::String, results_path::String; file_name = "", extension = ".png", data_size::String = "", do_save = true, extend_title = true, do_normalise = true, min_dim = 0, max_dim = 3, legend_on = true) plot_and_save_bettis(bettis, plot_title::String, results_path::String; file_name = "", extension = ".png", do_save = true, do_normalise = true, min_dim = 0, max_dim = 3, legend_on = true, kwargs...)
-@deprecate get_and_plot_bettis(eirene_results; max_dim = 3, min_dim = 1, plot_title = "", legend_on = false)
+@deprecate get_and_plot_bettis(eirene_results; max_dim = 3, min_dim = 1, plot_title = "", legend_on = false) get_bettis(results_eirene, max_dim; min_dim = 1)
 
 #%%
 """
@@ -800,8 +800,7 @@ function get_area_under_betti_curve(betti_curves::Union{Matrix{Float64}, Array{A
     return bettis_area
 end
 
-@deprecate get_area_under_betti_curve(C, min_dim, max_dim)
-
+@deprecate get_area_under_betti_curve(C, min_dim, max_dim) get_area_under_betti_curve(betti_curves; do_normalised=false)
 
 #%%
 """
@@ -844,26 +843,27 @@ function get_area_boxes(areas_matrix, min_dim::Integer, max_dim::Integer)
     return bplot
 end
 
-function get_bettis_collection_from_matrices(ordered_matrices_collection; max_dim::Int=3, min_dim::Int=1)
-    bettis_collection = Array[]
-
-    for matrix = ordered_matrices_collection
-		@debug "Computing Bettis..."
-		eirene_geom = eirene(matrix,maxdim=max_B_dim,model="vr")
-
-		bettis = reshape_bettis(get_bettis(eirene_geom, max_B_dim))
-		push!(bettis_collection, bettis)
-    end
-
-    return bettis_collection
-end
-
-#%%
-@deprecate get_dataset_topology(dataset; min_dim::Integer=1, max_dim::Integer=3, get_curves::Bool=true, get_areas::Bool=true, get_persistence_diagrams::Bool=true, do_normalise::Bool=true)
-@deprecate get_bettis_collection(ordered_matrices_collection; max_B_dim=3)
-@deprecate reshape_bettis(bettis)
-@deprecate print_hmap_with_bettis(ordered_matrices_collection, bettis_collection, plot_data::PlottingData)
-@deprecate make_hm_and_betti_plot(ordered_geom_gr, bettis, title_hmap, title_bettis, max_betti)
-@deprecate matrix_analysis(test_data::PlottingData;generation_function=get_geom_matrix)
-@deprecate multiscale_matrix_testing(sample_space_dims = 3, maxsim = 5, min_B_dim = 1, max_B_dim = 3, size_start = 10, size_step = 5, size_stop = 50; do_random = true, control_saving = false, perform_eavl = false)
-@deprecate plot_betti_numbers(betti_numbers, edge_density, title="Geometric  matrix"; stop=0.6)
+# function get_bettis_collection_from_matrices(ordered_matrices_collection; max_dim::Int=3, min_dim::Int=1)
+#     bettis_collection = Array[]
+#
+#     for matrix = ordered_matrices_collection
+# 		@debug "Computing Bettis..."
+# 		eirene_geom = eirene(matrix,maxdim=max_B_dim,model="vr")
+#
+# 		bettis = reshape_bettis(get_bettis(eirene_geom, max_B_dim))
+# 		push!(bettis_collection, bettis)
+#     end
+#
+#     return bettis_collection
+# end
+#
+# #%%
+# TODO find what are the alternative functions for the functions below
+# @deprecate get_dataset_topology(dataset; min_dim::Integer=1, max_dim::Integer=3, get_curves::Bool=true, get_areas::Bool=true, get_persistence_diagrams::Bool=true, do_normalise::Bool=true)
+# @deprecate get_bettis_collection(ordered_matrices_collection; max_B_dim=3)
+# @deprecate reshape_bettis(bettis)
+# @deprecate print_hmap_with_bettis(ordered_matrices_collection, bettis_collection, plot_data::PlottingData)
+# @deprecate make_hm_and_betti_plot(ordered_geom_gr, bettis, title_hmap, title_bettis, max_betti)
+# @deprecate matrix_analysis(test_data::PlottingData;generation_function=get_geom_matrix)
+# @deprecate multiscale_matrix_testing(sample_space_dims = 3, maxsim = 5, min_B_dim = 1, max_B_dim = 3, size_start = 10, size_step = 5, size_stop = 50; do_random = true, control_saving = false, perform_eavl = false)
+# @deprecate plot_betti_numbers(betti_numbers, edge_density, title="Geometric  matrix"; stop=0.6)

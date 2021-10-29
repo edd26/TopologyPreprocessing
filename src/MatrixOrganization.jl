@@ -1,5 +1,6 @@
-using LinearAlgebra,
-using Plots
+using LinearAlgebra
+import Plots.plot as plot
+# using Plots
 using Random
 
 include("PlottingWrappers.jl")
