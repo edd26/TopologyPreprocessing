@@ -1,16 +1,4 @@
 module TopologyPreprocessing
-    # include("AverageBettis.jl")
-
-    # include("DirOperations.jl")
-    # include("GeometricSampling.jl")
-    # include("GifGenerator.jl")
-    #
-    #
-    # include("MatrixToolbox.jl")
-    # include("PlottingWrappers.jl")
-    # include("SavingFigures.jl")
-    # include("VideoProcessing.jl")
-
     # MatrixOrganization.jl
     export matrix_poling,
             subsample_matrix,
@@ -51,15 +39,10 @@ module TopologyPreprocessing
             get_barcode_max_db_ratios
 
 
-
-
     include("MatrixOrganization.jl")
     include("MatrixProcessing.jl")
     include("BettiCurves.jl")
     include("Barcodes.jl")
-
-    # include("ImageProcessing.jl")
-    # include("PointsSubstitution.jl")
 
 
 end # module
