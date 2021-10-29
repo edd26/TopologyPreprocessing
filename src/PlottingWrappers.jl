@@ -178,6 +178,7 @@ function plot_image_analysis(plots_set; description::NamedTuple, original_img, k
 end
 
 
+# TODO add depreciation for this function
 # """
 #    get_all_plots_from_set(orig_matrix::TopologyMatrixSet; name_prefix="")
 #
