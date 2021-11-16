@@ -200,6 +200,7 @@ function get_ordered_matrix(in_matrix::Matrix;
     all_ind_collected = arr_to_vec(matrix_indices)
 
     # Sort indices vector according to inpu array
+    # TODO Cant this be done with sortperm? in_matrix > UpperTriangular |> sortperm
     index_sorting = sort_indices_by_values(in_matrix, all_ind_collected)
 
     ordering_number = ordering_start
