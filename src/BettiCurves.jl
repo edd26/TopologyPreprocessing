@@ -231,12 +231,13 @@ TODO: add change of x label based on x values- so it is either edge density for 
 """
 function plot_bettis(bettis::Array;
                         min_dim::Integer = 1,
+                        dims_range=1:size(bettis,2),
                         use_edge_density::Bool=true,
                         betti_labels::Bool = true,
                         default_labels::Bool = true,
                         normalised=true,
                         kwargs...)#; plot_size = (width=1200, height=800),
-    max_dim = size(bettis, 2)-1-min_dim
+    max_dim = dims_range[end]
     all_dims = 1:max_dim
 
     if min_dim > max_dim
