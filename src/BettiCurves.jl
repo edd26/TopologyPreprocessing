@@ -143,12 +143,12 @@ function plot_bettis(bettis::Vector;
     max_dim = size(bettis, 1)
     all_dims = 1:max_dim
 
-    if min_dim > max_dim
-        throw(DomainError(
-            min_dim,
-            "\'min_dim\' must be greater that maximal dimension in \'bettis\'",
-        ))
-    end
+    # if min_dim > max_dim
+    #     throw(DomainError(
+    #         min_dim,
+    #         "\'min_dim\' must be greater that maximal dimension in \'bettis\'",
+    #     ))
+    # end
 
     lw_pos = findfirst(x -> x == :lw || x == :linewidth, keys(kwargs))
     if !isnothing(lw_pos)
