@@ -2,14 +2,14 @@ using LinearAlgebra
 using StatsBase
 
 
-function shift_to_non_negative(matrix::Array)
-    """
-        shift_to_non_negative(matrix::Array)
+"""
+    shift_to_non_negative(matrix::Array)
 
-    Returns a matrix in which values are non-negative. This is done by finding the
-    minimal value in the input matrix and adding its absolute value to the matrix
-    elements.
-    """
+Returns a matrix in which values are non-negative. This is done by finding the
+minimal value in the input matrix and adding its absolute value to the matrix
+elements.
+"""
+function shift_to_non_negative(matrix::Array)
 
     min_val = findmin(matrix)[1]
     if min_val < 0
@@ -21,16 +21,16 @@ end
 
 
 
+"""
+    normalize_to_01(matrix::Array; use_factor=false, norm_factor=256)
+
+Returns a matrix which values are in range [0, 1]. If 'use_factor' is set to
+'true' then values are normalized to 'norm_factor' (by default set to 256).
+
+If the values in the input matrix are below 0, then they are shifted so that only positive numbers are in
+the matrix (the values are normalized to new maximal value or norm_factor).
+"""
 function normalize_to_01(matrix::Array; use_factor = false, norm_factor = 256)
-    """
-        normalize_to_01(matrix::Array; use_factor=false, norm_factor=256)
-
-    Returns a matrix which values are in range [0, 1]. If 'use_factor' is set to
-    'true' then values are normalized to 'norm_factor' (by default set to 256).
-
-    If the values in the input matrix are below 0, then they are shifted so that only positive numbers are in
-    the matrix (the values are normalized to new maximal value or norm_factor).
-    """
     normalized_matrix = copy(matrix)
 
     min_val = findmin(normalized_matrix)[1]
@@ -56,18 +56,18 @@ end
 
 
 # function symmetrize_image(image)
+"""
+    function diagonal_symmetrize(image::Matrix; below_over_upper::Bool=false)
+
+Takes an 'image' in the form of a matrix and return a copy which is symmetric
+with respect to diagonal- values above diagonal are copied over values below the
+diagonal. This can be inverted by setting 'below_over_upper=true'.
+
+If the input matrix is not square, then square matrix is created by taking
+matrix of k times 'k' elements, 'k=min(r,c)' where 'r' is number of rows and 'c'
+is number of columns.
+"""
 function diagonal_symmetrize(image::Matrix; below_over_upper::Bool = false)
-    """
-        function diagonal_symmetrize(image::Matrix; below_over_upper::Bool=false)
-
-    Takes an 'image' in the form of a matrix and return a copy which is symmetric
-    with respect to diagonal- values above diagonal are copied over values below the
-    diagonal. This can be inverted by setting 'below_over_upper=true'.
-
-    If the input matrix is not square, then square matrix is created by taking
-    matrix of k times 'k' elements, 'k=min(r,c)' where 'r' is number of rows and 'c'
-    is number of columns.
-    """
     w, h = size(image)
     mat_size = findmin([w, h])[1]
 
@@ -111,6 +111,63 @@ end
 # matrix ordering
 
 
+"""
+    function get_ordered_matrix(in_matrix::Matrix;
+                                assign_same_values::Bool = false,
+                                force_symmetry::Bool = false,
+                                small_dist_grouping::Bool = false,
+                                min_dist::Number = 1e-16,
+                                total_dist_groups::Int = 0,
+                                ordering_start::Int=1)
+
+Takes a @input_matrix and returns ordered form of this matrix.
+The ordered form is a matrix which elements represent ordering from smallest to
+highest values in @input_matrix.
+
+If @input_matrix is symmetric, then ordering happens only with upper diagonal.
+Lower diagonal is symetrically copied from values above diagonal.
+
+By default, if there is a geoup of entriess with the same value, they all are
+assigned with the same ordering number. This can be changed with
+@assign_same_values parameter.
+
+Symetry ordering can be froced with @force_symmetry parameter.
+
+By setting 'small_dist_grouping' to true, all the values that difference is
+lower than 'min_dist', will be assigned with the same order number.
+
+# Examples
+```julia-repl
+julia> a = [0 11 12;
+            11 0 13;
+            12 13 0];
+julia> get_ordered_matrix(a)
+3×3 Array{Int64,2}:
+ 0  1  2
+ 1  0  3
+ 2  3  0
+```
+
+```julia-repl
+julia> b = [38 37 36 30;
+            37 34 30 32;
+            36 30 31 30;
+            30 32 30 29]
+julia> get_ordered_matrix(b; assign_same_values=false)
+4×4 Array{Int64,2}:
+0  6  5  2
+6  0  1  4
+5  1  0  3
+2  4  3  0
+
+julia> get_ordered_matrix(b; assign_same_values=true)
+4×4 Array{Int64,2}:
+0  4  3  1
+4  0  1  2
+3  1  0  1
+1  2  1  0
+```
+"""
 function get_ordered_matrix(in_matrix::Matrix;
                             assign_same_values::Bool = false,
                             force_symmetry::Bool = false,
@@ -118,62 +175,6 @@ function get_ordered_matrix(in_matrix::Matrix;
                             min_dist::Number = 1e-16,
                             total_dist_groups::Int = 0,
                             ordering_start::Int=1)
-    """
-        get_ordered_matrix(in_matrix::Matrix;
-                                        assign_same_values::Bool=false,
-                                        force_symmetry::Bool=false,
-                                        small_dist_grouping::Bool=false,
-                                        min_dist::Number=1e-16,
-                                        total_dist_groups::Int=0)
-
-    Takes a @input_matrix and returns ordered form of this matrix.
-    The ordered form is a matrix which elements represent ordering from smallest to
-    highest values in @input_matrix.
-
-    If @input_matrix is symmetric, then ordering happens only with upper diagonal.
-    Lower diagonal is symetrically copied from values above diagonal.
-
-    By default, if there is a geoup of entriess with the same value, they all are
-    assigned with the same ordering number. This can be changed with
-    @assign_same_values parameter.
-
-    Symetry ordering can be froced with @force_symmetry parameter.
-
-    By setting 'small_dist_grouping' to true, all the values that difference is
-    lower than 'min_dist', will be assigned with the same order number.
-
-    # Examples
-    ```julia-repl
-    julia> a = [0 11 12;
-                11 0 13;
-                12 13 0];
-    julia> get_ordered_matrix(a)
-    3×3 Array{Int64,2}:
-     0  1  2
-     1  0  3
-     2  3  0
-    ```
-
-    ```julia-repl
-    julia> b = [38 37 36 30;
-                37 34 30 32;
-                36 30 31 30;
-                30 32 30 29]
-    julia> get_ordered_matrix(b; assign_same_values=false)
-    4×4 Array{Int64,2}:
-    0  6  5  2
-    6  0  1  4
-    5  1  0  3
-    2  4  3  0
-
-    julia> get_ordered_matrix(b; assign_same_values=true)
-    4×4 Array{Int64,2}:
-    0  4  3  1
-    4  0  1  2
-    3  1  0  1
-    1  2  1  0
-    ```
-    """
 
     # TODO Symmetry must be forced for matrix in which there are NaN elements- needs
     #   to be further investigated
@@ -199,6 +200,7 @@ function get_ordered_matrix(in_matrix::Matrix;
     all_ind_collected = arr_to_vec(matrix_indices)
 
     # Sort indices vector according to inpu array
+    # TODO Cant this be done with sortperm? in_matrix > UpperTriangular |> sortperm
     index_sorting = sort_indices_by_values(in_matrix, all_ind_collected)
 
     ordering_number = ordering_start
@@ -287,13 +289,13 @@ end
 
 # Care must be taken so that values from 'input_matrix' are within distance
 # groups, otherwise error is thrown.
-function group_distances(input_matrix::Array, total_dist_groups::Int)
-    """
-        function group_distances(input_matrix::Array, total_dist_groups::Int)
+"""
+    function group_distances(input_matrix::Array, total_dist_groups::Int)
 
-    Takes a matrix and rearranges values into 'total_dist_groups' number of groups.
-    Every group is assigned with number value from range '<0,1>'.
-    """
+Takes a matrix and rearranges values into 'total_dist_groups' number of groups.
+Every group is assigned with number value from range '<0,1>'.
+"""
+function group_distances(input_matrix::Array, total_dist_groups::Int)
 
     normed_matrix = normalize_to_01(input_matrix)
     target_matrix = copy(normed_matrix)
@@ -321,19 +323,19 @@ end
 
 
 
+"""
+    generate_indices(matrix_size::Tuple; symmetry_order::Bool=false, include_diagonal::Bool=true)
+
+Return all the possible indices of the matrix of size 'matrix_size'.
+'matrix_size' may be a tuple or a series of integer arguments corresponding to
+the lengths in each dimension.
+
+If 'symetry_order' is set to'true', then only indices of values below diagonal
+are returned.
+"""
 function generate_indices(matrix_size::Tuple;
                             symmetry_order::Bool = false,
                             include_diagonal::Bool = true)
-    """
-        generate_indices(matrix_size::Tuple; symmetry_order::Bool=false, include_diagonal::Bool=true)
-
-    Return all the possible indices of the matrix of size 'matrix_size'.
-    'matrix_size' may be a tuple or a series of integer arguments corresponding to
-    the lengths in each dimension.
-
-    If 'symetry_order' is set to'true', then only indices of values below diagonal
-    are returned.
-    """
 
     # Get all cartesian indices from input matrix
     matrix_indices = CartesianIndices(matrix_size)
@@ -352,15 +354,15 @@ function generate_indices(matrix_size::Tuple;
 end
 
 
+"""
+    generate_indices(matrix_size::Int; symmetry_order::Bool=false, include_diagonal::Bool=true)
+
+Generate indices for a matrix of given dimensions. 'generate_indices' is a
+series of integer arguments corresponding to the lengths in each dimension.
+"""
 function generate_indices(matrix_size::Int;
                             symmetry_order::Bool = false,
                             include_diagonal::Bool = true)
-    """
-        generate_indices(matrix_size::Int; symmetry_order::Bool=false, include_diagonal::Bool=true)
-
-    Generate indices for a matrix of given dimensions. 'generate_indices' is a
-    series of integer arguments corresponding to the lengths in each dimension.
-    """
     return generate_indices(
         (matrix_size, matrix_size);
         symmetry_order = symmetry_order,
@@ -370,12 +372,12 @@ end
 
 
 
-function arr_to_vec(some_array::Array)
-    """
-        arr_to_vec(some_array::Array)
+"""
+    arr_to_vec(some_array::Array)
 
-    Takes an array and reshapes it into a vector.
-    """
+Takes an array and reshapes it into a vector.
+"""
+function arr_to_vec(some_array::Array)
     return collect(reshape(some_array, length(some_array)))
 end
 
@@ -384,14 +386,14 @@ function cartesianInd_to_vec(some_array::CartesianIndices)
 end
 
 
-function sort_indices_by_values(values_matrix::T, index_vector) where {T<:VecOrMat}
-    """
-        sort_indices_by_values(values_matrix::T, index_vector) where {T<:VecOrMat}
+"""
+    sort_indices_by_values(values_matrix::T, index_vector) where {T<:VecOrMat}
 
-    Sorts the 'index_vector' according to corresponding values in the 'values_matrix'
-    and returns a Vector of intigers which is an list of ordering of
-    'sorted index_vector'.
-    """
+Sorts the 'index_vector' according to corresponding values in the 'values_matrix'
+and returns a Vector of intigers which is an list of ordering of
+'sorted index_vector'.
+"""
+function sort_indices_by_values(values_matrix::T, index_vector) where {T<:VecOrMat}
     if !isa(index_vector, Vector)
         throw(TypeError(
             :sort_indices_by_values,
@@ -408,17 +410,17 @@ function sort_indices_by_values(values_matrix::T, index_vector) where {T<:VecOrM
 end
 
 
+"""
+    set_values!(input_matrix::Matrix, position::CartesianIndex, target_value::Number; do_symmetry=false)
+
+Assigns 'target_value' to indices at 'input_matrix[position[1], position[2]]'.
+If 'do_symmetry' is set to 'true', then the 'target_value' is also assigned at
+position 'input_matrix[position[2], position[1]]'.
+"""
 function set_values!(input_matrix::Matrix,
                         position::CartesianIndex,
                         target_value::Number;
                         do_symmetry::Bool = false)
-    """
-        set_values!(input_matrix::Matrix, position::CartesianIndex, target_value::Number; do_symmetry=false)
-
-    Assigns 'target_value' to indices at 'input_matrix[position[1], position[2]]'.
-    If 'do_symmetry' is set to 'true', then the 'target_value' is also assigned at
-    position 'input_matrix[position[2], position[1]]'.
-    """
     input_matrix[position[1], position[2]] = target_value
     if do_symmetry
         input_matrix[position[2], position[1]] = target_value
@@ -440,14 +442,14 @@ function get_high_dim_ordered_matrix(input_matrix)
 end
 
 
-function reduce_arrs_to_min_len(arrs::Array)
-    """
-        reduce_arrs_to_min_len(arrs)
+"""
+    reduce_arrs_to_min_len(arrs)
 
-    Takes vector of vectors of different length and returns array of arrays which
-    are of the same length. Length in the output is the shortest vector length from
-    the input- values above this size are discarded.
-    """
+Takes vector of vectors of different length and returns array of arrays which
+are of the same length. Length in the output is the shortest vector length from
+the input- values above this size are discarded.
+"""
+function reduce_arrs_to_min_len(arrs::Array)
     @debug "Argument specific"
     new_arr = copy(arrs)
 
@@ -472,14 +474,14 @@ function reduce_arrs_to_min_len(arrs::Array)
 end
 
 
-function increase_arrs_to_max_len(arrs)
-    """
-        increase_arrs_to_max_len(arrs)
+"""
+    increase_arrs_to_max_len(arrs)
 
-    Takes vector of vectors of different length and returns array of arrays which
-    are of the same length. Length in the output is the longest vector length from
-    the input- values above this size are discarded.
-    """
+Takes vector of vectors of different length and returns array of arrays which
+are of the same length. Length in the output is the longest vector length from
+the input- values above this size are discarded.
+"""
+function increase_arrs_to_max_len(arrs)
     new_arr = copy(arrs)
 
     simulation = size(new_arr, 1)
