@@ -1,7 +1,9 @@
-using Plots
-using Measures
+import Plots.plot as plot
+import Plots.plot! as plot!
+import Plots.heatmap as heatmap
+import Plots.@layout as @layout
 
-include("TopologyStructures.jl")
+# include("TopologyStructures.jl")
 
 """
     plot_square_heatmap(matrix, tick_step, tick_end;
@@ -38,20 +40,20 @@ end
 
 
 #%%
+"""
+row_plot(bd_plots::Dict;base_h = 600, base_w = 600, kwargs...)
+
+Plots all the plots from the input dictionary 'bd_plots' in 'layout=(1,n)',
+where 'n' is total number of plots.
+
+By default, the plots dimensions are: the height='base_h'; the
+width= n * base_w.
+"""
 function row_plot(bd_plots::Dict;base_h = 800, base_w = 800,
 					top_margin= 10mm,
 					left_margin=[10mm 10mm],
 					bottom_margin= 10mm,
 					 kwargs...)
-	"""
-		row_plot(bd_plots::Dict;base_h = 600, base_w = 600, kwargs...)
-
-	Plots all the plots from the input dictionary 'bd_plots' in 'layout=(1,n)',
-	where 'n' is total number of plots.
-
-	By default, the plots dimensions are: the height='base_h'; the
-	width= n * base_w.
-	"""
 	total_dims = length(bd_plots)
 	all_keys = keys(bd_plots)
 	all_plts = tuple()
@@ -178,65 +180,66 @@ function plot_image_analysis(plots_set; description::NamedTuple, original_img, k
 end
 
 
-"""
-   get_all_plots_from_set(orig_matrix::TopologyMatrixSet; name_prefix="")
-
-Takes a collection of matrix computed for topological analysis and creates set
-	of their heatmaps and related Betti curves.
-
-"""
-function get_all_plots_from_set(orig_matrix::TopologyMatrixSet; name_prefix="")
-	# ===
-	# Get heatmaps
-	original_heatmaps_set 	= TopologyMatrixHeatmapsSet(orig_matrix)
-	# patched_heatmaps_set 	= TopologyMatrixHeatmapsSet(patched_matrix)
-
-	# ===
-	# Get Betti plots
-	original_bettis = TopologyMatrixBettisSet(orig_matrix)
-	original_bettis_plots 	= TopologyMatrixBettisPlots(original_bettis)
-	# patched_bettis_plots 	= TopologyMatrixBettisPlots(patched_bettis)
-
-	mat_size = size(orig_matrix.ordered_matrix,1)
-	common_plots_set = Any[]
-	for k = 1:size(orig_matrix.description_vector,1)
-		matrix_type = orig_matrix.description_vector[k]
-
-
-		# ===
-		# Common plot
-		common_plot1 = plot(original_heatmaps_set.heatmap_plots_set[k],
-								original_bettis_plots.betti_plots_set[k],
-							 layout=(1,2), size=(800,400))
-		plot!(common_plot1, title = matrix_type*"_r$(orig_matrix.ranks_collection[k])")
-		# met_par.do_dsiplay && display(common_plot1)
-
-		push!(common_plots_set, common_plot1)
-	end
-
-	# load image
-	file_path = orig_matrix.params.img_path*orig_matrix.params.file_name
-	if isfile(file_path)
-		img1_gray = Gray.(load(file_path))
-		additional_plot = plot(img1_gray, legend = false);
-	else
-		# TODO Change empty plot for plot with properties
-		additional_plot = plot(legend = false);
-	end
-
-	parameters_list_plot = plot()
-	first_plot = plot(additional_plot, parameters_list_plot)
-
-	plt_size = size(common_plots_set,1)
-
-	all_plot1 = plot(additional_plot,
-					common_plots_set[1],		# original matrix
- 					common_plots_set[2],	# original reordered- highest values located next to diagonal
-					common_plots_set[3],	# max pooling of values in subsquares, original matrirx
-					common_plots_set[4],	# max pooling of values in subsquares, reorganized matrix
-					common_plots_set[5],	# renumbered max pooling of values in subsquares, reorganized matrix
-					common_plots_set[6],	# renumbered max pooling of original matrix
-					common_plots_set[7],	# reordered renumbered max pooling of original matrix
-				   layout=(plt_size÷2+1,2), size=(1200*2,plt_size÷2*400))
-   return all_plot1
-end
+# TODO add depreciation for this function
+# """
+#    get_all_plots_from_set(orig_matrix::TopologyMatrixSet; name_prefix="")
+#
+# Takes a collection of matrix computed for topological analysis and creates set
+# 	of their heatmaps and related Betti curves.
+#
+# """
+# function get_all_plots_from_set(orig_matrix::TopologyMatrixSet; name_prefix="")
+# 	# ===
+# 	# Get heatmaps
+# 	original_heatmaps_set 	= TopologyMatrixHeatmapsSet(orig_matrix)
+# 	# patched_heatmaps_set 	= TopologyMatrixHeatmapsSet(patched_matrix)
+#
+# 	# ===
+# 	# Get Betti plots
+# 	original_bettis = TopologyMatrixBettisSet(orig_matrix)
+# 	original_bettis_plots 	= TopologyMatrixBettisPlots(original_bettis)
+# 	# patched_bettis_plots 	= TopologyMatrixBettisPlots(patched_bettis)
+#
+# 	mat_size = size(orig_matrix.ordered_matrix,1)
+# 	common_plots_set = Any[]
+# 	for k = 1:size(orig_matrix.description_vector,1)
+# 		matrix_type = orig_matrix.description_vector[k]
+#
+#
+# 		# ===
+# 		# Common plot
+# 		common_plot1 = plot(original_heatmaps_set.heatmap_plots_set[k],
+# 								original_bettis_plots.betti_plots_set[k],
+# 							 layout=(1,2), size=(800,400))
+# 		plot!(common_plot1, title = matrix_type*"_r$(orig_matrix.ranks_collection[k])")
+# 		# met_par.do_dsiplay && display(common_plot1)
+#
+# 		push!(common_plots_set, common_plot1)
+# 	end
+#
+# 	# load image
+# 	file_path = orig_matrix.params.img_path*orig_matrix.params.file_name
+# 	if isfile(file_path)
+# 		img1_gray = Gray.(load(file_path))
+# 		additional_plot = plot(img1_gray, legend = false);
+# 	else
+# 		# TODO Change empty plot for plot with properties
+# 		additional_plot = plot(legend = false);
+# 	end
+#
+# 	parameters_list_plot = plot()
+# 	first_plot = plot(additional_plot, parameters_list_plot)
+#
+# 	plt_size = size(common_plots_set,1)
+#
+# 	all_plot1 = plot(additional_plot,
+# 					common_plots_set[1],		# original matrix
+#  					common_plots_set[2],	# original reordered- highest values located next to diagonal
+# 					common_plots_set[3],	# max pooling of values in subsquares, original matrirx
+# 					common_plots_set[4],	# max pooling of values in subsquares, reorganized matrix
+# 					common_plots_set[5],	# renumbered max pooling of values in subsquares, reorganized matrix
+# 					common_plots_set[6],	# renumbered max pooling of original matrix
+# 					common_plots_set[7],	# reordered renumbered max pooling of original matrix
+# 				   layout=(plt_size÷2+1,2), size=(1200*2,plt_size÷2*400))
+#    return all_plot1
+# end
