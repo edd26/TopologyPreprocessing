@@ -1,6 +1,6 @@
 # TopologyPreprocessing
 
- ![Continuous Integration (CI) status](https://github.com/edd26/TopologyPreprocessing/actions/workflows/CI_julia/badge.svg)
+ ![Continuous Integration (CI) status](https://github.com/edd26/TopologyPreprocessing/actions/workflows/CI_julia.yml/badge.svg)
 
 
 ## Installation
