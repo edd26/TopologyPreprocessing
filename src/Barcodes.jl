@@ -39,13 +39,6 @@ function get_barcodes(results_eirene::Dict, max_dim::Integer; min_dim::Int = 1, 
     return barcodes
 end
 
-function plot_barcodes(barcodes::Vector;
-                        kwargs...)
-    plot_ref = plot(; kwargs...)
-    plot_barcodes!(barcodes, plot_ref;
-                        kwargs...)
-
-end
 
 
 """
@@ -102,12 +95,14 @@ function plot_barcodes!(barcodes::Vector, plot_ref;
         sort_barcodes!(barcodes, min_dim, max_dim)
     end
 
+    total_cycles = sum([size(barcodes[k],1) for (k, dim) in enumerate(min_dim:max_dim)])
     # for p = min_dim:(max_dim) #TODO ths can not be starting from min_dim, because it may be 0
     for (p, dim) = enumerate(min_dim:max_dim)# 1:(max_dim) #TODO ths can not be starting from min_dim, because it may be 0
         # @info p, dim
         args = (lc = colors_set[p], linewidth = lw)
 
-        b = barcodes[p][1:1:(end-1),:]
+        # b = barcodes[p][1:1:(end-1),:]
+        b = barcodes[p][:,:]
 
         if dim==0
             b = sort(b, dims=1)
@@ -150,9 +145,19 @@ function plot_barcodes!(barcodes::Vector, plot_ref;
         ylabel!("Cycle")
     end
 
+    # ylims!(0, 2*total_cycles)
+    ylims!(0, total_cycles+2)
+
     return plot_ref
 end
 
+function plot_barcodes(barcodes::Vector;
+                        kwargs...)
+    plot_ref = plot(; kwargs...)
+    plot_barcodes!(barcodes, plot_ref;
+                        kwargs...)
+
+end
 
 function sort_barcodes!(barcodes, min_dim, max_dim)
     for (dim_index, dim) = enumerate(min_dim:max_dim)
@@ -371,9 +376,13 @@ function plot_bd_diagram(barcodes; dims=1:length(barcodes), use_js::Bool=false,
                                                 kwargs...)
     # TODO max min should be ready to use from input data- might be better to have better structures as an inupt
     # max_dim = size(barcodes, 1)
-    max_dim = dims[end]
     # min_dim = findmin(dims)[1]
     min_dim = dims[1]
+    max_dim = dims[end]
+
+    if max_dim > length(barcodes)
+        throw(DimensionMismatch("Can not have dims range larger than barcodes length"))
+    end
     # all_dims = min_dim:max_dim
 
     # if findmax(dims)[1] > max_dim
@@ -402,7 +411,7 @@ function plot_bd_diagram(barcodes; dims=1:length(barcodes), use_js::Bool=false,
 
     for (p,dim) in enumerate(dims)
         # colors_set[p]
-        my_vec = barcodes[p]
+        my_vec = barcodes[dim]
 
         # TODO class size is not a default and basic bd diagram property- should be factored out to other function
         if class_labels != [] && class_sizes != []
