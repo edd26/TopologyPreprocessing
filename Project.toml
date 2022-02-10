@@ -23,7 +23,7 @@ Pipe = "1"
 Plots = "1.25"
 SafeTestsets = "0.0"
 StatsBase = "0.33"
-StatsPlots = "0"
+StatsPlots = "0.14"
 julia = "1"
 
 [extras]
