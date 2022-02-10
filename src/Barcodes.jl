@@ -103,6 +103,10 @@ function plot_barcodes!(barcodes::Vector, plot_ref;
 
         # b = barcodes[p][1:1:(end-1),:]
         b = barcodes[p][:,:]
+        all_infs = findall(x->isinf(x), b)
+        for k in all_infs
+            b[k] = 1
+        end
 
         if dim==0
             b = sort(b, dims=1)
@@ -399,7 +403,7 @@ function plot_bd_diagram(barcodes; dims=1:length(barcodes), use_js::Bool=false,
     #     lw = 2
     # end
 
-    colors_set = TopologyPreprocessing.get_bettis_color_palete(min_dim=1)
+    colors_set = TopologyPreprocessing.get_bettis_color_palete(min_dim=min_dim)
 
     if use_js
         plotly()
@@ -411,7 +415,7 @@ function plot_bd_diagram(barcodes; dims=1:length(barcodes), use_js::Bool=false,
 
     for (p,dim) in enumerate(dims)
         # colors_set[p]
-        my_vec = barcodes[dim]
+        my_vec = barcodes[p]
 
         # TODO class size is not a default and basic bd diagram property- should be factored out to other function
         if class_labels != [] && class_sizes != []
@@ -422,7 +426,7 @@ function plot_bd_diagram(barcodes; dims=1:length(barcodes), use_js::Bool=false,
             labels = ["class/size $(k)/$(class_sizes[k])" for k in 1:size(my_vec,1)]
         end
 
-        args = (color = colors_set[dim],
+        args = (color = colors_set[p],
                 # linewidth = lw,
                 label="β$(dim)",
                 aspect_ratio=1,

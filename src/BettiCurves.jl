@@ -226,11 +226,10 @@ Some of the possible 'kwargs' are:
   - size::Tuple{T, T} where {T::Number}
   - lw::Integer or linewidth:Integer
 (for more, see plots documentation):
-TODO: min_dim is not included in all_dims variable
 TODO: add change of x label based on x values- so it is either edge density for 0:1 range values or Filtration step otherwise
 """
 function plot_bettis(bettis::Array;
-                        min_dim::Integer = 1,
+                        # min_dim::Integer = 1,
                         dims_range=1:size(bettis,2),
                         use_edge_density::Bool=true,
                         betti_labels::Bool = true,
@@ -238,7 +237,7 @@ function plot_bettis(bettis::Array;
                         normalised=true,
                         kwargs...)#; plot_size = (width=1200, height=800),
     max_dim = dims_range[end]
-    all_dims = 1:max_dim
+    min_dim = dims_range[1]
 
     if min_dim > max_dim
         throw(DomainError(
