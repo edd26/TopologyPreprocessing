@@ -456,12 +456,13 @@ function plot_bd_diagram(barcodes; dims = 1:length(barcodes),
         max_coord = max(max_x, max_y)
     end
 
-
     scaling_factor = 1.05
     min_val = -0.05
     plot!([0, scaling_factor*max_coord], [0, scaling_factor*max_coord], label = "")
     xlims!(min_val, scaling_factor*max_coord)
     ylims!(min_val, scaling_factor*max_coord)
+    xlabel!("birth")
+    ylabel!("death")
     # xlims!(0,1)
     # ylims!(0,1)
 
