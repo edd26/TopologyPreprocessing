@@ -450,8 +450,8 @@ function plot_bd_diagram(barcodes; dims = 1:length(barcodes),
     if normilised_diagonal
         max_coord = 1
     else
-        max_x = max([k for k in vcat([barcodes[d][:,1] for d in dims]...) if !isinf(k) ]...)
-        max_y = max([k for k in vcat([barcodes[d][:,2] for d in dims]...) if !isinf(k) ]...)
+        max_x = max([k for k in vcat([barcodes[d][:,1] for (d, dim) in dims|> enumerate]...) if !isinf(k) ]...)
+        max_y = max([k for k in vcat([barcodes[d][:,2] for (d, dim) in dims|> enumerate]...) if !isinf(k) ]...)
         max_coord = max(max_x, max_y)
     end
 
