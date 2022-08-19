@@ -463,8 +463,6 @@ function plot_bd_diagram(barcodes; dims = 1:length(barcodes),
     ylims!(min_val, scaling_factor*max_coord)
     xlabel!("birth")
     ylabel!("death")
-    # xlims!(0,1)
-    # ylims!(0,1)
 
     return plot_ref
 end
@@ -623,7 +621,7 @@ function plot_simple_bd_diagram(barcodes; dims = 1:length(barcodes), max_bd = 0,
 
     plot_ref = plot(; kwargs...)
 
-    for p in dims
+    for (p, dim) in dims |> enumerate
         # colors_set[p]
         my_vec = barcodes[p]
 
