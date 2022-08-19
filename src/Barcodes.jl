@@ -455,7 +455,10 @@ function plot_bd_diagram(barcodes; dims = 1:length(barcodes),
         max_coord = max(max_x, max_y)
     end
 
-    plot!([0, max_coord], [0, max_coord], label = "")
+    scaling_factor = 1.05
+    plot!([0, scaling_factor*max_coord], [0, scaling_factor*max_coord], label = "")
+    xlims!(0, scaling_factor*max_coord)
+    ylims!(0, scaling_factor*max_coord)
     # xlims!(0,1)
     # ylims!(0,1)
 
@@ -646,5 +649,4 @@ function plot_simple_bd_diagram(barcodes; dims = 1:length(barcodes), max_bd = 0,
     end
 
     return plot_ref
-end
 end
