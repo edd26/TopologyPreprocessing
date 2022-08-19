@@ -379,12 +379,14 @@ function plot_bd_diagram(barcodes; dims = 1:length(barcodes),
     class_sizes = [],
     class_labels = [],
     normilised_diagonal::Bool = true,
+    alpha=0.4,
     kwargs...)
     # TODO max min should be ready to use from input data- might be better to have better structures as an inupt
     # max_dim = size(barcodes, 1)
     # min_dim = findmin(dims)[1]
     min_dim = dims[1]
     max_dim = dims[end]
+
 
     if max_dim > length(barcodes)
         throw(DimensionMismatch("Can not have dims range larger than barcodes length"))
@@ -414,6 +416,20 @@ function plot_bd_diagram(barcodes; dims = 1:length(barcodes),
     end
 
     plot_ref = plot(; xlims = (0, 1), ylims = (0, 1), kwargs...)
+    # Add diagonal
+    if normilised_diagonal
+        max_coord = 1
+    else
+        max_x = max([k for k in vcat([barcodes[d][:,1] for (d, dim) in dims|> enumerate]...) if !isinf(k) ]...)
+        max_y = max([k for k in vcat([barcodes[d][:,2] for (d, dim) in dims|> enumerate]...) if !isinf(k) ]...)
+        max_coord = max(max_x, max_y)
+    end
+
+    scaling_factor = 1.05
+    min_val = -0.05
+    plot!([0, scaling_factor*max_coord], [0, scaling_factor*max_coord], label = "")
+    xlims!(min_val, scaling_factor*max_coord)
+    ylims!(min_val, scaling_factor*max_coord)
 
     for (p, dim) in enumerate(dims)
         # colors_set[p]
@@ -435,6 +451,7 @@ function plot_bd_diagram(barcodes; dims = 1:length(barcodes),
             size = (600, 600),
             legend = :bottomright,
             framestyle=:origin,
+            alpha=alpha,
             # hover = labels,
             kwargs...)
         if class_labels != []
@@ -447,20 +464,6 @@ function plot_bd_diagram(barcodes; dims = 1:length(barcodes),
         plot!(my_vec[:, 1], my_vec[:, 2], seriestype = :scatter; args...)
     end
 
-    # Add diagonal
-    if normilised_diagonal
-        max_coord = 1
-    else
-        max_x = max([k for k in vcat([barcodes[d][:,1] for (d, dim) in dims|> enumerate]...) if !isinf(k) ]...)
-        max_y = max([k for k in vcat([barcodes[d][:,2] for (d, dim) in dims|> enumerate]...) if !isinf(k) ]...)
-        max_coord = max(max_x, max_y)
-    end
-
-    scaling_factor = 1.05
-    min_val = -0.05
-    plot!([0, scaling_factor*max_coord], [0, scaling_factor*max_coord], label = "")
-    xlims!(min_val, scaling_factor*max_coord)
-    ylims!(min_val, scaling_factor*max_coord)
     xlabel!("birth")
     ylabel!("death")
 
