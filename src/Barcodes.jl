@@ -434,6 +434,7 @@ function plot_bd_diagram(barcodes; dims = 1:length(barcodes),
             aspect_ratio = 1,
             size = (600, 600),
             legend = :bottomright,
+            framestyle=:origin,
             # hover = labels,
             kwargs...)
         if class_labels != []
@@ -455,10 +456,12 @@ function plot_bd_diagram(barcodes; dims = 1:length(barcodes),
         max_coord = max(max_x, max_y)
     end
 
+
     scaling_factor = 1.05
+    min_val = -0.05
     plot!([0, scaling_factor*max_coord], [0, scaling_factor*max_coord], label = "")
-    xlims!(0, scaling_factor*max_coord)
-    ylims!(0, scaling_factor*max_coord)
+    xlims!(min_val, scaling_factor*max_coord)
+    ylims!(min_val, scaling_factor*max_coord)
     # xlims!(0,1)
     # ylims!(0,1)
 
