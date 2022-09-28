@@ -164,13 +164,25 @@ function plot_barcodes(barcodes::Vector;
 end
 
 function sort_barcodes!(barcodes, min_dim, max_dim)
+    sorted_barcodes = copy(barcodes)
     for (dim_index, dim) = enumerate(min_dim:max_dim)
         if dim == 0
-            sort!(barcodes[dim_index], dims = 1)
+            permutation = sortperm(barcodes[dim_index][:, 2])
         else
-            sort!(barcodes[dim_index], dims = 1)
+            permutation = sortperm(barcodes[dim_index][:, 1])
         end
+        sorted_barcodes[dim_index] = barcodes[dim_index][permutation, :]
+        # end
     end
+    barcodes = sorted_barcodes
+
+    # for (dim_index, dim) = enumerate(min_dim:max_dim)
+    #     if dim == 0
+    #         sort!(barcodes[dim_index], dims = 1)
+    #     else
+    #         sort!(barcodes[dim_index], dims = 1)
+    #     end
+    # end
 end
 # TODO This has to be imported from other file
 # function get_bettis_color_palete(; min_dim = 1, use_set::Integer = 1)
