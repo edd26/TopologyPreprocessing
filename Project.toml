@@ -1,7 +1,7 @@
 name = "TopologyPreprocessing"
 uuid = "f84dc87b-1198-49da-97ab-02d881fe0800"
 authors = ["Emil Dmitruk"]
-version = "0.1.5"
+version = "0.1.6"
 
 [deps]
 Distances = "b4f34e82-e78d-54a5-968a-f98e89d6e8f7"
