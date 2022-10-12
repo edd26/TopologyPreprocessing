@@ -108,9 +108,9 @@ function plot_barcodes!(barcodes::Vector, plot_ref;
             b[k] = 1
         end
 
-        if dim == 0
-            b = sort(b, dims = 1)
-        end
+        # if dim == 0
+        #     b = sort(b, dims = 1)
+        # end
 
         total_bars = size(b, 1)
         y_vals = [[k, k] for k in y_val_ranges[p]]
@@ -166,11 +166,11 @@ end
 function sort_barcodes!(barcodes, min_dim, max_dim)
     sorted_barcodes = copy(barcodes)
     for (dim_index, dim) = enumerate(min_dim:max_dim)
-        if dim == 0
-            permutation = sortperm(barcodes[dim_index][:, 2])
-        else
-            permutation = sortperm(barcodes[dim_index][:, 1])
-        end
+        # if dim == 0
+        #     permutation = sortperm(barcodes[dim_index][:, 2])
+        # else
+        permutation = sortperm(barcodes[dim_index][:, 1])
+        # end
         sorted_barcodes[dim_index] = barcodes[dim_index][permutation, :]
         # end
     end
