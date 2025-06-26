@@ -327,14 +327,20 @@ Returns the barcodes which values are within [0,1] range.
 3. divide all values by total number of steps.
 
 """
-function get_normalised_barcodes(barcodes, betti_numbers::Array)
+function get_normalised_barcodes(barcodes, betti_numbers::Array; to_total_steps=true)
     if typeof(betti_numbers) == Vector
         total_steps = size(betti_numbers[1], 1)
     else
         total_steps = size(betti_numbers, 1)
     end
 
-    return barcodes ./ total_steps
+    if to_total_steps
+        final_total_steps = max(total_steps, betti_numbers[end, 1])
+    else
+        final_total_steps = max(total_steps, betti_numbers[end-1, 1])
+    end
+
+    return barcodes ./ final_total_steps
 end
 
 
