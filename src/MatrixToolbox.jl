@@ -1,4 +1,4 @@
-using Distances
+import Eirene.Distances: pairwise
 using Random
 
 # export generate_random_point_cloud,
@@ -26,7 +26,7 @@ Return a matrix which stores the pariwise distances between every point in the
 """
 function generate_geometric_matrix(random_points)
 
-    geometric_matrix = Distances.pairwise(Euclidean(), random_points, dims=2)
+    geometric_matrix = pairwise(Euclidean(), random_points, dims=2)
     return geometric_matrix
 end
 
