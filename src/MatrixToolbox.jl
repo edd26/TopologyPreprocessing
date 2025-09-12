@@ -1,4 +1,4 @@
-import Eirene.Distances: pairwise
+import Eirene.Distances: pairwise, Euclidean
 using Random
 
 # export generate_random_point_cloud,
