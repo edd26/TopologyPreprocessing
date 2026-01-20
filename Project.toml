@@ -1,10 +1,9 @@
 name = "TopologyPreprocessing"
 uuid = "f84dc87b-1198-49da-97ab-02d881fe0800"
 authors = ["Emil Dmitruk"]
-version = "0.1.6"
+version = "0.1.7"
 
 [deps]
-Distances = "b4f34e82-e78d-54a5-968a-f98e89d6e8f7"
 Eirene = "9c0f25c4-2ca1-5870-89f6-52640788da1d"
 LinearAlgebra = "37e2e46d-f89d-539d-b4ee-838fcccc9c8e"
 Measures = "442fdcdd-2543-5da2-b0f3-8c86c306513e"
@@ -21,6 +20,9 @@ julia = "1"
 [extras]
 SafeTestsets = "1bc83da4-3b8d-516f-aca4-4fe02f6d838f"
 Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
+
+[sources.Eirene]
+url = "https://github.com/henselman-petrusek/Eirene.jl#"
 
 [targets]
 test = ["Test", "SafeTestsets"]
