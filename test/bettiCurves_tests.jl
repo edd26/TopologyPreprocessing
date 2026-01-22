@@ -1,6 +1,6 @@
 using TopologyPreprocessing
 using Test
-using Eirene
+# using Eirene
 
 #%%
 @testset "BettiCurves.jl" begin
