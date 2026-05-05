@@ -21,14 +21,18 @@ export shift_to_non_negative,
     set_values!
 
 # BettiCurves.jl
+export normalise_bettis,
+    vectorize_bettis,
+    get_area_under_betti_curve
+
+# BettiCurves.jl — Eirene extension (loaded when Eirene is available)
 export get_bettis,
-    normalise_bettis,
-    get_normalised_barcodes,
     get_vectorized_bettis,
+    get_normalised_barcodes,
     plot_bettis,
     get_bettis_color_palete
 
-# BarCodes.jl
+# BarCodes.jl — Eirene extension (loaded when Eirene is available)
 export get_barcodes,
     plot_barcodes,
     plot_barcodes!,
@@ -45,8 +49,12 @@ include("MatrixProcessing.jl")
 include("BettiCurves.jl")
 include("Barcodes.jl")
 
-# Plotting function stubs — implemented in ext/TopologyPreprocessingPlotsExt.jl
-# when Plots and StatsPlots are loaded.
+# Eirene-dependent stubs — implemented in ext/TopologyPreprocessingEireneExt.jl
+function get_bettis end
+function get_barcodes end
+function get_vectorized_bettis end
+
+# Plotting stubs — implemented in ext/TopologyPreprocessingPlotsExt.jl
 function plot_bettis end
 function get_bettis_color_palete end
 function plot_barcodes end

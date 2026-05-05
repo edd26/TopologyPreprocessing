@@ -1,35 +1,5 @@
 # ==============================
 #  ======== Tested code ========
-using Eirene
-
-#%%
-"""
-    get_bettis(results_eirene::Dict, max_dim::Integer; min_dim::Int=1)
-
-Calls Eirene.betticurve for 'dim' in range from `min_dim` up to 'max_dim' and
-stack the resulting Arrays into a vector.
-
-The returned value is a Vector of Arrays{Float64,2}. Each array is of size
-(n,2), where n is the maximal number of steps taken to compute Betti curve of dimensions
-ranging form `min_dim` to `max_dim`. First column of each array contains numbered steps.
-Second column are the Betti curve values for corresponding step.
-
-Arrays in returned vector correspond to Betti curve dimensions form range
-`min_dim` up to 'max_dim'.
-
-"""
-function get_bettis(results_eirene::Dict, max_dim::Integer; min_dim::Int = 1)
-    bettis = Matrix{Float64}[]
-    for d = min_dim:max_dim
-        result = betticurve(results_eirene, dim = d)
-        if isempty(result) && d > 1
-            result = zeros(size(bettis[d-1]))
-        end
-        push!(bettis, result)
-    end
-    return bettis
-end
-# TODO add get_bettis_from_matrix, to wrap C= eirene...; get bettis
 
 #%%
 
@@ -94,24 +64,6 @@ end
 
 #%%
 @deprecate vectorize_bettis(eirene_results::Dict, maxdim::Integer, mindim::Integer) vectorize_bettis(betti_curves)
-
-# ===
-#%%
-"""
-  get_vectorized_bettis(results_eirene::Dict, max_dim::Integer; min_dim::Int=1)
-
-Takes the eirene result and computes Betti curves for dimensions in range
-'mindim:maxdim'. Every Betti curve is stored in successive column of the
-resulting array.
-TODO: this should return a matrix, where first col are indices and rest are B values (1st col is missing now)
-"""
-function get_vectorized_bettis(results_eirene::Dict, max_dim::Integer; min_dim::Int = 1)
-
-    all_bettis = get_bettis(results_eirene, max_dim, min_dim = min_dim)
-    bettis_vector = vectorize_bettis(all_bettis)
-
-    return bettis_vector
-end
 
 
 #%%
@@ -314,25 +266,3 @@ function get_area_under_betti_curve(betti_curves::Union{Matrix{Float64}, Array{A
 end
 
 @deprecate get_area_under_betti_curve(C, min_dim, max_dim) get_area_under_betti_curve(betti_curves; do_normalised=false)
-
-#%%
-"""
-    get_dataset_bettis_areas(dataset; min_dim::Integer=1, max_dim::Integer=3, return_matrix::Bool=true)
-
-Computes topology of every matrix in dataset, computes Betti curves for dimensions
-min_dim up to max_dim and returns vector (or matrix) of areas under Betti curves.
-"""
-function get_dataset_bettis_areas(dataset; min_dim::Integer=1, max_dim::Integer=3, return_matrix::Bool=true)
-    areas_vector = Array[]
-    for data = dataset
-        @info "Computing topology."
-        C = eirene(data, maxdim=max_dim,)
-        matrix_bettis = get_bettis(C,max_dim, min_dim=min_dim)
-        push!(areas_vector, get_area_under_betti_curve(matrix_bettis))
-    end
-    if return_matrix
-        return vcat([areas_vector[k] for k=1:10]...)
-    else
-        return areas_vector
-    end
-end

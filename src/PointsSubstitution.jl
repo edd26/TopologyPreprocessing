@@ -6,7 +6,6 @@
 
 # TODO Check if the threshold of values is applied here and if it has some
 # 		consequence on results
-using Eirene
 using Random
 
 include("MatrixToolbox.jl")

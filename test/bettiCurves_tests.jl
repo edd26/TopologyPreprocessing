@@ -1,9 +1,18 @@
 using TopologyPreprocessing
 using Test
-# using Eirene
+
+eirene_available = try
+    using Eirene
+    true
+catch
+    false
+end
 
 #%%
 @testset "BettiCurves.jl" begin
+if !eirene_available
+    @test_skip "Eirene not loaded — skipping get_bettis tests"
+else
     sample_distance_matrix1 = [0  1  25 4  5  9  13 17;
                                   1  0  2  26 6  10 14 18;
                                   25 2  0  3  7  11 15 19;
@@ -105,12 +114,13 @@ using Test
             end
         end
     end
+end # if eirene_available
 end
 
 
 @testset "BettiCurves.jl -> plot bettis" begin
-    if isempty(methods(plot_bettis))
-        @test_skip "Plots not loaded — skipping plot_bettis tests"
+    if isempty(methods(plot_bettis)) || !eirene_available
+        @test_skip "Plots or Eirene not loaded — skipping plot_bettis tests"
     else
     # TODO remove tests which test Plots.plot function and not plot_bettis functionality
     sample_distance_matrix1 = [0  1  25 4  5  9  13 17;
@@ -210,7 +220,9 @@ end
 
 
 @testset "BettiCurves.jl -> area under betti curves" begin
-
+if !eirene_available
+    @test_skip "Eirene not loaded — skipping area under betti curves tests"
+else
     let sample_distance_matrix1 = [0  1  25 4  5  9  13 17;
                                   1  0  2  26 6  10 14 18;
                                   25 2  0  3  7  11 15 19;
@@ -288,4 +300,5 @@ end
             end
         end
     end
+end # if eirene_available
 end

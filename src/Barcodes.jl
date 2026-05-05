@@ -1,5 +1,3 @@
-using Eirene
-
 #%%
 # ==============================
 #  ======== Tested code ========
@@ -8,35 +6,6 @@ using Eirene
 #%%
 # ================================
 #  ======== Untested code ========
-
-"""
-    get_barcodes(results_eirene::Dict, max_dim::Integer; min_dim::Int=1)
-
-Calls Eirene.barcode for 'dim' in range from `min_dim` up to 'max_dim' and
-stack the resulting Arrays into a vector.
-
-The returned value is a Vector of Arrays{Float64,2}. Each array is of
-different size, because of different number of detected cycles. First column
-of each array contains birth step, second column contains death step.
-
-Arrays in returned vector correspond to Betti curve dimensions form range
-`min_dim` up to 'max_dim'.
-
-"""
-function get_barcodes(results_eirene::Dict, max_dim::Integer; min_dim::Int=1, sorted::Bool=false)
-    barcodes = Matrix{Float64}[]
-    for d = min_dim:max_dim
-        result = barcode(results_eirene, dim=d)
-        if isempty(result) && d > 1
-            result = zeros(size(barcodes[d-1]))
-        end
-        if sorted
-            result = result[sortperm(result[:, 1]), :]
-        end
-        push!(barcodes, result)
-    end
-    return barcodes
-end
 
 
 function get_birth_death_ratio(barcodes; max_dim::Integer=3)

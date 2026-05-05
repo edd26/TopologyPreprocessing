@@ -343,7 +343,6 @@ function plot_and_save_bettis(bettis,
                                 max_dim = 3,
                                 legend_on = true,
                                 kwargs...)
-    bettis = TopologyPreprocessing.get_bettis(eirene_results, max_dim)
     if do_normalise
         bettis = TopologyPreprocessing.normalise_bettis(bettis)
     end
