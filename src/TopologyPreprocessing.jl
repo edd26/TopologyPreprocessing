@@ -22,6 +22,7 @@ export shift_to_non_negative,
 
 # BettiCurves.jl
 export get_bettis,
+    normalise_bettis,
     get_normalised_barcodes,
     get_vectorized_bettis,
     plot_bettis,
@@ -44,5 +45,13 @@ include("MatrixProcessing.jl")
 include("BettiCurves.jl")
 include("Barcodes.jl")
 
+# Plotting function stubs — implemented in ext/TopologyPreprocessingPlotsExt.jl
+# when Plots and StatsPlots are loaded.
+function plot_bettis end
+function get_bettis_color_palete end
+function plot_barcodes end
+function plot_barcodes! end
+function boxplot_birth_death end
+function boxplot_lifetime end
 
 end # module

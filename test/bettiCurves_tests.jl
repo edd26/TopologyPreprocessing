@@ -109,6 +109,9 @@ end
 
 
 @testset "BettiCurves.jl -> plot bettis" begin
+    if isempty(methods(plot_bettis))
+        @test_skip "Plots not loaded — skipping plot_bettis tests"
+    else
     # TODO remove tests which test Plots.plot function and not plot_bettis functionality
     sample_distance_matrix1 = [0  1  25 4  5  9  13 17;
                                   1  0  2  26 6  10 14 18;
@@ -202,6 +205,7 @@ end
         all_bettis = get_vectorized_bettis(eirene_results, max_B_dim)
 
     end
+    end # if isempty(methods(plot_bettis))
 end
 
 
